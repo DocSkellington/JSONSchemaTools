@@ -78,4 +78,37 @@ public class TestGenerator {
         }
         return 0;
     }
+
+    @Test(invocationCount = 10)
+    public void testGeneratorDefinitionByRef() throws FileNotFoundException, JSONSchemaException, URISyntaxException, JSONException, GeneratorException {
+        JSONSchema schema = loadSchema("definitionByRef.json");
+        DefaultGenerator generator = new DefaultGenerator();
+        JSONObject document = generator.generate(schema, 5);
+        
+        Assert.assertTrue(1 <= document.length() && document.length() <= 3);
+        Assert.assertTrue(document.has("description"));
+
+        JSONObject description = document.getJSONObject("description");
+        Assert.assertEquals(description.length(), 1);
+        Assert.assertTrue(description.has("arguments"));
+        checkArgumentsInDefinitionByRef(description.getJSONObject("arguments"));
+
+        if (document.has("comment")) {
+            Assert.assertEquals(document.getString("comment"), AbstractConstants.stringConstant);
+        }
+
+        if (document.has("arguments")) {
+            checkArgumentsInDefinitionByRef(document.getJSONObject("arguments"));
+        }
+    }
+
+    private void checkArgumentsInDefinitionByRef(JSONObject arguments) {
+        Assert.assertEquals(arguments.length(), 1);
+        Assert.assertTrue(arguments.has("values"));
+        JSONArray values = arguments.getJSONArray("values");
+        Assert.assertTrue(1 <= values.length() && values.length() <= 5);
+        for (int i = 0 ; i < values.length() ; i++) {
+            Assert.assertTrue(values.getBoolean(i) == true || values.getBoolean(i) == false);
+        }
+    }
 }

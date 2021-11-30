@@ -166,11 +166,28 @@ public final class JSONSchema {
         return null;
     }
 
+    private JSONSchema handleRef(String reference) throws JSONException, JSONSchemaException {
+        String[] decompositions = reference.split("/");
+        if (decompositions[0].equals("#")) {
+            // Recursive reference
+            JSONSchema targetSchema = store.get(fullSchemaId);
+            for (int i = 1 ; i < decompositions.length ; i++) {
+                String key = decompositions[i];
+                targetSchema = targetSchema.getSubSchema(key);
+            }
+            return targetSchema;
+        }
+        else {
+            // Reference to an other file
+            // TODO
+            return null;
+        }
+    }
+
     public JSONSchema getSubSchema(String key) throws JSONException, JSONSchemaException {
         JSONObject subObject = properties.getJSONObject(key);
-        // TODO: generalize
-        if (subObject.has("$ref") && subObject.getString("$ref").equals("#")) {
-            return store.get(fullSchemaId);
+        if (subObject.has("$ref")) {
+            return handleRef(subObject.getString("$ref"));
         }
         else {
             return new JSONSchema(subObject, store, fullSchemaId);
@@ -180,8 +197,8 @@ public final class JSONSchema {
     public JSONSchema getItemsArray() throws JSONException, JSONSchemaException {
         // TODO: sometimes, items is a list of objects (or just an object), not a list of types
         JSONObject subObject = object.getJSONObject("items");
-        if (subObject.has("$ref") && subObject.getString("$ref").equals("#")) {
-            return store.get(fullSchemaId);
+        if (subObject.has("$ref")) {
+            return handleRef(subObject.getString("$ref"));
         }
         else {
             return new JSONSchema(object.getJSONObject("items"), store, fullSchemaId);

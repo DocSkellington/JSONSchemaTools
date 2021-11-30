@@ -34,19 +34,19 @@ public class TestValidator {
         // @formatter:off
         builder.
             append('{').
-            append("\"integer\": \"").append("\\" + AbstractConstants.numberConstant).append("\"").
-            append(',').
-            append("\"boolean\": false").
-            append(',').
-            append("\"string\": \"").append("\\" + AbstractConstants.stringConstant).append("\"").
-            append(',').
-            append("\"double\": \"").append("\\" + AbstractConstants.numberConstant).append("\"").
-            append(",").
-            append("\"enumVar\": \"").append("\\" + AbstractConstants.enumConstant).append("\"").
-            append(",").
-            append("\"object\": {\"anything\": \"").append("\\" + AbstractConstants.integerConstant).append("\"}").
-            append(",").
-            append("\"array\": [").append("\"\\" + AbstractConstants.stringConstant + "\"").append(',').append("\"\\" + AbstractConstants.stringConstant + "\"").append(']').
+                append("\"integer\": \"").append("\\" + AbstractConstants.numberConstant).append("\"").
+                append(',').
+                append("\"boolean\": false").
+                append(',').
+                append("\"string\": \"").append("\\" + AbstractConstants.stringConstant).append("\"").
+                append(',').
+                append("\"double\": \"").append("\\" + AbstractConstants.numberConstant).append("\"").
+                append(",").
+                append("\"enumVar\": \"").append("\\" + AbstractConstants.enumConstant).append("\"").
+                append(",").
+                append("\"object\": {\"anything\": \"").append("\\" + AbstractConstants.integerConstant).append("\"}").
+                append(",").
+                append("\"array\": [").append("\"\\" + AbstractConstants.stringConstant + "\"").append(',').append("\"\\" + AbstractConstants.stringConstant + "\"").append(']').
             append('}');
         // @formatter:on
         Assert.assertFalse(validator.validate(schema, new JSONObject(builder.toString())));
@@ -61,19 +61,19 @@ public class TestValidator {
         // @formatter:off
         builder.
             append('{').
-            append("\"integer\": \"").append("\\" + AbstractConstants.integerConstant).append("\"").
-            append(',').
-            append("\"boolean\": false").
-            append(',').
-            append("\"string\": \"").append("\\" + AbstractConstants.stringConstant).append("\"").
-            append(',').
-            append("\"double\": \"").append("\\" + AbstractConstants.numberConstant).append("\"").
-            append(",").
-            append("\"enumVar\": \"").append("\\" + AbstractConstants.enumConstant).append("\"").
-            append(",").
-            append("\"object\": {\"anything\": \"").append("\\" + AbstractConstants.integerConstant).append("\"}").
-            append(",").
-            append("\"array\": [").append("\"\\" + AbstractConstants.stringConstant + "\"").append(',').append("\"\\" + AbstractConstants.stringConstant + "\"").append(']').
+                append("\"integer\": \"").append("\\" + AbstractConstants.integerConstant).append("\"").
+                append(',').
+                append("\"boolean\": false").
+                append(',').
+                append("\"string\": \"").append("\\" + AbstractConstants.stringConstant).append("\"").
+                append(',').
+                append("\"double\": \"").append("\\" + AbstractConstants.numberConstant).append("\"").
+                append(",").
+                append("\"enumVar\": \"").append("\\" + AbstractConstants.enumConstant).append("\"").
+                append(",").
+                append("\"object\": {\"anything\": \"").append("\\" + AbstractConstants.integerConstant).append("\"}").
+                append(",").
+                append("\"array\": [").append("\"\\" + AbstractConstants.stringConstant + "\"").append(',').append("\"\\" + AbstractConstants.stringConstant + "\"").append(']').
             append('}');
         // @formatter:on
         Assert.assertTrue(validator.validate(schema, new JSONObject(builder.toString())));
@@ -144,4 +144,59 @@ public class TestValidator {
         Assert.assertTrue(validator.validate(schema, new JSONObject(builder.toString())));
     }
 
+    @Test
+    public void testMissingReferencedPropertyDefinitionByRef() throws JSONException, JSONSchemaException, FileNotFoundException, URISyntaxException {
+        JSONSchema schema = loadSchemaResource("definitionByRef.json");
+        Validator validator = new DefaultValidator();
+        StringBuilder builder = new StringBuilder();
+        // @formatter:off
+        builder.
+            append('{').
+                append("\"comment\": \"").append("\\" + AbstractConstants.stringConstant).append("\"").
+                append(',').
+                append("\"description\": {").
+                    append("\"arguments\": {").
+                    append('}').
+                append('}').
+            append('}');
+        // @formatter:on
+        Assert.assertFalse(validator.validate(schema, new JSONObject(builder.toString())));
+    }
+
+    @Test
+    public void testValidDocumentDefinitionByRef() throws FileNotFoundException, JSONSchemaException, URISyntaxException {
+        JSONSchema schema = loadSchemaResource("definitionByRef.json");
+        Validator validator = new DefaultValidator();
+        StringBuilder builder = new StringBuilder();
+        // @formatter:off
+        builder.
+            append('{').
+                append("\"comment\": \"").append("\\" + AbstractConstants.stringConstant).append("\"").
+                append(',').
+                append("\"description\": {").
+                    append("\"arguments\": {").
+                        append("\"values\": [true, true]").
+                    append('}').
+                append('}').
+            append('}');
+        // @formatter:on
+        Assert.assertTrue(validator.validate(schema, new JSONObject(builder.toString())));
+
+        builder = new StringBuilder();
+        // @formatter:off
+        builder.
+            append('{').
+                append("\"arguments\": {").
+                    append("\"values\": [false, true, false, true, false]").
+                append('}').
+                append(',').
+                append("\"description\": {").
+                    append("\"arguments\": {").
+                        append("\"values\": [true, true]").
+                    append('}').
+                append('}').
+            append('}');
+        // @formatter:on
+        Assert.assertTrue(validator.validate(schema, new JSONObject(builder.toString())));
+    }
 }
