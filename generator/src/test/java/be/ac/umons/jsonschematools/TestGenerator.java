@@ -111,4 +111,23 @@ public class TestGenerator {
             Assert.assertTrue(values.getBoolean(i) == true || values.getBoolean(i) == false);
         }
     }
+
+    @Test(invocationCount = 10)
+    public void testGeneratorSchemaTwoFiles() throws FileNotFoundException, JSONSchemaException, URISyntaxException, JSONException, GeneratorException {
+        JSONSchema schema = loadSchema("firstPart.json");
+        DefaultGenerator generator = new DefaultGenerator();
+        JSONObject document = generator.generate(schema, 5);
+
+        Assert.assertEquals(document.length(), 1);
+        Assert.assertTrue(document.has("value"));
+
+        JSONObject value = document.getJSONObject("value");
+        Assert.assertTrue(1 <= value.length() && value.length() <= 2);
+        Assert.assertTrue(value.has("id"));
+        Assert.assertEquals(value.getString("id"), AbstractConstants.integerConstant);
+
+        if (value.has("comment")) {
+            Assert.assertEquals(value.getString("comment"), AbstractConstants.stringConstant);
+        }
+    }
 }

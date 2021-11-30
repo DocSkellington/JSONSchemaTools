@@ -199,4 +199,23 @@ public class TestValidator {
         // @formatter:on
         Assert.assertTrue(validator.validate(schema, new JSONObject(builder.toString())));
     }
+
+    @Test
+    public void testValidDocumentSchemaTwoFiles() throws FileNotFoundException, JSONSchemaException, URISyntaxException {
+        JSONSchema schema = loadSchemaResource("firstPart.json");
+        Validator validator = new DefaultValidator();
+        StringBuilder builder = new StringBuilder();
+        // @formatter:off
+        builder.
+            append('{').
+                append("\"value\": {").
+                    append("\"comment\": \"\\").append(AbstractConstants.stringConstant).append("\"").
+                    append(',').
+                    append("\"id\": \"\\").append(AbstractConstants.integerConstant).append("\"").
+                    append('}').
+                append('}').
+            append('}');
+        // @formatter:on
+        Assert.assertTrue(validator.validate(schema, new JSONObject(builder.toString())));
+    }
 }

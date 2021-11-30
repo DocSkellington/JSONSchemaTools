@@ -1,5 +1,6 @@
 package be.ac.umons.jsonschematools;
 
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -15,7 +16,7 @@ import org.json.JSONObject;
 /**
  * A wrapper around a JSON document storing a schema.
  * 
- * TODO: handle refs
+ * TODO: defs, allOf, anyOf, and so on
  * 
  * @author Gaëtan Staquet
  */
@@ -167,9 +168,9 @@ public final class JSONSchema {
     }
 
     private JSONSchema handleRef(String reference) throws JSONException, JSONSchemaException {
-        String[] decompositions = reference.split("/");
-        if (decompositions[0].equals("#")) {
+        if (reference.charAt(0) == '#') {
             // Recursive reference
+            String[] decompositions = reference.split("/");
             JSONSchema targetSchema = store.get(fullSchemaId);
             for (int i = 1 ; i < decompositions.length ; i++) {
                 String key = decompositions[i];
@@ -179,8 +180,12 @@ public final class JSONSchema {
         }
         else {
             // Reference to an other file
-            // TODO
-            return null;
+            try {
+                return store.loadRelative(fullSchemaId, reference);
+            }
+            catch (FileNotFoundException e) {
+                throw new JSONSchemaException("The schema referenced by " + reference + " can not be found. Check that the file is present in our local machine as this implementation does not download files.");
+            }
         }
     }
 
