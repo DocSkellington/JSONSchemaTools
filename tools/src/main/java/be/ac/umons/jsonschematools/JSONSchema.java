@@ -15,6 +15,8 @@ import org.json.JSONObject;
 /**
  * A wrapper around a JSON document storing a schema.
  * 
+ * TODO: handle refs
+ * 
  * @author Gaëtan Staquet
  */
 public final class JSONSchema {
@@ -160,11 +162,12 @@ public final class JSONSchema {
         return null;
     }
 
-    private JSONSchema getSubSchema(String key) throws JSONException, JSONSchemaException {
+    public JSONSchema getSubSchema(String key) throws JSONException, JSONSchemaException {
         return new JSONSchema(properties.getJSONObject(key));
     }
 
     public JSONSchema getItemsArray() throws JSONException, JSONSchemaException {
+        // TODO: sometimes, items is a list of objects, not a list of types
         return new JSONSchema(object.getJSONObject("items"));
     }
 
@@ -206,5 +209,10 @@ public final class JSONSchema {
 
     public boolean getBooleanOr(String key, boolean defaultValue) {
         return object.optBoolean(key, defaultValue);
+    }
+
+    @Override
+    public String toString() {
+        return object.toString();
     }
 }
