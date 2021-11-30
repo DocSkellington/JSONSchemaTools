@@ -18,8 +18,9 @@ public class Generator<ST, IT, NT, BT, ET, OT extends JSONObject, AT extends JSO
     private final Handler<OT> objectHandler;
     private final Handler<AT> arrayHandler;
 
-    public Generator(Handler<ST> stringHandler, Handler<IT> integerHandler, Handler<NT> numberHandler,
-            Handler<BT> booleanHandler, Handler<ET> enumHandler, Handler<OT> objectHandler, Handler<AT> arrayHandler) {
+    public Generator(final Handler<ST> stringHandler, final Handler<IT> integerHandler, final Handler<NT> numberHandler,
+            final Handler<BT> booleanHandler, final Handler<ET> enumHandler, final Handler<OT> objectHandler,
+            final Handler<AT> arrayHandler) {
         this.stringHandler = stringHandler;
         this.integerHandler = integerHandler;
         this.numberHandler = numberHandler;
@@ -29,11 +30,13 @@ public class Generator<ST, IT, NT, BT, ET, OT extends JSONObject, AT extends JSO
         this.arrayHandler = arrayHandler;
     }
 
-    public OT generate(JSONSchema schema, int maxTreeSize) throws JSONSchemaException, JSONException, GeneratorException {
+    public OT generate(final JSONSchema schema, final int maxTreeSize)
+            throws JSONSchemaException, JSONException, GeneratorException {
         return generate(schema, maxTreeSize, new Random());
     }
 
-    public OT generate(JSONSchema schema, int maxTreeSize, Random rand) throws JSONSchemaException, JSONException, GeneratorException {
+    public OT generate(final JSONSchema schema, final int maxTreeSize, final Random rand)
+            throws JSONSchemaException, JSONException, GeneratorException {
         return objectHandler.generate(this, schema, maxTreeSize, rand);
     }
 

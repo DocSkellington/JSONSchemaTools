@@ -23,9 +23,13 @@ public final class JSONSchema {
     private final JSONObject object;
     private final JSONObject properties;
     private final Set<Type> types = new HashSet<>();
+    private final JSONSchemaStore store;
+    private final int fullSchemaId;
 
-    JSONSchema(JSONObject object) throws JSONSchemaException {
+    JSONSchema(final JSONObject object, final JSONSchemaStore store, final int fullSchemaId) throws JSONSchemaException {
         this.object = object;
+        this.store = store;
+        this.fullSchemaId = fullSchemaId;
 
         if (object.has("type")) {
             try {
@@ -163,12 +167,25 @@ public final class JSONSchema {
     }
 
     public JSONSchema getSubSchema(String key) throws JSONException, JSONSchemaException {
-        return new JSONSchema(properties.getJSONObject(key));
+        JSONObject subObject = properties.getJSONObject(key);
+        // TODO: generalize
+        if (subObject.has("$ref") && subObject.getString("$ref").equals("#")) {
+            return store.get(fullSchemaId);
+        }
+        else {
+            return new JSONSchema(subObject, store, fullSchemaId);
+        }
     }
 
     public JSONSchema getItemsArray() throws JSONException, JSONSchemaException {
-        // TODO: sometimes, items is a list of objects, not a list of types
-        return new JSONSchema(object.getJSONObject("items"));
+        // TODO: sometimes, items is a list of objects (or just an object), not a list of types
+        JSONObject subObject = object.getJSONObject("items");
+        if (subObject.has("$ref") && subObject.getString("$ref").equals("#")) {
+            return store.get(fullSchemaId);
+        }
+        else {
+            return new JSONSchema(object.getJSONObject("items"), store, fullSchemaId);
+        }
     }
 
     public int getInt(String key) {

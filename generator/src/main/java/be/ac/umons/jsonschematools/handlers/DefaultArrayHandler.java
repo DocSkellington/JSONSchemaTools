@@ -34,9 +34,9 @@ public class DefaultArrayHandler implements Handler<JSONArray> {
             return array;
         }
 
-        int minItem = schema.getIntOr("minItems", 0);
-        int maxItem = schema.getIntOr("maxItems", this.maxItems);
-        if (minItem > maxItem) {
+        int minItems = schema.getIntOr("minItems", 0);
+        int maxItems = schema.getIntOr("maxItems", this.maxItems);
+        if (minItems > maxItems) {
             throw new GeneratorException("Array: minItems can not be strictly greater than maxItems");
         }
         JSONSchema itemsSchema = null;
@@ -48,7 +48,7 @@ public class DefaultArrayHandler implements Handler<JSONArray> {
 
         List<Type> typeItems = new ArrayList<>(itemsSchema.getTypes());
         
-        int size = rand.nextInt(maxItem - minItem) + minItem;
+        int size = rand.nextInt(maxItems - minItems + 1) + minItems;
         for (int i = 0 ; i < size ; i++) {
             Type type = typeItems.get(rand.nextInt(typeItems.size()));
             array.put(DefaultObjectHandler.generateValue(type, generator, itemsSchema, maxTreeSize, rand));

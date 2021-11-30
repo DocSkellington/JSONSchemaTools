@@ -4,7 +4,7 @@
         "name": {
             "type": "string"
         },
-        "children": {
+        "list": {
             "type": "array",
             "maxItems": 1,
             "items": {"$ref": "#"}

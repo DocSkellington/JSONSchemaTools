@@ -16,7 +16,7 @@ public class TestValidator {
     }
 
     @Test
-    public void testMissingRequiredProperties()
+    public void testMissingRequiredPropertiesBasicTypes()
             throws FileNotFoundException, JSONException, JSONSchemaException, URISyntaxException {
         JSONSchema schema = loadSchemaResource("basicTypes.json");
         Validator validator = new DefaultValidator();
@@ -27,7 +27,7 @@ public class TestValidator {
     }
 
     @Test
-    public void testInvalidValue() throws FileNotFoundException, JSONSchemaException, URISyntaxException {
+    public void testInvalidValueBasicTypes() throws FileNotFoundException, JSONSchemaException, URISyntaxException {
         JSONSchema schema = loadSchemaResource("basicTypes.json");
         Validator validator = new DefaultValidator();
         StringBuilder builder = new StringBuilder();
@@ -53,7 +53,7 @@ public class TestValidator {
     }
 
     @Test
-    public void testValidDocument()
+    public void testValidDocumentBasicTypes()
             throws JSONException, JSONSchemaException, FileNotFoundException, URISyntaxException {
         JSONSchema schema = loadSchemaResource("basicTypes.json");
         Validator validator = new DefaultValidator();
@@ -78,4 +78,70 @@ public class TestValidator {
         // @formatter:on
         Assert.assertTrue(validator.validate(schema, new JSONObject(builder.toString())));
     }
+
+    @Test
+    public void testMissingRequiredPropertiesRecursiveList() throws FileNotFoundException, JSONSchemaException, URISyntaxException {
+        JSONSchema schema = loadSchemaResource("recursiveList.json");
+        Validator validator = new DefaultValidator();
+        StringBuilder builder = new StringBuilder();
+        // @formatter:off
+        builder.
+            append('{').
+            append("\"name\": \"").append("\\" + AbstractConstants.stringConstant).append("\"").
+            append(',').
+            append("\"list\": [{").
+                    append("\"name\": \"").append("\\" + AbstractConstants.stringConstant).append("\"").
+                    append(',').
+                    append("\"list\": [{").
+                    append("}]").
+                append("}]").
+            append('}');
+        // @formatter:on
+        Assert.assertFalse(validator.validate(schema, new JSONObject(builder.toString())));
+    }
+
+    @Test
+    public void testInvalidValueRecursiveList() throws FileNotFoundException, JSONSchemaException, URISyntaxException {
+        JSONSchema schema = loadSchemaResource("recursiveList.json");
+        Validator validator = new DefaultValidator();
+        StringBuilder builder = new StringBuilder();
+        // @formatter:off
+        builder.
+            append('{').
+            append("\"name\": \"").append("\\" + AbstractConstants.stringConstant).append("\"").
+            append(',').
+            append("\"list\": [{").
+                    append("\"name\": \"").append("\\" + AbstractConstants.stringConstant).append("\"").
+                    append(',').
+                    append("\"list\": [{").
+                        append("\"name\": \"").append("\\" + AbstractConstants.integerConstant).append("\"").
+                    append("}]").
+                append("}]").
+            append('}');
+        // @formatter:on
+        Assert.assertFalse(validator.validate(schema, new JSONObject(builder.toString())));
+    }
+
+    @Test
+    public void testValidDocumentRecursiveList() throws FileNotFoundException, JSONSchemaException, URISyntaxException {
+        JSONSchema schema = loadSchemaResource("recursiveList.json");
+        Validator validator = new DefaultValidator();
+        StringBuilder builder = new StringBuilder();
+        // @formatter:off
+        builder.
+            append('{').
+            append("\"name\": \"").append("\\" + AbstractConstants.stringConstant).append("\"").
+            append(',').
+            append("\"list\": [{").
+                    append("\"name\": \"").append("\\" + AbstractConstants.stringConstant).append("\"").
+                    append(',').
+                    append("\"list\": [{").
+                        append("\"name\": \"").append("\\" + AbstractConstants.stringConstant).append("\"").
+                    append("}]").
+                append("}]").
+            append('}');
+        // @formatter:on
+        Assert.assertTrue(validator.validate(schema, new JSONObject(builder.toString())));
+    }
+
 }
