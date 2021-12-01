@@ -2,25 +2,24 @@ package be.ac.umons.jsonschematools;
 
 import java.util.Random;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import be.ac.umons.jsonschematools.handlers.Handler;
 
-public class Generator<ST, IT, NT, BT, ET, OT extends JSONObject, AT extends JSONArray> {
+public class Generator {
 
-    private final Handler<ST> stringHandler;
-    private final Handler<IT> integerHandler;
-    private final Handler<NT> numberHandler;
-    private final Handler<BT> booleanHandler;
-    private final Handler<ET> enumHandler;
-    private final Handler<OT> objectHandler;
-    private final Handler<AT> arrayHandler;
+    private final Handler stringHandler;
+    private final Handler integerHandler;
+    private final Handler numberHandler;
+    private final Handler booleanHandler;
+    private final Handler enumHandler;
+    private final Handler objectHandler;
+    private final Handler arrayHandler;
 
-    public Generator(final Handler<ST> stringHandler, final Handler<IT> integerHandler, final Handler<NT> numberHandler,
-            final Handler<BT> booleanHandler, final Handler<ET> enumHandler, final Handler<OT> objectHandler,
-            final Handler<AT> arrayHandler) {
+    public Generator(final Handler stringHandler, final Handler integerHandler, final Handler numberHandler,
+            final Handler booleanHandler, final Handler enumHandler, final Handler objectHandler,
+            final Handler arrayHandler) {
         this.stringHandler = stringHandler;
         this.integerHandler = integerHandler;
         this.numberHandler = numberHandler;
@@ -30,41 +29,41 @@ public class Generator<ST, IT, NT, BT, ET, OT extends JSONObject, AT extends JSO
         this.arrayHandler = arrayHandler;
     }
 
-    public OT generate(final JSONSchema schema, final int maxTreeSize)
+    public JSONObject generate(final JSONSchema schema, final int maxTreeSize)
             throws JSONSchemaException, JSONException, GeneratorException {
         return generate(schema, maxTreeSize, new Random());
     }
 
-    public OT generate(final JSONSchema schema, final int maxTreeSize, final Random rand)
+    public JSONObject generate(final JSONSchema schema, final int maxTreeSize, final Random rand)
             throws JSONSchemaException, JSONException, GeneratorException {
-        return objectHandler.generate(this, schema, maxTreeSize, rand);
+        return (JSONObject) objectHandler.generate(this, schema, maxTreeSize, rand);
     }
 
-    public Handler<ST> getStringHandler() {
+    public Handler getStringHandler() {
         return stringHandler;
     }
 
-    public Handler<IT> getIntegerHandler() {
+    public Handler getIntegerHandler() {
         return integerHandler;
     }
 
-    public Handler<NT> getNumberHandler() {
+    public Handler getNumberHandler() {
         return numberHandler;
     }
 
-    public Handler<OT> getObjectHandler() {
+    public Handler getObjectHandler() {
         return objectHandler;
     }
 
-    public Handler<AT> getArrayHandler() {
+    public Handler getArrayHandler() {
         return arrayHandler;
     }
 
-    public Handler<BT> getBooleanHandler() {
+    public Handler getBooleanHandler() {
         return booleanHandler;
     }
 
-    public Handler<ET> getEnumHandler() {
+    public Handler getEnumHandler() {
         return enumHandler;
     }
 }

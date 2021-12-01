@@ -3,7 +3,6 @@ package be.ac.umons.jsonschematools.handlers;
 import java.util.Map;
 import java.util.Random;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -13,11 +12,11 @@ import be.ac.umons.jsonschematools.JSONSchema;
 import be.ac.umons.jsonschematools.JSONSchemaException;
 import be.ac.umons.jsonschematools.Type;
 
-public class DefaultObjectHandler implements Handler<JSONObject> {
+public class DefaultObjectHandler implements Handler {
 
     @Override
-    public <ST, IT, NT, BT, ET, OT extends JSONObject, AT extends JSONArray> JSONObject generate(
-            Generator<ST, IT, NT, BT, ET, OT, AT> generator, JSONSchema schema, int maxTreeSize, Random rand) throws JSONException, JSONSchemaException, GeneratorException {
+    public JSONObject generate(
+            Generator generator, JSONSchema schema, int maxTreeSize, Random rand) throws JSONException, JSONSchemaException, GeneratorException {
         JSONObject jsonObject = new JSONObject();
         if (maxTreeSize <= 0) {
             return jsonObject;
@@ -43,7 +42,7 @@ public class DefaultObjectHandler implements Handler<JSONObject> {
         return jsonObject;
     }
 
-    static <ST, IT, NT, BT, ET, OT extends JSONObject, AT extends JSONArray> Object generateValue(Type type, Generator<ST, IT, NT, BT, ET, OT, AT> generator, JSONSchema schema, int maxTreeSize, Random rand) throws JSONSchemaException, JSONException, GeneratorException {
+    static Object generateValue(Type type, Generator generator, JSONSchema schema, int maxTreeSize, Random rand) throws JSONSchemaException, JSONException, GeneratorException {
         switch (type) {
         case BOOLEAN:
             return generator.getBooleanHandler().generate(generator, schema, maxTreeSize, rand);

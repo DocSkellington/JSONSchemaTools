@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Random;
 
 import org.json.JSONArray;
-import org.json.JSONObject;
 
 import be.ac.umons.jsonschematools.Generator;
 import be.ac.umons.jsonschematools.GeneratorException;
@@ -13,7 +12,7 @@ import be.ac.umons.jsonschematools.JSONSchema;
 import be.ac.umons.jsonschematools.JSONSchemaException;
 import be.ac.umons.jsonschematools.Type;
 
-public class DefaultArrayHandler implements Handler<JSONArray> {
+public class DefaultArrayHandler implements Handler {
 
     private final int maxItems;
 
@@ -26,8 +25,8 @@ public class DefaultArrayHandler implements Handler<JSONArray> {
     }
 
     @Override
-    public <ST, IT, NT, BT, ET, OT extends JSONObject, AT extends JSONArray> JSONArray generate(
-            final Generator<ST, IT, NT, BT, ET, OT, AT> generator, final JSONSchema schema, final int maxTreeSize,
+    public JSONArray generate(
+            final Generator generator, final JSONSchema schema, final int maxTreeSize,
             final Random rand) throws JSONSchemaException, GeneratorException {
         JSONArray array = new JSONArray();
         if (maxTreeSize <= 0) {
@@ -42,14 +41,13 @@ public class DefaultArrayHandler implements Handler<JSONArray> {
         JSONSchema itemsSchema = null;
         try {
             itemsSchema = schema.getItemsArray();
-        }
-        catch (JSONSchemaException e) {
+        } catch (JSONSchemaException e) {
         }
 
         List<Type> typeItems = new ArrayList<>(itemsSchema.getTypes());
-        
+
         int size = rand.nextInt(maxItems - minItems + 1) + minItems;
-        for (int i = 0 ; i < size ; i++) {
+        for (int i = 0; i < size; i++) {
             Type type = typeItems.get(rand.nextInt(typeItems.size()));
             array.put(DefaultObjectHandler.generateValue(type, generator, itemsSchema, maxTreeSize, rand));
         }
