@@ -38,7 +38,7 @@ public class DefaultObjectHandler implements Handler {
             final String key) throws JSONException, JSONSchemaException {
         final Object value = object.get(key);
         final JSONSchema schemaForKey = schema.getSubSchema(key);
-        final Set<Type> allowedTypes = schemaForKey.getTypes();
+        final Set<Type> allowedTypes = schemaForKey.getAllowedTypes();
         for (Type type : allowedTypes) {
             final boolean valid;
             switch (type) {

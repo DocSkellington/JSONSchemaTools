@@ -3,6 +3,7 @@ package be.ac.umons.jsonschematools;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -16,7 +17,7 @@ import org.json.JSONObject;
 /**
  * A wrapper around a JSON document storing a schema.
  * 
- * TODO: defs, allOf, anyOf, and so on
+ * TODO: allOf, anyOf, and so on
  * 
  * @author Gaëtan Staquet
  */
@@ -54,6 +55,10 @@ public final class JSONSchema {
             // TODO: get type of data
         }
 
+        if (types.isEmpty()) {
+            types.addAll(EnumSet.allOf(Type.class));
+        }
+
         if (isObject()) {
             JSONObject prop = null;
             try {
@@ -70,7 +75,7 @@ public final class JSONSchema {
         types.add(Type.valueOf(type.toUpperCase()));
     }
 
-    public Set<Type> getTypes() {
+    public Set<Type> getAllowedTypes() {
         return types;
     }
 
@@ -79,35 +84,35 @@ public final class JSONSchema {
     }
 
     public boolean isEnum() {
-        return getTypes().contains(Type.ENUM);
+        return getAllowedTypes().contains(Type.ENUM);
     }
 
     public boolean isObject() {
-        return getTypes().contains(Type.OBJECT);
+        return getAllowedTypes().contains(Type.OBJECT);
     }
 
     public boolean isArray() {
-        return getTypes().contains(Type.ARRAY);
+        return getAllowedTypes().contains(Type.ARRAY);
     }
 
     public boolean isInteger() {
-        return getTypes().contains(Type.INTEGER);
+        return getAllowedTypes().contains(Type.INTEGER);
     }
 
     public boolean isNumber() {
-        return getTypes().contains(Type.NUMBER);
+        return getAllowedTypes().contains(Type.NUMBER);
     }
 
     public boolean isBoolean() {
-        return getTypes().contains(Type.BOOLEAN);
+        return getAllowedTypes().contains(Type.BOOLEAN);
     }
 
     public boolean isString() {
-        return getTypes().contains(Type.STRING);
+        return getAllowedTypes().contains(Type.STRING);
     }
 
     public boolean isNull() {
-        return getTypes().contains(Type.NULL);
+        return getAllowedTypes().contains(Type.NULL);
     }
 
     public Map<String, JSONSchema> getRequiredProperties() throws JSONSchemaException {
@@ -155,6 +160,98 @@ public final class JSONSchema {
         }
 
         return nonRequired;
+    }
+
+    private void parseIntConstraints(final Constraints constraints, final JSONObject schema, final String... keys) {
+        for (String key : keys) {
+            if (schema.has(key)) {
+                constraints.addConstraint(key, schema.getInt(key));
+            }
+        }
+    }
+
+    private void parseDoubleConstraints(final Constraints constraints, final JSONObject schema, final String... keys) {
+        for (String key : keys) {
+            if (schema.has(key)) {
+                constraints.addConstraint(key, schema.getDouble(key));
+            }
+        }
+    }
+
+    private void parseStringConstraints(final Constraints constraints, final JSONObject schema, final String... keys) {
+        for (String key : keys) {
+            if (schema.has(key)) {
+                constraints.addConstraint(key, schema.getString(key));
+            }
+        }
+    }
+
+    private void parseBooleanConstraints(final Constraints constraints, final JSONObject schema, final String... keys) {
+        for (String key : keys) {
+            if (schema.has(key)) {
+                constraints.addConstraint(key, schema.getBoolean(key));
+            }
+        }
+    }
+
+    private void parseObjectConstraints(final Constraints constraints, final JSONObject schema, final String... keys) {
+        for (String key : keys) {
+            if (schema.has(key)) {
+                constraints.addConstraint(key, schema.getJSONObject(key));
+            }
+        }
+    }
+
+    private void parseArrayConstraints(final Constraints constraints, final JSONObject schema, final String... keys) {
+        for (String key : keys) {
+            if (schema.has(key)) {
+                constraints.addConstraint(key, schema.getJSONArray(key));
+            }
+        }
+    }
+
+    public Constraints getAllOf() {
+        // TODO: construct a structure with everything that is required, or null if requirements clash
+        if (!object.has("allOf")) {
+            return new Constraints();
+        }
+        JSONArray allOf = object.getJSONArray("allOf");
+        Constraints constraints = new Constraints();
+        for (int i = 0 ; i < allOf.length() ; i++) {
+            JSONObject schema = allOf.getJSONObject(i);
+            if (schema.has("type")) { 
+                try {
+                    constraints.addConstraint("type", schema.getString("type"));
+                }
+                catch (JSONException e) {
+                    constraints.addConstraint("type", schema.getJSONArray("type"));
+                }
+            }
+            // TODO: handle "const", "items", "allOf", "anyOf", "oneOf", "not"
+            // TODO: handle ref?
+            // TODO: handle if?
+            parseIntConstraints(constraints, schema, "multipleOf", "maximum", "exclusiveMaximum", "minimum", "exclusiveMinimum", "maxLength", "minLength", "minItems", "maxItems", "maxContains", "minContains", "maxProperties", "minProperties");
+            parseArrayConstraints(constraints, schema, "required", "enum", "prefixItems");
+            parseObjectConstraints(constraints, schema, "properties", "contains", "dependentRequired");
+            parseStringConstraints(constraints, schema, "pattern");
+            parseBooleanConstraints(constraints, schema, "uniqueItems");
+        }
+
+        return constraints;
+    }
+
+    public JSONSchema getNot() throws JSONSchemaException {
+        if (object.has("not")) {
+            JSONObject not = object.getJSONObject("not");
+            if (not.has("$ref")) {
+                return handleRef(not.getString("$ref"));
+            }
+            return new JSONSchema(not, store, fullSchemaId);
+        }
+        return null;
+    }
+
+    public JSONSchema mergeWithConstraints(Constraints constraints) {
     }
 
     public Set<String> getAllKeys() {
@@ -206,7 +303,7 @@ public final class JSONSchema {
             return handleRef(subObject.getString("$ref"));
         }
         else {
-            return new JSONSchema(object.getJSONObject("items"), store, fullSchemaId);
+            return new JSONSchema(subObject, store, fullSchemaId);
         }
     }
 

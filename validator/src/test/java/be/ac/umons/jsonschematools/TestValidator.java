@@ -218,4 +218,41 @@ public class TestValidator {
         // @formatter:on
         Assert.assertTrue(validator.validate(schema, new JSONObject(builder.toString())));
     }
+
+    @Test
+    public void testBoundedProperties() throws FileNotFoundException, JSONSchemaException, URISyntaxException {
+        JSONSchema schema = loadSchemaResource("boundedProperties.json");
+        Validator validator = new DefaultValidator();
+        StringBuilder builder = new StringBuilder();
+        // @formatter:off
+        builder.
+            append('{').
+                append("\"str3\": \"\\").append(AbstractConstants.stringConstant).append("\"").
+                append(',').
+                append("\"str1\": \"\\").append(AbstractConstants.stringConstant).append("\"").
+            append('}');
+        // @formatter:on
+        Assert.assertTrue(validator.validate(schema, new JSONObject(builder.toString())));
+
+        builder = new StringBuilder();
+        // @formatter:off
+        builder.
+            append('{').
+            append('}');
+        // @formatter:on
+        Assert.assertFalse(validator.validate(schema, new JSONObject(builder.toString())));
+
+        builder = new StringBuilder();
+        // @formatter:off
+        builder.
+            append('{').
+                append("\"str3\": \"\\").append(AbstractConstants.stringConstant).append("\"").
+                append(',').
+                append("\"str1\": \"\\").append(AbstractConstants.stringConstant).append("\"").
+                append(',').
+                append("\"str4\": \"\\").append(AbstractConstants.stringConstant).append("\"").
+            append('}');
+        // @formatter:on
+        Assert.assertFalse(validator.validate(schema, new JSONObject(builder.toString())));
+    }
 }

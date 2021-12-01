@@ -1,0 +1,11 @@
+{
+    "type": "object",
+    "properties": {
+        "str1": {"type": "string"},
+        "str2": {"type": "string"},
+        "str3": {"type": "string"},
+        "str4": {"type": "string"}
+    },
+    "minProperties": 1,
+    "maxProperties": 2
+}

@@ -5,7 +5,9 @@ import java.util.List;
 import java.util.Random;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 
+import be.ac.umons.jsonschematools.Constraints;
 import be.ac.umons.jsonschematools.Generator;
 import be.ac.umons.jsonschematools.GeneratorException;
 import be.ac.umons.jsonschematools.JSONSchema;
@@ -25,9 +27,8 @@ public class DefaultArrayHandler implements Handler {
     }
 
     @Override
-    public JSONArray generate(
-            final Generator generator, final JSONSchema schema, final int maxTreeSize,
-            final Random rand) throws JSONSchemaException, GeneratorException {
+    public Object generate(Generator generator, Constraints constraints, JSONSchema schema, int maxTreeSize,
+            Random rand) throws JSONSchemaException, GeneratorException, JSONException {
         JSONArray array = new JSONArray();
         if (maxTreeSize <= 0) {
             return array;
@@ -44,8 +45,8 @@ public class DefaultArrayHandler implements Handler {
         } catch (JSONSchemaException e) {
         }
 
-        List<Type> typeItems = new ArrayList<>(itemsSchema.getTypes());
-
+        List<Type> typeItems = new ArrayList<>(itemsSchema.getAllowedTypes());
+        
         int size = rand.nextInt(maxItems - minItems + 1) + minItems;
         for (int i = 0; i < size; i++) {
             Type type = typeItems.get(rand.nextInt(typeItems.size()));

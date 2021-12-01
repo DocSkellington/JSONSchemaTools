@@ -9,9 +9,9 @@ import be.ac.umons.jsonschematools.handlers.DefaultObjectHandler;
 import be.ac.umons.jsonschematools.handlers.DefaultStringHandler;
 
 public class DefaultGenerator extends Generator {
-    public DefaultGenerator(int maxItemsArray) {
+    public DefaultGenerator(int maxPropertiesObject, int maxItemsArray) {
         super(new DefaultStringHandler(), new DefaultIntegerHandler(), new DefaultNumberHandler(),
-                new DefaultBooleanHandler(), new DefaultEnumHandler(), new DefaultObjectHandler(),
+                new DefaultBooleanHandler(), new DefaultEnumHandler(), new DefaultObjectHandler(maxPropertiesObject),
                 new DefaultArrayHandler(maxItemsArray));
     }
 

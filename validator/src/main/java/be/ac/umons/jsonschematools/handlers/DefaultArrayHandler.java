@@ -38,7 +38,7 @@ public class DefaultArrayHandler implements Handler {
     }
 
     private static boolean validateItem(Validator validator, final JSONSchema schema, final Object object) throws JSONSchemaException {
-        Set<Type> allowedTypes = schema.getTypes();
+        Set<Type> allowedTypes = schema.getAllowedTypes();
         for (Type type : allowedTypes) {
             final boolean valid;
             switch (type) {
