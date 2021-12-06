@@ -15,7 +15,6 @@ import be.ac.umons.jsonschematools.Generator;
 import be.ac.umons.jsonschematools.GeneratorException;
 import be.ac.umons.jsonschematools.JSONSchema;
 import be.ac.umons.jsonschematools.JSONSchemaException;
-import be.ac.umons.jsonschematools.Type;
 
 public class DefaultObjectHandler implements Handler {
 
@@ -38,32 +37,26 @@ public class DefaultObjectHandler implements Handler {
             return jsonObject;
         }
 
-        int minProperties = schema.getIntOr("minProperties", 0);
-        int maxProperties = schema.getIntOr("maxProperties", this.maxProperties);
+        final JSONSchema finalSchema = Generator.getActualSchema(schema, rand);
+
+        int minProperties = finalSchema.getIntOr("minProperties", 0);
+        int maxProperties = finalSchema.getIntOr("maxProperties", this.maxProperties);
         if (maxProperties < minProperties) {
-            throw new GeneratorException("Impossible to generate an object for schema " + schema
+            throw new GeneratorException("Impossible to generate an object for schema " + finalSchema
                     + " as minProperties = " + minProperties + " > maxProperties = " + maxProperties);
         }
 
-        // TODO: for anyOf: randomly select one
-
-        for (Map.Entry<String, JSONSchema> entry : schema.getRequiredProperties().entrySet()) {
+        for (Map.Entry<String, JSONSchema> entry : finalSchema.getRequiredProperties().entrySet()) {
             JSONSchema subSchema = entry.getValue();
             String key = entry.getKey();
-
-            Set<Type> allowedTypes = subSchema.getAllowedTypes();
-            Constraints allOf = subSchema.getAllOf();
-            allowedTypes.retainAll(allOf.getAllowedTypes());
-
-            Type type = new ArrayList<>(allowedTypes).get(rand.nextInt(allowedTypes.size()));
-            jsonObject.put(key, generateValue(type, allOf, generator, subSchema, maxTreeSize, rand));
+            jsonObject.put(key, generator.generateAccordingToConstraints(subSchema, maxTreeSize, rand));
         }
 
         int missingProperties = Math.max(0, minProperties - jsonObject.length());
 
-        Map<String, JSONSchema> nonRequiredProperties = schema.getNonRequiredProperties();
+        Map<String, JSONSchema> nonRequiredProperties = finalSchema.getNonRequiredProperties();
         if (missingProperties > nonRequiredProperties.size()) {
-            throw new GeneratorException("Impossible to generate an object for schema " + schema
+            throw new GeneratorException("Impossible to generate an object for schema " + finalSchema
                     + " as minProperties = " + minProperties + " exceeds the number of defined properties");
         }
 
@@ -80,8 +73,8 @@ public class DefaultObjectHandler implements Handler {
         }
 
         for (String key : selectedProperties) {
-            // TODO: generate object
-            jsonObject.put(key, nonRequiredProperties.get(key));
+            JSONSchema subSchema = finalSchema.getSubSchemaProperties(key);
+            jsonObject.put(key, generator.generateAccordingToConstraints(subSchema, maxTreeSize, rand));
             nonRequiredProperties.remove(key);
         }
 
@@ -89,11 +82,7 @@ public class DefaultObjectHandler implements Handler {
             JSONSchema subSchema = entry.getValue();
             String key = entry.getKey();
             if (rand.nextBoolean()) {
-                Set<Type> allowedTypes = subSchema.getAllowedTypes();
-                allowedTypes.retainAll(subSchema.getAllOf().getAllowedTypes());
-                Type type = new ArrayList<>(allowedTypes).get(rand.nextInt(allowedTypes.size()));
-                // TODO: handle constraints
-                jsonObject.put(key, generateValue(type, new Constraints(), generator, subSchema, maxTreeSize, rand));
+                jsonObject.put(key, generator.generateAccordingToConstraints(subSchema, maxTreeSize, rand));
 
                 if (jsonObject.length() >= maxProperties) {
                     break;
@@ -102,39 +91,6 @@ public class DefaultObjectHandler implements Handler {
         }
 
         return jsonObject;
-    }
-
-    private Constraints mergeConstraints(Constraints allOf, Constraints anyOf, Constraints oneOf) {
-        Constraints mergedConstraints = new Constraints();
-
-        return mergedConstraints;
-    }
-
-    private Map<String, JSONSchema> getRequiredProperties(JSONSchema schema, Constraints allOf, Constraints anyOf, Constraints oneOf) {
-
-        return null;
-    }
-
-    static Object generateValue(Type type, Constraints constraints, Generator generator, JSONSchema schema, int maxTreeSize, Random rand)
-            throws JSONSchemaException, JSONException, GeneratorException {
-        switch (type) {
-            case BOOLEAN:
-                return generator.getBooleanHandler().generate(generator, constraints, schema, maxTreeSize, rand);
-            case ENUM:
-                return generator.getEnumHandler().generate(generator, constraints, schema, maxTreeSize, rand);
-            case INTEGER:
-                return generator.getIntegerHandler().generate(generator, constraints, schema, maxTreeSize, rand);
-            case NUMBER:
-                return generator.getNumberHandler().generate(generator, constraints, schema, maxTreeSize, rand);
-            case STRING:
-                return generator.getStringHandler().generate(generator, constraints, schema, maxTreeSize, rand);
-            case ARRAY:
-                return generator.getArrayHandler().generate(generator, constraints, schema, maxTreeSize - 1, rand);
-            case OBJECT:
-                return generator.getObjectHandler().generate(generator, constraints, schema, maxTreeSize - 1, rand);
-            default:
-                return null;
-        }
     }
 
 }

@@ -54,8 +54,7 @@ public final class JSONSchema {
         } else if (object.has("const")) {
             // TODO: get type of data
         }
-
-        if (types.isEmpty()) {
+        else {
             types.addAll(EnumSet.allOf(Type.class));
         }
 
@@ -115,6 +114,10 @@ public final class JSONSchema {
         return getAllowedTypes().contains(Type.NULL);
     }
 
+    public boolean hasKey(String key) {
+        return object.has(key);
+    }
+
     public Map<String, JSONSchema> getRequiredProperties() throws JSONSchemaException {
         if (!isObject()) {
             throw new JSONSchemaException("Required properties are only defined for objects");
@@ -128,7 +131,7 @@ public final class JSONSchema {
                     throw new JSONSchemaException("Values in the \"required\" field must be strings");
                 }
                 String key = (String) value;
-                requiredProperties.put(key, getSubSchema(key));
+                requiredProperties.put(key, getSubSchemaProperties(key));
             }
             return requiredProperties;
         } else {
@@ -155,89 +158,82 @@ public final class JSONSchema {
         Map<String, JSONSchema> nonRequired = new HashMap<>();
         for (String key : properties.keySet()) {
             if (!requiredKeys.contains(key)) {
-                nonRequired.put(key, getSubSchema(key));
+                nonRequired.put(key, getSubSchemaProperties(key));
             }
         }
 
         return nonRequired;
     }
 
-    private void parseIntConstraints(final Constraints constraints, final JSONObject schema, final String... keys) {
+    private void addConstraintToSet(final Map<String, Set<Object>> constraints, final JSONObject schema, final Set<String> keys) {
         for (String key : keys) {
             if (schema.has(key)) {
-                constraints.addConstraint(key, schema.getInt(key));
+                if (!constraints.containsKey(key)) {
+                    constraints.put(key, new HashSet<>());
+                }
+                constraints.get(key).add(schema.get(key));
             }
         }
     }
 
-    private void parseDoubleConstraints(final Constraints constraints, final JSONObject schema, final String... keys) {
-        for (String key : keys) {
-            if (schema.has(key)) {
-                constraints.addConstraint(key, schema.getDouble(key));
-            }
-        }
-    }
-
-    private void parseStringConstraints(final Constraints constraints, final JSONObject schema, final String... keys) {
-        for (String key : keys) {
-            if (schema.has(key)) {
-                constraints.addConstraint(key, schema.getString(key));
-            }
-        }
-    }
-
-    private void parseBooleanConstraints(final Constraints constraints, final JSONObject schema, final String... keys) {
-        for (String key : keys) {
-            if (schema.has(key)) {
-                constraints.addConstraint(key, schema.getBoolean(key));
-            }
-        }
-    }
-
-    private void parseObjectConstraints(final Constraints constraints, final JSONObject schema, final String... keys) {
-        for (String key : keys) {
-            if (schema.has(key)) {
-                constraints.addConstraint(key, schema.getJSONObject(key));
-            }
-        }
-    }
-
-    private void parseArrayConstraints(final Constraints constraints, final JSONObject schema, final String... keys) {
-        for (String key : keys) {
-            if (schema.has(key)) {
-                constraints.addConstraint(key, schema.getJSONArray(key));
-            }
-        }
-    }
-
-    public Constraints getAllOf() {
-        // TODO: construct a structure with everything that is required, or null if requirements clash
+    public JSONSchema getAllOf() throws JSONSchemaException {
         if (!object.has("allOf")) {
-            return new Constraints();
+            return store.trueSchema();
         }
         JSONArray allOf = object.getJSONArray("allOf");
-        Constraints constraints = new Constraints();
+        Map<String, Set<Object>> keyToValues = new HashMap<>();
         for (int i = 0 ; i < allOf.length() ; i++) {
             JSONObject schema = allOf.getJSONObject(i);
-            if (schema.has("type")) { 
-                try {
-                    constraints.addConstraint("type", schema.getString("type"));
-                }
-                catch (JSONException e) {
-                    constraints.addConstraint("type", schema.getJSONArray("type"));
-                }
-            }
-            // TODO: handle "const", "items", "allOf", "anyOf", "oneOf", "not"
-            // TODO: handle ref?
-            // TODO: handle if?
-            parseIntConstraints(constraints, schema, "multipleOf", "maximum", "exclusiveMaximum", "minimum", "exclusiveMinimum", "maxLength", "minLength", "minItems", "maxItems", "maxContains", "minContains", "maxProperties", "minProperties");
-            parseArrayConstraints(constraints, schema, "required", "enum", "prefixItems");
-            parseObjectConstraints(constraints, schema, "properties", "contains", "dependentRequired");
-            parseStringConstraints(constraints, schema, "pattern");
-            parseBooleanConstraints(constraints, schema, "uniqueItems");
+            addConstraintToSet(keyToValues, schema, Keys.getKeys());
         }
 
-        return constraints;
+        JSONObject constraints = new JSONObject();
+        for (Map.Entry<String, Set<Object>> entry : keyToValues.entrySet()) {
+            constraints.put(entry.getKey(), Keys.applyOperation(entry.getKey(), entry.getValue()));
+        }
+
+        return new JSONSchema(constraints, store, fullSchemaId);
+    }
+
+    public List<JSONSchema> getAnyOf() throws JSONSchemaException {
+        if (!object.has("anyOf")) {
+            return Collections.singletonList(store.trueSchema());
+        }
+        // TODO
+        return null;
+    }
+
+    public List<JSONSchema> getOneOf() throws JSONSchemaException {
+        if (!object.has("oneOf")) {
+            return Collections.singletonList(store.trueSchema());
+        }
+        // TODO
+        return null;
+    }
+
+    public JSONSchema merge(JSONSchema other) throws JSONSchemaException {
+        Map<String, Set<Object>> keyToValues = new HashMap<>();
+        for (String key : object.keySet()) {
+            Object value = object.get(key);
+            if (!keyToValues.containsKey(key)) {
+                keyToValues.put(key, new HashSet<>());
+            }
+            keyToValues.get(key).add(value);
+        }
+        for (String key : other.object.keySet()) {
+            Object value = other.object.get(key);
+            if (!keyToValues.containsKey(key)) {
+                keyToValues.put(key, new HashSet<>());
+            }
+            keyToValues.get(key).add(value);
+        }
+
+        JSONObject constraints = new JSONObject();
+        for (Map.Entry<String, Set<Object>> entry : keyToValues.entrySet()) {
+            constraints.put(entry.getKey(), Keys.applyOperation(entry.getKey(), entry.getValue()));
+        }
+
+        return new JSONSchema(constraints, store, fullSchemaId);
     }
 
     public JSONSchema getNot() throws JSONSchemaException {
@@ -251,19 +247,6 @@ public final class JSONSchema {
         return null;
     }
 
-    public JSONSchema mergeWithConstraints(Constraints constraints) {
-    }
-
-    public Set<String> getAllKeys() {
-        // TODO
-        return null;
-    }
-
-    public Set<Type> getAllValueTypes() {
-        // TODO
-        return null;
-    }
-
     private JSONSchema handleRef(String reference) throws JSONException, JSONSchemaException {
         if (reference.charAt(0) == '#') {
             // Recursive reference
@@ -271,7 +254,7 @@ public final class JSONSchema {
             JSONSchema targetSchema = store.get(fullSchemaId);
             for (int i = 1 ; i < decompositions.length ; i++) {
                 String key = decompositions[i];
-                targetSchema = targetSchema.getSubSchema(key);
+                targetSchema = targetSchema.getSubSchemaProperties(key);
             }
             return targetSchema;
         }
@@ -286,8 +269,27 @@ public final class JSONSchema {
         }
     }
 
+    public JSONSchema getSubSchemaProperties(String key) throws JSONException, JSONSchemaException {
+        return getSubSchema(key, properties);
+    }
+
     public JSONSchema getSubSchema(String key) throws JSONException, JSONSchemaException {
-        JSONObject subObject = properties.getJSONObject(key);
+        return getSubSchema(key, object);
+    }
+
+    public JSONSchema getSubSchemaInAllOfDueToMerge(String key) throws JSONException, JSONSchemaException {
+        JSONSchema allOf = getAllOf();
+        if (object.getJSONArray("allOf").getJSONObject(0).has(Keys.dueToMergeKey)) {
+            allOf.object.put(Keys.dueToMergeKey, new JSONObject());
+        }
+        if (allOf.hasKey("$ref")) {
+            return handleRef(allOf.getString("$ref"));
+        }
+        return allOf;
+    }
+
+    private JSONSchema getSubSchema(String key, JSONObject object) throws JSONException, JSONSchemaException {
+        JSONObject subObject = object.getJSONObject(key);
         if (subObject.has("$ref")) {
             return handleRef(subObject.getString("$ref"));
         }
@@ -298,6 +300,9 @@ public final class JSONSchema {
 
     public JSONSchema getItemsArray() throws JSONException, JSONSchemaException {
         // TODO: sometimes, items is a list of objects (or just an object), not a list of types
+        if (!object.has("items")) {
+            return null;
+        }
         JSONObject subObject = object.getJSONObject("items");
         if (subObject.has("$ref")) {
             return handleRef(subObject.getString("$ref"));
@@ -347,8 +352,17 @@ public final class JSONSchema {
         return object.optBoolean(key, defaultValue);
     }
 
+    public int getSchemaId() {
+        return fullSchemaId;
+    }
+
+    public JSONSchemaStore getStore() {
+        return store;
+    }
+
     @Override
     public String toString() {
-        return object.toString();
+        return object.toString(2);
     }
+
 }

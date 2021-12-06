@@ -1,18 +1,16 @@
 package be.ac.umons.jsonschematools.handlers;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import be.ac.umons.jsonschematools.Constraints;
 import be.ac.umons.jsonschematools.Generator;
 import be.ac.umons.jsonschematools.GeneratorException;
 import be.ac.umons.jsonschematools.JSONSchema;
 import be.ac.umons.jsonschematools.JSONSchemaException;
-import be.ac.umons.jsonschematools.Type;
 
 public class DefaultArrayHandler implements Handler {
 
@@ -34,6 +32,9 @@ public class DefaultArrayHandler implements Handler {
             return array;
         }
 
+        // TODO: not
+        final JSONSchema fullSchema = Generator.getActualSchema(schema, rand);
+
         int minItems = schema.getIntOr("minItems", 0);
         int maxItems = schema.getIntOr("maxItems", this.maxItems);
         if (minItems > maxItems) {
@@ -41,16 +42,20 @@ public class DefaultArrayHandler implements Handler {
         }
         JSONSchema itemsSchema = null;
         try {
-            itemsSchema = schema.getItemsArray();
+            itemsSchema = fullSchema.getItemsArray();
         } catch (JSONSchemaException e) {
         }
 
-        List<Type> typeItems = new ArrayList<>(itemsSchema.getAllowedTypes());
-        
         int size = rand.nextInt(maxItems - minItems + 1) + minItems;
-        for (int i = 0; i < size; i++) {
-            Type type = typeItems.get(rand.nextInt(typeItems.size()));
-            array.put(DefaultObjectHandler.generateValue(type, generator, itemsSchema, maxTreeSize, rand));
+        if (itemsSchema == null) {
+            for (int i = 0 ; i < size ; i++) {
+                array.put(new JSONObject());
+            }
+        }
+        else {
+            for (int i = 0; i < size; i++) {
+                array.put(generator.generateAccordingToConstraints(itemsSchema, maxTreeSize, rand));
+            }
         }
 
         return array;

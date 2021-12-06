@@ -16,9 +16,15 @@ import org.json.JSONTokener;
 
 public class JSONSchemaStore {
 
+    private static int TRUE_IDENTIFIER = -1;
+
     private final List<JSONSchema> schemas = new ArrayList<>();
     private final Map<Path, JSONSchema> pathToSchema = new HashMap<>();
     private final Map<Integer, Path> idToPath = new HashMap<>();
+
+    public JSONSchemaStore() {
+        Keys.prepareKeys();
+    }
 
     public JSONSchema load(URI path) throws FileNotFoundException, JSONSchemaException {
         if (path.getHost() != null) {
@@ -37,8 +43,15 @@ public class JSONSchemaStore {
         schemas.add(schema);
         pathToSchema.put(actualPath, schema);
         idToPath.put(schemaId, actualPath);
-        // TODO: check whether the schema depends on other files and load them if needed
         return schema;
+    }
+
+    public JSONSchema trueSchema() throws JSONSchemaException {
+        return new JSONSchema(new JSONObject(), this, TRUE_IDENTIFIER);
+    }
+
+    public boolean isTrueSchema(JSONSchema schema) {
+        return schema.getSchemaId() == TRUE_IDENTIFIER;
     }
 
     JSONSchema get(int schemaId) {

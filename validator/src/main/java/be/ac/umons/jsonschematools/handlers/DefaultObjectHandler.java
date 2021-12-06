@@ -37,7 +37,7 @@ public class DefaultObjectHandler implements Handler {
     static boolean validateValue(final Validator validator, final JSONSchema schema, final JSONObject object,
             final String key) throws JSONException, JSONSchemaException {
         final Object value = object.get(key);
-        final JSONSchema schemaForKey = schema.getSubSchema(key);
+        final JSONSchema schemaForKey = schema.getSubSchemaProperties(key);
         final Set<Type> allowedTypes = schemaForKey.getAllowedTypes();
         for (Type type : allowedTypes) {
             final boolean valid;
