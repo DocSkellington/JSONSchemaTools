@@ -10,7 +10,6 @@ import java.util.Set;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import be.ac.umons.jsonschematools.Constraints;
 import be.ac.umons.jsonschematools.Generator;
 import be.ac.umons.jsonschematools.GeneratorException;
 import be.ac.umons.jsonschematools.JSONSchema;
@@ -30,7 +29,7 @@ public class DefaultObjectHandler implements Handler {
 
     // TODO: handle dependentRequired
     @Override
-    public Object generate(Generator generator, Constraints constraints, JSONSchema schema, int maxTreeSize,
+    public Object generate(Generator generator, JSONSchema schema, int maxTreeSize,
             Random rand) throws JSONSchemaException, GeneratorException, JSONException {
         JSONObject jsonObject = new JSONObject();
         if (maxTreeSize <= 0) {
