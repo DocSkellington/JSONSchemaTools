@@ -1,97 +1,149 @@
 {
     "type": "object",
-    "testAllArray": {
-        "type": "array",
-        "allOf": [
-            {"minItems": 1},
-            {"maxItems": 4},
-            {"minItems": 2},
-            {"items": {"type": "string"}},
-            {"minLength": 50}
-        ]
-    },
-    "testAllObject": {
-        "type": "object",
-        "allOf": [
-            {
-                "properties": {
-                    "prop": {
-                        "type": "array",
-                        "items": {"type": "integer"}
+    "properties": {
+        "testAllArray": {
+            "type": "array",
+            "allOf": [
+                {
+                    "minItems": 1
+                },
+                {
+                    "maxItems": 4
+                },
+                {
+                    "minItems": 2
+                },
+                {
+                    "items": {
+                        "type": "string"
                     }
+                },
+                {
+                    "minLength": 50
                 }
-            },
-            {
-                "properties": {
-                    "prop": {
-                        "minItems": 2
-                    }
-                }
-            },
-            {
-                "properties": {
-                    "prop": {
-                        "maxItems": 2
-                    }
-                }
-            },
-            {
-                "properties": {
-                    "val": {"type": "number"}
-                }
-            }
-        ],
-        "required": ["prop", "val"]
-    },
-    "testAnyArray": {
-        "type": "array",
-        "anyOf": [
-            {"minItems": 1},
-            {"maxItems": 4},
-            {"minItems": 2},
-            {"items": {"type": "string"}}
-        ]
-    },
-    "testAnyObject": {
-        "type": "object",
-        "required": "prop",
-        "anyOf": [
-            {
-                "properties": {
-                    "prop": {"type": "integer"}
-                }
-            },
-            {
-                "properties": {
-                    "prop": {"type": "string"}
-                }
-            }
-        ]
-    },
-    "testOneArray": {
-        "type": "array",
-        "items": {"type": "string"},
-        "oneOf": [
-            {"minItems": 2},
-            {"maxItems": 3}
-        ]
-    },
-    "testOneObject": {
-        "type": "object",
-        "properties": {
-            "prop1": {"type": "string"},
-            "prop2": {"type": "string"}
+            ]
         },
-        "oneOf": [
-            {
-                "minProperties": 1,
-                "maxProperties": 2
+        "testAllObject": {
+            "type": "object",
+            "allOf": [
+                {
+                    "properties": {
+                        "prop": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
+                {
+                    "properties": {
+                        "prop": {
+                            "minItems": 2
+                        }
+                    }
+                },
+                {
+                    "properties": {
+                        "prop": {
+                            "maxItems": 2
+                        }
+                    }
+                },
+                {
+                    "properties": {
+                        "val": {
+                            "type": "number"
+                        }
+                    }
+                }
+            ],
+            "required": [
+                "prop",
+                "val"
+            ]
+        },
+        "testAnyArray": {
+            "type": "array",
+            "items": {
+                "type": "string"
             },
-            {
-                "minProperties": 0,
-                "maxProperties": 1
-            }
-        ]
+            "anyOf": [
+                {
+                    "minItems": 1
+                },
+                {
+                    "maxItems": 4
+                },
+                {
+                    "minItems": 2
+                }
+            ]
+        },
+        "testAnyObject": {
+            "type": "object",
+            "required": [
+                "prop"
+            ],
+            "anyOf": [
+                {
+                    "properties": {
+                        "prop": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                {
+                    "properties": {
+                        "prop": {
+                            "type": "string"
+                        }
+                    }
+                }
+            ]
+        },
+        "testOneArray": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "oneOf": [
+                {
+                    "minItems": 2
+                },
+                {
+                    "maxItems": 3
+                }
+            ]
+        },
+        "testOneObject": {
+            "type": "object",
+            "properties": {
+                "prop1": {
+                    "type": "string"
+                },
+                "prop2": {
+                    "type": "string"
+                }
+            },
+            "oneOf": [
+                {
+                    "minProperties": 1,
+                    "maxProperties": 2
+                },
+                {
+                    "minProperties": 0,
+                    "maxProperties": 1
+                }
+            ]
+        }
     },
-    "required": ["testAllArray", "testAnyArray", "testOneArray", "testAllObject", "testAnyObject", "testOneObject"]
+    "required": [
+        "testAllArray",
+        "testAnyArray",
+        "testOneArray",
+        "testAllObject",
+        "testAnyObject",
+        "testOneObject"
+    ]
 }

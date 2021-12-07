@@ -37,7 +37,7 @@ public class Generator {
         final List<JSONSchema> anyOfList = schema.getAnyOf();
         final List<JSONSchema> oneOfList = schema.getOneOf();
         final JSONSchema anyOf = anyOfList.get(rand.nextInt(anyOfList.size()));
-        final JSONSchema oneOf = oneOfList.get(rand.nextInt(oneOfList.size()));
+        final JSONSchema oneOf = oneOfList.get(rand.nextInt(oneOfList.size())).getAllOf();
         final JSONSchema not = schema.getNot();
 
         return schema.merge(allOf).merge(anyOf).merge(oneOf).mergeNot(not);

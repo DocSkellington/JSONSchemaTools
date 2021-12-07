@@ -16,7 +16,7 @@ public class DefaultArrayHandler implements Handler {
     private final int maxItems;
 
     public DefaultArrayHandler() {
-        maxItems = Integer.MAX_VALUE;
+        maxItems = Integer.MAX_VALUE - 1;
     }
 
     public DefaultArrayHandler(int maxItems) {
@@ -31,11 +31,10 @@ public class DefaultArrayHandler implements Handler {
             return array;
         }
 
-        // TODO: not
         final JSONSchema fullSchema = Generator.getActualSchema(schema, rand);
 
-        int minItems = schema.getIntOr("minItems", 0);
-        int maxItems = schema.getIntOr("maxItems", this.maxItems);
+        int minItems = fullSchema.getIntOr("minItems", 0);
+        int maxItems = fullSchema.getIntOr("maxItems", this.maxItems);
         if (minItems > maxItems) {
             throw new GeneratorException("Array: minItems can not be strictly greater than maxItems");
         }

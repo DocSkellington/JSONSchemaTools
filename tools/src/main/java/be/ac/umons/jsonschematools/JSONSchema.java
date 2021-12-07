@@ -175,17 +175,7 @@ public final class JSONSchema {
         }
     }
 
-    public JSONSchema getAllOf() throws JSONSchemaException {
-        if (!object.has("allOf")) {
-            return store.trueSchema();
-        }
-        final JSONArray allOf = object.getJSONArray("allOf");
-        final Map<String, Set<Object>> keyToValues = new HashMap<>();
-        for (int i = 0; i < allOf.length(); i++) {
-            final JSONObject schema = allOf.getJSONObject(i);
-            addConstraintToSet(keyToValues, schema, Keys.getKeys());
-        }
-
+    private JSONSchema transformConstraintsInSchema(final Map<String, Set<Object>> keyToValues) throws JSONSchemaException {
         // We will handle "not" afterwards. This is because we potentially need to merge
         // the constraints in "not" with the regular constraints
         final JSONObject constraints = new JSONObject();
@@ -211,20 +201,66 @@ public final class JSONSchema {
         return new JSONSchema(constraints, store, fullSchemaId);
     }
 
+    public JSONSchema getAllOf() throws JSONSchemaException {
+        if (!object.has("allOf")) {
+            return store.trueSchema();
+        }
+        final JSONArray allOf = object.getJSONArray("allOf");
+        final Map<String, Set<Object>> keyToValues = new HashMap<>();
+        for (int i = 0; i < allOf.length(); i++) {
+            final JSONObject schema = allOf.getJSONObject(i);
+            addConstraintToSet(keyToValues, schema, Keys.getKeys());
+        }
+        return transformConstraintsInSchema(keyToValues);
+    }
+
     public List<JSONSchema> getAnyOf() throws JSONSchemaException {
         if (!object.has("anyOf")) {
             return Collections.singletonList(store.trueSchema());
         }
-        // TODO
-        return null;
+        final JSONArray anyOf = object.getJSONArray("anyOf");
+        final List<JSONSchema> schemas = new ArrayList<>(anyOf.length());
+        for (int i = 0 ; i < anyOf.length() ; i++) {
+            final JSONObject subSchema = anyOf.getJSONObject(i);
+            final Map<String, Set<Object>> keyToValues = new HashMap<>();
+            addConstraintToSet(keyToValues, subSchema, Keys.getKeys());
+            schemas.add(transformConstraintsInSchema(keyToValues));
+        }
+        return schemas;
     }
 
     public List<JSONSchema> getOneOf() throws JSONSchemaException {
         if (!object.has("oneOf")) {
             return Collections.singletonList(store.trueSchema());
         }
-        // TODO
-        return null;
+        final JSONArray oneOf = object.getJSONArray("oneOf");
+        final List<JSONSchema> schemas = new ArrayList<>(oneOf.length());
+        for (int i = 0 ; i < oneOf.length() ; i++) {
+            final JSONObject subSchema = oneOf.getJSONObject(i);
+            final Map<String, Set<Object>> keyToValues = new HashMap<>();
+            addConstraintToSet(keyToValues, subSchema, Keys.getKeys());
+            schemas.add(transformConstraintsInSchema(keyToValues));
+        }
+        
+        final List<JSONSchema> combinations = new ArrayList<>(schemas.size());
+        for (int i = 0 ; i < schemas.size() ; i++) {
+            final JSONArray onePossibility = new JSONArray(schemas.size());
+            final JSONSchema positive = schemas.get(i);
+            onePossibility.put(positive.object);
+            for (int j = 0 ; j < schemas.size() ; j++) {
+                if (i == j) {
+                    continue;
+                }
+                final JSONObject notSchema = new JSONObject();
+                notSchema.put("not", schemas.get(j).object);
+                onePossibility.put(notSchema);
+            }
+            final JSONObject allOf = new JSONObject();
+            allOf.put("allOf", onePossibility);
+            final JSONSchema schemaForPossibility = new JSONSchema(allOf, store, fullSchemaId);
+            combinations.add(schemaForPossibility);
+        }
+        return combinations;
     }
 
     public JSONSchema merge(JSONSchema other) throws JSONSchemaException {

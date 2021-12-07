@@ -140,10 +140,10 @@ public class TestGenerator {
         Assert.assertTrue(1 <= document.length() && document.length() <= 2);
     }
 
-    // @Test(invocationCount = 100)
+    @Test(invocationCount = 100)
     public void testGeneratorComposition() throws FileNotFoundException, JSONSchemaException, URISyntaxException, JSONException, GeneratorException {
         JSONSchema schema = loadSchema("composition.json");
-        Generator generator = new DefaultGenerator();
+        Generator generator = new DefaultGenerator(10, 5);
         JSONObject document = generator.generate(schema, 5);
 
         Assert.assertEquals(document.length(), 6);
@@ -171,7 +171,7 @@ public class TestGenerator {
         Assert.assertEquals(testAllObject.getString("val"), AbstractConstants.numberConstant);
 
         JSONArray testAnyArray = document.getJSONArray("testAnyArray");
-        Assert.assertTrue(1 <= testAnyArray.length() && testAnyArray.length() <= 4);
+        Assert.assertTrue(1 <= testAnyArray.length() || testAnyArray.length() <= 4);
         for (int i = 0 ; i < testAnyArray.length() ; i++) {
             Assert.assertEquals(testAnyArray.getString(i), AbstractConstants.stringConstant);;
         }
@@ -185,8 +185,6 @@ public class TestGenerator {
 
         JSONObject testOneObject = document.getJSONObject("testOneObject");
         Assert.assertNotEquals(0 <= testOneObject.length() && testOneObject.length() <= 1, 1 <= testOneObject.length() && testOneObject.length() <= 2);
-
-        // TODO: finish writing test (+ do the same for Validator)
     }
 
     @Test(invocationCount = 100)
