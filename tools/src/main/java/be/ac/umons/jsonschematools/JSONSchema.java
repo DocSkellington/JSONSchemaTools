@@ -17,8 +17,6 @@ import org.json.JSONObject;
 /**
  * A wrapper around a JSON document storing a schema.
  * 
- * TODO: allOf, anyOf, and so on
- * 
  * @author Gaëtan Staquet
  */
 public final class JSONSchema {
@@ -28,7 +26,8 @@ public final class JSONSchema {
     private final JSONSchemaStore store;
     private final int fullSchemaId;
 
-    JSONSchema(final JSONObject object, final JSONSchemaStore store, final int fullSchemaId) throws JSONSchemaException {
+    JSONSchema(final JSONObject object, final JSONSchemaStore store, final int fullSchemaId)
+            throws JSONSchemaException {
         this.object = object;
         this.store = store;
         this.fullSchemaId = fullSchemaId;
@@ -53,8 +52,7 @@ public final class JSONSchema {
             types.add(Type.ENUM);
         } else if (object.has("const")) {
             // TODO: get type of data
-        }
-        else {
+        } else {
             types.addAll(EnumSet.allOf(Type.class));
         }
 
@@ -165,7 +163,8 @@ public final class JSONSchema {
         return nonRequired;
     }
 
-    private void addConstraintToSet(final Map<String, Set<Object>> constraints, final JSONObject schema, final Set<String> keys) {
+    private void addConstraintToSet(final Map<String, Set<Object>> constraints, final JSONObject schema,
+            final Set<String> keys) {
         for (String key : keys) {
             if (schema.has(key)) {
                 if (!constraints.containsKey(key)) {
@@ -180,16 +179,33 @@ public final class JSONSchema {
         if (!object.has("allOf")) {
             return store.trueSchema();
         }
-        JSONArray allOf = object.getJSONArray("allOf");
-        Map<String, Set<Object>> keyToValues = new HashMap<>();
-        for (int i = 0 ; i < allOf.length() ; i++) {
-            JSONObject schema = allOf.getJSONObject(i);
+        final JSONArray allOf = object.getJSONArray("allOf");
+        final Map<String, Set<Object>> keyToValues = new HashMap<>();
+        for (int i = 0; i < allOf.length(); i++) {
+            final JSONObject schema = allOf.getJSONObject(i);
             addConstraintToSet(keyToValues, schema, Keys.getKeys());
         }
 
-        JSONObject constraints = new JSONObject();
-        for (Map.Entry<String, Set<Object>> entry : keyToValues.entrySet()) {
-            constraints.put(entry.getKey(), Keys.applyOperation(entry.getKey(), entry.getValue()));
+        // We will handle "not" afterwards. This is because we potentially need to merge
+        // the constraints in "not" with the regular constraints
+        final JSONObject constraints = new JSONObject();
+        for (final Map.Entry<String, Set<Object>> entry : keyToValues.entrySet()) {
+            final String key = entry.getKey();
+            if (!key.equals("not")) {
+                constraints.put(key, Keys.applyOperation(key, entry.getValue()));
+            }
+        }
+
+        if (keyToValues.containsKey("not")) {
+            final JSONObject not = (JSONObject) Keys.applyOperation("not", keyToValues.get("not"));
+            for (final String key : not.keySet()) {
+                if (constraints.has(key)) {
+                    final Set<Object> values = Set.of(constraints.get(key), not.get(key));
+                    constraints.put(key, Keys.applyOperation(key, values));
+                } else {
+                    constraints.put(key, not.get(key));
+                }
+            }
         }
 
         return new JSONSchema(constraints, store, fullSchemaId);
@@ -212,6 +228,9 @@ public final class JSONSchema {
     }
 
     public JSONSchema merge(JSONSchema other) throws JSONSchemaException {
+        if (other == null || other.object.isEmpty()) {
+            return this;
+        }
         Map<String, Set<Object>> keyToValues = new HashMap<>();
         for (String key : object.keySet()) {
             Object value = object.get(key);
@@ -236,6 +255,57 @@ public final class JSONSchema {
         return new JSONSchema(constraints, store, fullSchemaId);
     }
 
+    public JSONSchema mergeNot(JSONSchema other) throws JSONSchemaException {
+        if (other == null || other.object.isEmpty()) {
+            return this;
+        }
+        Set<String> keysToKeepInOther = Keys.keysToKeepInNot();
+        Map<String, Set<Object>> keyToNotValues = new HashMap<>();
+        for (String key : other.object.keySet()) {
+            if (keysToKeepInOther.contains(key)) {
+                Object value = other.object.get(key);
+                if (!keyToNotValues.containsKey(key)) {
+                    keyToNotValues.put(key, new HashSet<>());
+                }
+                keyToNotValues.get(key).add(value);
+            }
+        }
+        final JSONObject not = new JSONObject();
+        for (Map.Entry<String, Set<Object>> entry : keyToNotValues.entrySet()) {
+            final Set<Object> values = new HashSet<>();
+            final String key = entry.getKey();
+            values.add(Keys.applyNot(key, entry.getValue()));
+            if (object.has(key)) {
+                values.add(object.get(key));
+            }
+            not.put(key, Keys.applyOperation(key, values));
+        }
+
+        Map<String, Set<Object>> keyToValues = new HashMap<>();
+        for (String key : object.keySet()) {
+            Object value = object.get(key);
+            if (!keyToValues.containsKey(key)) {
+                keyToValues.put(key, new HashSet<>());
+            }
+            keyToValues.get(key).add(value);
+        }
+        for (String key : not.keySet()) {
+            if (keysToKeepInOther.contains(key)) {
+                Object value = not.get(key);
+                if (!keyToValues.containsKey(key)) {
+                    keyToValues.put(key, new HashSet<>());
+                }
+                keyToValues.get(key).add(value);
+            }
+        }
+
+        JSONObject constraints = new JSONObject();
+        for (Map.Entry<String, Set<Object>> entry : keyToValues.entrySet()) {
+            constraints.put(entry.getKey(), Keys.applyOperation(entry.getKey(), entry.getValue()));
+        }
+        return new JSONSchema(constraints, store, fullSchemaId);
+    }
+
     public JSONSchema getNot() throws JSONSchemaException {
         if (object.has("not")) {
             JSONObject not = object.getJSONObject("not");
@@ -252,19 +322,18 @@ public final class JSONSchema {
             // Recursive reference
             String[] decompositions = reference.split("/");
             JSONSchema targetSchema = store.get(fullSchemaId);
-            for (int i = 1 ; i < decompositions.length ; i++) {
+            for (int i = 1; i < decompositions.length; i++) {
                 String key = decompositions[i];
                 targetSchema = targetSchema.getSubSchemaProperties(key);
             }
             return targetSchema;
-        }
-        else {
+        } else {
             // Reference to an other file
             try {
                 return store.loadRelative(fullSchemaId, reference);
-            }
-            catch (FileNotFoundException e) {
-                throw new JSONSchemaException("The schema referenced by " + reference + " can not be found. Check that the file is present in our local machine as this implementation does not download files.");
+            } catch (FileNotFoundException e) {
+                throw new JSONSchemaException("The schema referenced by " + reference
+                        + " can not be found. Check that the file is present in our local machine as this implementation does not download files.");
             }
         }
     }
@@ -292,22 +361,21 @@ public final class JSONSchema {
         JSONObject subObject = object.getJSONObject(key);
         if (subObject.has("$ref")) {
             return handleRef(subObject.getString("$ref"));
-        }
-        else {
+        } else {
             return new JSONSchema(subObject, store, fullSchemaId);
         }
     }
 
     public JSONSchema getItemsArray() throws JSONException, JSONSchemaException {
-        // TODO: sometimes, items is a list of objects (or just an object), not a list of types
+        // TODO: sometimes, items is a list of objects (or just an object), not a list
+        // of types
         if (!object.has("items")) {
             return null;
         }
         JSONObject subObject = object.getJSONObject("items");
         if (subObject.has("$ref")) {
             return handleRef(subObject.getString("$ref"));
-        }
-        else {
+        } else {
             return new JSONSchema(subObject, store, fullSchemaId);
         }
     }

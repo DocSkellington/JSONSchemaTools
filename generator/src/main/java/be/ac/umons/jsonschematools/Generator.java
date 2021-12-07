@@ -33,13 +33,14 @@ public class Generator {
     }
 
     public static JSONSchema getActualSchema(final JSONSchema schema, Random rand) throws JSONSchemaException {
-        JSONSchema allOf = schema.getAllOf();
-        List<JSONSchema> anyOfList = schema.getAnyOf();
-        List<JSONSchema> oneOfList = schema.getOneOf();
-        JSONSchema anyOf = anyOfList.get(rand.nextInt(anyOfList.size()));
-        JSONSchema oneOf = oneOfList.get(rand.nextInt(oneOfList.size()));
+        final JSONSchema allOf = schema.getAllOf();
+        final List<JSONSchema> anyOfList = schema.getAnyOf();
+        final List<JSONSchema> oneOfList = schema.getOneOf();
+        final JSONSchema anyOf = anyOfList.get(rand.nextInt(anyOfList.size()));
+        final JSONSchema oneOf = oneOfList.get(rand.nextInt(oneOfList.size()));
+        final JSONSchema not = schema.getNot();
 
-        return schema.merge(allOf).merge(anyOf).merge(oneOf);
+        return schema.merge(allOf).merge(anyOf).merge(oneOf).mergeNot(not);
     }
 
     public JSONObject generate(final JSONSchema schema, final int maxTreeSize)
@@ -94,10 +95,15 @@ public class Generator {
             return generateAccordingToConstraints(schema.getSubSchemaInAllOfDueToMerge("allOf"), maxTreeSize, rand);
         }
 
-        Set<Type> allowedTypes = schema.getAllowedTypes();
+        final JSONSchema fullSchema = schema.mergeNot(schema.getNot());
+        Set<Type> allowedTypes = fullSchema.getAllowedTypes();
+
+        if (allowedTypes.isEmpty()) {
+            throw new GeneratorException("Impossible to generate a value for the schema " + fullSchema + " as the set of allowed types is empty");
+        }
 
         Type type = new ArrayList<>(allowedTypes).get(rand.nextInt(allowedTypes.size()));
-        return generateValue(type, schema, maxTreeSize, rand);
+        return generateValue(type, fullSchema, maxTreeSize, rand);
     }
 
     public Object generateValue(Type type, JSONSchema schema, int maxTreeSize, Random rand)

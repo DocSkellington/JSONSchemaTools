@@ -1,0 +1,60 @@
+{
+    "type": "object",
+    "properties": {
+        "subObject": {
+            "required": [
+                "value",
+                "empty"
+            ],
+            "type": "object",
+            "not": {
+                "maxProperties": 0,
+                "properties": {
+                    "value": {
+                        "type": [
+                            "integer",
+                            "number"
+                        ],
+                        "multipleOf": 5,
+                        "minLength": 7
+                    }
+                }
+            },
+            "properties": {
+                "value": {
+                    "type": [
+                        "integer",
+                        "number",
+                        "string"
+                    ],
+                    "minLength": 5
+                },
+                "empty": {
+                    "type": [
+                        "boolean"
+                    ],
+                    "not": {
+                        "type": [
+                            "boolean"
+                        ]
+                    }
+                }
+            },
+            "allOf": [
+                {
+                    "not": {
+                        "minItems": 5
+                    }
+                },
+                {
+                    "not": {
+                        "minItems": 4
+                    }
+                }
+            ]
+        }
+    },
+    "required": [
+        "subObject"
+    ]
+}
