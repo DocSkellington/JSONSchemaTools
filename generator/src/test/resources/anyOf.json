@@ -1,0 +1,53 @@
+{
+    "type": "object",
+    "properties": {
+        "anyOfArray": {
+            "type": "array",
+            "anyOf": [
+                {
+                    "minItems": 1
+                },
+                {
+                    "maxItems": 4
+                },
+                {
+                    "minItems": 2
+                },
+                {
+                    "items": {
+                        "type": "boolean"
+                    }
+                }
+            ],
+            "items": {
+                "type": "string"
+            }
+        },
+        "anyOfObject": {
+            "type": "object",
+            "required": [
+                "prop"
+            ],
+            "anyOf": [
+                {
+                    "properties": {
+                        "prop": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                {
+                    "properties": {
+                        "prop": {
+                            "type": "string"
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    "required": [
+        "anyOfObject",
+        "anyOfArray"
+    ]
+}

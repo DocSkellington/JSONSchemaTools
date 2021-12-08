@@ -175,30 +175,32 @@ public final class JSONSchema {
         }
     }
 
-    private JSONSchema transformConstraintsInSchema(final Map<String, Set<Object>> keyToValues) throws JSONSchemaException {
+    private JSONSchema transformConstraintsInSchema(final Map<String, Set<Object>> keyToValues)
+            throws JSONSchemaException {
         // We will handle "not" afterwards. This is because we potentially need to merge
         // the constraints in "not" with the regular constraints
         final JSONObject constraints = new JSONObject();
         for (final Map.Entry<String, Set<Object>> entry : keyToValues.entrySet()) {
             final String key = entry.getKey();
             if (!key.equals("not")) {
-                constraints.put(key, Keys.applyOperation(key, entry.getValue()));
+                Object valueAfterOperation = Keys.applyOperation(key, entry.getValue());
+                constraints.put(key, valueAfterOperation);
             }
         }
 
-        if (keyToValues.containsKey("not")) {
-            final JSONObject not = (JSONObject) Keys.applyOperation("not", keyToValues.get("not"));
-            for (final String key : not.keySet()) {
-                if (constraints.has(key)) {
-                    final Set<Object> values = Set.of(constraints.get(key), not.get(key));
-                    constraints.put(key, Keys.applyOperation(key, values));
-                } else {
-                    constraints.put(key, not.get(key));
-                }
-            }
-        }
-
+        handleNotInMerge(constraints, keyToValues);
         return new JSONSchema(constraints, store, fullSchemaId);
+    }
+
+    public JSONSchema dropAllOfAnyOfOneOfAndNot() throws JSONSchemaException {
+        JSONObject newSchema = new JSONObject();
+        for (String key : object.keySet()) {
+            if (key.equals("allOf") || key.equals("anyOf") || key.equals("oneOf") || key.equals("not")) {
+                continue;
+            }
+            newSchema.put(key, object.get(key));
+        }
+        return new JSONSchema(newSchema, store, fullSchemaId);
     }
 
     public JSONSchema getAllOf() throws JSONSchemaException {
@@ -220,7 +222,7 @@ public final class JSONSchema {
         }
         final JSONArray anyOf = object.getJSONArray("anyOf");
         final List<JSONSchema> schemas = new ArrayList<>(anyOf.length());
-        for (int i = 0 ; i < anyOf.length() ; i++) {
+        for (int i = 0; i < anyOf.length(); i++) {
             final JSONObject subSchema = anyOf.getJSONObject(i);
             final Map<String, Set<Object>> keyToValues = new HashMap<>();
             addConstraintToSet(keyToValues, subSchema, Keys.getKeys());
@@ -235,19 +237,19 @@ public final class JSONSchema {
         }
         final JSONArray oneOf = object.getJSONArray("oneOf");
         final List<JSONSchema> schemas = new ArrayList<>(oneOf.length());
-        for (int i = 0 ; i < oneOf.length() ; i++) {
+        for (int i = 0; i < oneOf.length(); i++) {
             final JSONObject subSchema = oneOf.getJSONObject(i);
             final Map<String, Set<Object>> keyToValues = new HashMap<>();
             addConstraintToSet(keyToValues, subSchema, Keys.getKeys());
             schemas.add(transformConstraintsInSchema(keyToValues));
         }
-        
+
         final List<JSONSchema> combinations = new ArrayList<>(schemas.size());
-        for (int i = 0 ; i < schemas.size() ; i++) {
+        for (int i = 0; i < schemas.size(); i++) {
             final JSONArray onePossibility = new JSONArray(schemas.size());
             final JSONSchema positive = schemas.get(i);
             onePossibility.put(positive.object);
-            for (int j = 0 ; j < schemas.size() ; j++) {
+            for (int j = 0; j < schemas.size(); j++) {
                 if (i == j) {
                     continue;
                 }
@@ -261,6 +263,35 @@ public final class JSONSchema {
             combinations.add(schemaForPossibility);
         }
         return combinations;
+    }
+
+    private void handleNotInMerge(JSONObject constraints, Map<String, Set<Object>> keyToValues) throws JSONSchemaException {
+        if (keyToValues.containsKey("not")) {
+            List<?> valueAfterOperation = (List<?>) Keys.applyOperation("not", keyToValues.get("not"));
+            JSONArray notArray = new JSONArray(valueAfterOperation);
+            if (constraints.has("anyOf")) {
+                JSONObject alreadyAnyOf = new JSONObject();
+                alreadyAnyOf.put("anyOf", constraints.getJSONArray("anyOf"));
+                JSONObject fromNot = new JSONObject();
+                fromNot.put("anyOf", notArray);
+                JSONArray allOf = new JSONArray();
+                allOf.put(alreadyAnyOf);
+                allOf.put(fromNot);
+                
+                if (constraints.has("allOf")) {
+                    constraints.append("allOf", alreadyAnyOf);
+                    constraints.append("allOf", fromNot);
+                }
+                else {
+                    constraints.put("allOf", allOf);
+                }
+                
+                constraints.remove("anyOf");
+            }
+            else {
+                constraints.put("anyOf", notArray);
+            }
+        }
     }
 
     public JSONSchema merge(JSONSchema other) throws JSONSchemaException {
@@ -285,72 +316,35 @@ public final class JSONSchema {
 
         JSONObject constraints = new JSONObject();
         for (Map.Entry<String, Set<Object>> entry : keyToValues.entrySet()) {
-            constraints.put(entry.getKey(), Keys.applyOperation(entry.getKey(), entry.getValue()));
-        }
-
-        return new JSONSchema(constraints, store, fullSchemaId);
-    }
-
-    public JSONSchema mergeNot(JSONSchema other) throws JSONSchemaException {
-        if (other == null || other.object.isEmpty()) {
-            return this;
-        }
-        Set<String> keysToKeepInOther = Keys.keysToKeepInNot();
-        Map<String, Set<Object>> keyToNotValues = new HashMap<>();
-        for (String key : other.object.keySet()) {
-            if (keysToKeepInOther.contains(key)) {
-                Object value = other.object.get(key);
-                if (!keyToNotValues.containsKey(key)) {
-                    keyToNotValues.put(key, new HashSet<>());
-                }
-                keyToNotValues.get(key).add(value);
-            }
-        }
-        final JSONObject not = new JSONObject();
-        for (Map.Entry<String, Set<Object>> entry : keyToNotValues.entrySet()) {
-            final Set<Object> values = new HashSet<>();
             final String key = entry.getKey();
-            values.add(Keys.applyNot(key, entry.getValue()));
-            if (object.has(key)) {
-                values.add(object.get(key));
-            }
-            not.put(key, Keys.applyOperation(key, values));
-        }
-
-        Map<String, Set<Object>> keyToValues = new HashMap<>();
-        for (String key : object.keySet()) {
-            Object value = object.get(key);
-            if (!keyToValues.containsKey(key)) {
-                keyToValues.put(key, new HashSet<>());
-            }
-            keyToValues.get(key).add(value);
-        }
-        for (String key : not.keySet()) {
-            if (keysToKeepInOther.contains(key)) {
-                Object value = not.get(key);
-                if (!keyToValues.containsKey(key)) {
-                    keyToValues.put(key, new HashSet<>());
-                }
-                keyToValues.get(key).add(value);
+            if (!key.equals("not")) {
+                Object valueAfterOperation = Keys.applyOperation(key, entry.getValue());
+                constraints.put(key, valueAfterOperation);
             }
         }
 
-        JSONObject constraints = new JSONObject();
-        for (Map.Entry<String, Set<Object>> entry : keyToValues.entrySet()) {
-            constraints.put(entry.getKey(), Keys.applyOperation(entry.getKey(), entry.getValue()));
-        }
+        handleNotInMerge(constraints, keyToValues);
         return new JSONSchema(constraints, store, fullSchemaId);
     }
 
-    public JSONSchema getNot() throws JSONSchemaException {
+    public List<JSONSchema> getNot() throws JSONSchemaException {
         if (object.has("not")) {
-            JSONObject not = object.getJSONObject("not");
+            final JSONObject not = object.getJSONObject("not");
+            JSONSchema actualSchema;
             if (not.has("$ref")) {
-                return handleRef(not.getString("$ref"));
+                actualSchema = handleRef(not.getString("$ref"));
             }
-            return new JSONSchema(not, store, fullSchemaId);
+            actualSchema = new JSONSchema(not, store, fullSchemaId);
+            final List<JSONSchema> schemas = new ArrayList<>(actualSchema.object.length());
+
+            for (final String key : actualSchema.object.keySet()) {
+                final Object value = actualSchema.object.get(key);
+                final JSONObject notValue = Keys.applyNot(key, Collections.singleton(value));
+                schemas.add(new JSONSchema(notValue, store, fullSchemaId));
+            }
+            return schemas;
         }
-        return null;
+        return Collections.singletonList(store.trueSchema());
     }
 
     private JSONSchema handleRef(String reference) throws JSONException, JSONSchemaException {
@@ -380,17 +374,6 @@ public final class JSONSchema {
 
     public JSONSchema getSubSchema(String key) throws JSONException, JSONSchemaException {
         return getSubSchema(key, object);
-    }
-
-    public JSONSchema getSubSchemaInAllOfDueToMerge(String key) throws JSONException, JSONSchemaException {
-        JSONSchema allOf = getAllOf();
-        if (object.getJSONArray("allOf").getJSONObject(0).has(Keys.dueToMergeKey)) {
-            allOf.object.put(Keys.dueToMergeKey, new JSONObject());
-        }
-        if (allOf.hasKey("$ref")) {
-            return handleRef(allOf.getString("$ref"));
-        }
-        return allOf;
     }
 
     private JSONSchema getSubSchema(String key, JSONObject object) throws JSONException, JSONSchemaException {

@@ -141,50 +141,61 @@ public class TestGenerator {
     }
 
     @Test(invocationCount = 100)
-    public void testGeneratorComposition() throws FileNotFoundException, JSONSchemaException, URISyntaxException, JSONException, GeneratorException {
-        JSONSchema schema = loadSchema("composition.json");
-        Generator generator = new DefaultGenerator(10, 5);
+    public void testGeneratorAllOf() throws FileNotFoundException, JSONSchemaException, URISyntaxException, JSONException, GeneratorException {
+        JSONSchema schema = loadSchema("allOf.json");
+        Generator generator = new DefaultGenerator(5, 5);
         JSONObject document = generator.generate(schema, 5);
 
-        Assert.assertEquals(document.length(), 6);
-        Assert.assertTrue(document.has("testAllArray"));
-        Assert.assertTrue(document.has("testAnyArray"));
-        Assert.assertTrue(document.has("testOneArray"));
-        Assert.assertTrue(document.has("testAllObject"));
-        Assert.assertTrue(document.has("testAnyObject"));
-        Assert.assertTrue(document.has("testOneObject"));
+        Assert.assertEquals(document.length(), 2);
+        Assert.assertTrue(document.has("allOfObject"));
+        Assert.assertTrue(document.has("allOfArray"));
 
-        JSONArray testAllArray = document.getJSONArray("testAllArray");
-        Assert.assertTrue(2 <= testAllArray.length() && testAllArray.length() <= 4);
-        for (int i = 0 ; i < testAllArray.length() ; i++) {
-            Assert.assertEquals(testAllArray.getString(i), AbstractConstants.stringConstant);;
-        }
+        JSONArray allOfArray = document.getJSONArray("allOfArray");
+        Assert.assertTrue(2 <= allOfArray.length() && allOfArray.length() <= 4);
 
-        JSONObject testAllObject = document.getJSONObject("testAllObject");
-        Assert.assertTrue(testAllObject.has("prop"));
-        Assert.assertTrue(testAllObject.has("val"));
-        JSONArray prop = testAllObject.getJSONArray("prop");
+        JSONObject allOfObject = document.getJSONObject("allOfObject");
+        Assert.assertEquals(allOfObject.length(), 2);
+        Assert.assertTrue(allOfObject.has("prop"));
+        Assert.assertTrue(allOfObject.has("val"));
+
+        JSONArray prop = allOfObject.getJSONArray("prop");
         Assert.assertEquals(prop.length(), 2);
-        for (int i = 0 ; i < prop.length() ; i++) {
-            Assert.assertEquals(prop.getString(i), AbstractConstants.integerConstant);
+
+        Assert.assertEquals(allOfObject.get("val"), AbstractConstants.numberConstant);
+    }
+
+    @Test(invocationCount = 100)
+    public void testGeneratorAnyOf() throws FileNotFoundException, JSONSchemaException, URISyntaxException, JSONException, GeneratorException {
+        JSONSchema schema = loadSchema("anyOf.json");
+        Generator generator = new DefaultGenerator(5, 5);
+        JSONObject document = generator.generate(schema, 5);
+
+        Assert.assertEquals(document.length(), 2);
+        Assert.assertTrue(document.has("anyOfObject"));
+        Assert.assertTrue(document.has("anyOfArray"));
+
+        JSONArray anyOfArray = document.getJSONArray("anyOfArray");
+        Assert.assertTrue(1 <= anyOfArray.length() || anyOfArray.length() <= 4);
+        for (int i = 0 ; i < anyOfArray.length() ; i++) {
+            Assert.assertEquals(anyOfArray.get(i), AbstractConstants.stringConstant);
         }
-        Assert.assertEquals(testAllObject.getString("val"), AbstractConstants.numberConstant);
+    }
 
-        JSONArray testAnyArray = document.getJSONArray("testAnyArray");
-        Assert.assertTrue(1 <= testAnyArray.length() || testAnyArray.length() <= 4);
-        for (int i = 0 ; i < testAnyArray.length() ; i++) {
-            Assert.assertEquals(testAnyArray.getString(i), AbstractConstants.stringConstant);;
-        }
+    @Test(invocationCount = 100)
+    public void testGeneratorOneOf() throws FileNotFoundException, JSONSchemaException, URISyntaxException, JSONException, GeneratorException {
+        JSONSchema schema = loadSchema("oneOf.json");
+        Generator generator = new DefaultGenerator(5, 5);
+        JSONObject document = generator.generate(schema, 5);
 
-        JSONObject testAnyObject = document.getJSONObject("testAnyObject");
-        Assert.assertTrue(testAnyObject.has("prop"));
-        Assert.assertTrue(testAnyObject.getString("prop").equals(AbstractConstants.stringConstant) || testAnyObject.getString("prop").equals(AbstractConstants.integerConstant));
+        Assert.assertEquals(document.length(), 2);
+        Assert.assertTrue(document.has("oneOfObject"));
+        Assert.assertTrue(document.has("oneOfArray"));
 
-        JSONArray testOneArray = document.getJSONArray("testOneArray");
-        Assert.assertNotEquals(2 <= testOneArray.length(), testOneArray.length() <= 3);
+        JSONArray oneOfArray = document.getJSONArray("oneOfArray");
+        Assert.assertNotEquals(2 <= oneOfArray.length(), oneOfArray.length() <= 3);
 
-        JSONObject testOneObject = document.getJSONObject("testOneObject");
-        Assert.assertNotEquals(0 <= testOneObject.length() && testOneObject.length() <= 1, 1 <= testOneObject.length() && testOneObject.length() <= 2);
+        JSONObject oneOfObject = document.getJSONObject("oneOfObject");
+        Assert.assertNotEquals(1 <= oneOfObject.length() && oneOfObject.length() <= 2, 0 <= oneOfObject.length() && oneOfObject.length() <= 1);
     }
 
     @Test(invocationCount = 100)

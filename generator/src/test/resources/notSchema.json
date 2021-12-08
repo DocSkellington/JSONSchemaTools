@@ -8,15 +8,12 @@
             ],
             "type": "object",
             "not": {
-                "maxProperties": 0,
                 "properties": {
                     "value": {
                         "type": [
                             "integer",
                             "number"
-                        ],
-                        "multipleOf": 5,
-                        "minLength": 7
+                        ]
                     }
                 }
             },

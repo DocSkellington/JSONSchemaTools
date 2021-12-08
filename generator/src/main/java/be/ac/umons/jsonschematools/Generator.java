@@ -41,7 +41,7 @@ public class Generator {
         final JSONSchema oneOf = oneOfList.get(rand.nextInt(oneOfList.size())).getAllOf();
         final JSONSchema not = notList.get(rand.nextInt(notList.size()));
 
-        return schema.dropAnyOfOneOfAndNot().merge(allOf).merge(anyOf).merge(oneOf).merge(not);
+        return schema.dropAllOfAnyOfOneOfAndNot().merge(allOf).merge(anyOf).merge(oneOf).merge(not);
     }
 
     public JSONObject generate(final JSONSchema schema, final int maxTreeSize)

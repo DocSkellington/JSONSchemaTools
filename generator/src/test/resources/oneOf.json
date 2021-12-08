@@ -1,0 +1,44 @@
+{
+    "type": "object",
+    "properties": {
+        "oneOfArray": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "oneOf": [
+                {
+                    "minItems": 2
+                },
+                {
+                    "maxItems": 3
+                }
+            ]
+        },
+        "oneOfObject": {
+            "type": "object",
+            "properties": {
+                "prop1": {
+                    "type": "string"
+                },
+                "prop2": {
+                    "type": "string"
+                }
+            },
+            "oneOf": [
+                {
+                    "minProperties": 1,
+                    "maxProperties": 2
+                },
+                {
+                    "minProperties": 0,
+                    "maxProperties": 1
+                }
+            ]
+        }
+    },
+    "required": [
+        "oneOfObject",
+        "oneOfArray"
+    ]
+}

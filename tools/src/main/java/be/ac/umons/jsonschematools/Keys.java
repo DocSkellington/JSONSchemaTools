@@ -1,9 +1,11 @@
 package be.ac.umons.jsonschematools;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -11,7 +13,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class Keys {
-    public static final String dueToMergeKey = "JSONSchemaToolsDueToMerge";
     private static enum Operation {
         MINIMUM,
         MAXIMUM,
@@ -27,9 +28,14 @@ public class Keys {
 
     private static final Map<String, Operation> keyToOperation = new HashMap<>();
 
+    private static final Set<String> minKeys = new HashSet<>();
+    private static final Set<String> maxKeys = new HashSet<>();
+    private static final Map<String, String> minToMax = new HashMap<>();
+    private static final Map<String, String> maxToMin = new HashMap<>();
+
     public static void prepareKeys() {
-        String[] minKeys = {"maxItems", "maxProperties", "maximum", "exclusiveMaximum", "maxLength", "maxContains"};
-        String[] maxKeys = {"minItems", "minProperties", "minimum", "exclusiveMinimum", "minLength", "minContains"};
+        String[] mini = {"minItems", "minProperties", "minimum", "exclusiveMinimum", "minLength", "minContains"};
+        String[] maxi = {"maxItems", "maxProperties", "maximum", "exclusiveMaximum", "maxLength", "maxContains"};
         String[] productKeys = {"multipleOf"};
         String[] andKeys = {"uniqueItems"};
         String[] concatKeys = {"required", "allOf", "anyOf", "oneOf"};
@@ -40,6 +46,13 @@ public class Keys {
         String[] notKeys = {"not"};
         // TODO: "const", "dependentRequired"
         // TODO: say that "pattern" is ignored
+
+        for (int i = 0 ; i < maxi.length ; i++) {
+            minToMax.put(mini[i], maxi[i]);
+            maxToMin.put(maxi[i], mini[i]);
+            minKeys.add(maxi[i]);
+            maxKeys.add(mini[i]);
+        }
 
         for (String key : minKeys) {
             keyToOperation.put(key, Operation.MINIMUM);
@@ -156,7 +169,6 @@ public class Keys {
             }
             else if (objects.size() > 1) {
                 subSchema.put("allOf", new JSONArray(objects));
-                subSchema.put(dueToMergeKey, new JSONObject());
             }
             merge.put(entry.getKey(), subSchema);
         }
@@ -165,7 +177,6 @@ public class Keys {
 
     public static JSONObject getMergeItems(Set<Object> values) {
         JSONObject merge = new JSONObject();
-        merge.put(dueToMergeKey, new JSONObject());
         merge.put("allOf", new JSONArray(values));
         return merge;
     }
@@ -177,11 +188,16 @@ public class Keys {
         return values.iterator().next();
     }
 
-    public static Set<String> keysToKeepInNot() {
-        return Set.of("items", "properties", "type", "not");
+    private static Set<String> keysToKeepInNot() {
+        // TODO: more keywords?
+        // TODO: anyOf, allOf, oneOf
+        Set<String> set = new HashSet<>(Set.of("items", "properties", "type", "not"));
+        set.addAll(minKeys);
+        set.addAll(maxKeys);
+        return set;
     }
 
-    public static Object applyNot(final String key, final Set<Object> values) throws JSONSchemaException {
+    public static JSONObject applyNot(final String key, final Set<Object> values) throws JSONSchemaException {
         if (key.equals("properties")) {
             final JSONObject properties = (JSONObject) applyOperation(key, values);
             final JSONObject notProperties = new JSONObject();
@@ -190,11 +206,15 @@ public class Keys {
                 notProperty.put("not", properties.get(propertyKey));
                 notProperties.put(propertyKey, notProperty);
             }
-            return notProperties;
+            final JSONObject schema = new JSONObject();
+            schema.put("properties", notProperties);
+            return schema;
         }
         else if (key.equals("items")) {
             final JSONObject items = (JSONObject) applyOperation(key, values);
-            return items;
+            final JSONObject schema = new JSONObject();
+            schema.put("items", items);
+            return schema;
         }
         else if (key.equals("type")) {
             final JSONArray types = (JSONArray) applyOperation(key, values);
@@ -203,15 +223,31 @@ public class Keys {
                 String type = types.getString(i);
                 allTypes.remove(type);
             }
-            return new JSONArray(allTypes);
+            final JSONObject schema = new JSONObject();
+            schema.put("type", new JSONArray(allTypes));
+            return schema;
         }
         else if (key.equals("not")) {
-            return values.iterator().next();
+            return (JSONObject) values.iterator().next();
+        }
+        else if (minKeys.contains(key)) {
+            final String maxKey = maxToMin.get(key);
+            int value = (int) applyOperation(key, values);
+            final JSONObject schema = new JSONObject();
+            schema.put(maxKey, value + 1);
+            return schema;
+        }
+        else if (maxKeys.contains(key)) {
+            final String minKey = minToMax.get(key);
+            int value = (int) applyOperation(key, values);
+            final JSONObject schema = new JSONObject();
+            schema.put(minKey, value - 1);
+            return schema;
         }
         return null;
     }
 
-    public static JSONObject getNot(final Set<Object> values) throws JSONSchemaException {
+    public static List<JSONObject> getNot(final Set<Object> values) throws JSONSchemaException {
         Set<String> keysToKeep = keysToKeepInNot();
         Map<String, Set<Object>> valuesByKey = new HashMap<>();
         for (Object object : values) {
@@ -227,14 +263,22 @@ public class Keys {
         }
 
         if (valuesByKey.isEmpty()) {
-            return new JSONObject();
+            return Collections.singletonList(new JSONObject());
         }
-        final JSONObject not = new JSONObject();
+        final List<JSONObject> disjunction = new ArrayList<>();
         for (final Map.Entry<String, Set<Object>> entry : valuesByKey.entrySet()) {
-            final String key = entry.getKey();
-            not.put(key, applyNot(key, entry.getValue()));
+            final JSONObject not = new JSONObject();
+            final JSONObject object = applyNot(entry.getKey(), entry.getValue());
+            if (entry.getKey().equals("not")) {
+                not.put("not", object);
+            }
+            else {
+                final String key = object.keys().next();
+                not.put(key, object.get(key));
+            }
+            disjunction.add(not);
         }
-        return not;
+        return disjunction;
     }
 
     public static Object applyOperation(String key, Set<Object> values) throws JSONSchemaException {
@@ -265,7 +309,43 @@ public class Keys {
                 return getNot(values);
             default:
                 return null;
-
         }
+    }
+
+    public static String getKeyAfterNotOperation(String key) {
+        switch(key) {
+            case "not":
+                return "anyOf";
+            case "minItems":
+                return "maxItems";
+            case "maxItems":
+                return "minItems";
+            case "minProperties":
+                return "maxProperties";
+            case "maxProperties":
+                return "minProperties";
+            case "minimum":
+                return "maximum";
+            case "maximum":
+                return "minimum";
+            case "exclusiveMinimum":
+                return "exclusiveMaximum";
+            case "exclusiveMaximum":
+                return "exclusiveMinimum";
+            case "minLength":
+                return "maxLength";
+            case "maxLength":
+                return "minLength";
+            case "minContains":
+                return "maxContains";
+            case "maxContains":
+                return "minContains";
+            case "uniqueItems":
+            case "properties":
+            case "items":
+            case "type":
+                return key;
+        }
+        return null;
     }
 }
