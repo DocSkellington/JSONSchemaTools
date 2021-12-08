@@ -36,16 +36,14 @@ public class DefaultObjectHandler implements Handler {
             return jsonObject;
         }
 
-        final JSONSchema finalSchema = Generator.getActualSchema(schema, rand);
-
-        int minProperties = finalSchema.getIntOr("minProperties", 0);
-        int maxProperties = finalSchema.getIntOr("maxProperties", this.maxProperties);
+        int minProperties = schema.getIntOr("minProperties", 0);
+        int maxProperties = schema.getIntOr("maxProperties", this.maxProperties);
         if (maxProperties < minProperties) {
-            throw new GeneratorException("Impossible to generate an object for schema " + finalSchema
+            throw new GeneratorException("Impossible to generate an object for schema " + schema
                     + " as minProperties = " + minProperties + " > maxProperties = " + maxProperties);
         }
 
-        for (Map.Entry<String, JSONSchema> entry : finalSchema.getRequiredProperties().entrySet()) {
+        for (Map.Entry<String, JSONSchema> entry : schema.getRequiredProperties().entrySet()) {
             JSONSchema subSchema = entry.getValue();
             String key = entry.getKey();
             jsonObject.put(key, generator.generateAccordingToConstraints(subSchema, maxTreeSize, rand));
@@ -53,9 +51,9 @@ public class DefaultObjectHandler implements Handler {
 
         int missingProperties = Math.max(0, minProperties - jsonObject.length());
 
-        Map<String, JSONSchema> nonRequiredProperties = finalSchema.getNonRequiredProperties();
+        Map<String, JSONSchema> nonRequiredProperties = schema.getNonRequiredProperties();
         if (missingProperties > nonRequiredProperties.size()) {
-            throw new GeneratorException("Impossible to generate an object for schema " + finalSchema
+            throw new GeneratorException("Impossible to generate an object for schema " + schema
                     + " as minProperties = " + minProperties + " exceeds the number of defined properties");
         }
 
@@ -72,9 +70,13 @@ public class DefaultObjectHandler implements Handler {
         }
 
         for (String key : selectedProperties) {
-            JSONSchema subSchema = finalSchema.getSubSchemaProperties(key);
+            JSONSchema subSchema = schema.getSubSchemaProperties(key);
             jsonObject.put(key, generator.generateAccordingToConstraints(subSchema, maxTreeSize, rand));
             nonRequiredProperties.remove(key);
+        }
+
+        if (jsonObject.length() >= maxProperties) {
+            return jsonObject;
         }
 
         for (Map.Entry<String, JSONSchema> entry : nonRequiredProperties.entrySet()) {
