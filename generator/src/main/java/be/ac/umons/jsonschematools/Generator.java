@@ -36,11 +36,12 @@ public class Generator {
         final JSONSchema allOf = schema.getAllOf();
         final List<JSONSchema> anyOfList = schema.getAnyOf();
         final List<JSONSchema> oneOfList = schema.getOneOf();
+        final List<JSONSchema> notList = schema.getNot();
         final JSONSchema anyOf = anyOfList.get(rand.nextInt(anyOfList.size()));
         final JSONSchema oneOf = oneOfList.get(rand.nextInt(oneOfList.size())).getAllOf();
-        final JSONSchema not = schema.getNot();
+        final JSONSchema not = notList.get(rand.nextInt(notList.size()));
 
-        return schema.merge(allOf).merge(anyOf).merge(oneOf).mergeNot(not);
+        return schema.dropAnyOfOneOfAndNot().merge(allOf).merge(anyOf).merge(oneOf).merge(not);
     }
 
     public JSONObject generate(final JSONSchema schema, final int maxTreeSize)
@@ -53,11 +54,14 @@ public class Generator {
         return generateRoot(schema, maxTreeSize, rand);
     }
 
-    private JSONObject generateRoot(final JSONSchema schema, final int maxTreeSize, final Random rand) throws JSONSchemaException, GeneratorException {
+    private JSONObject generateRoot(final JSONSchema schema, final int maxTreeSize, final Random rand)
+            throws JSONSchemaException, GeneratorException {
         final JSONSchema finalSchema = getActualSchema(schema, rand);
         List<Type> types = finalSchema.getListTypes();
         if (!types.contains(Type.OBJECT)) {
-            throw new GeneratorException("Impossible to generate a document since the top element of a document must be an object. Allowed types " + types);
+            throw new GeneratorException(
+                    "Impossible to generate a document since the top element of a document must be an object. Allowed types "
+                            + types);
         }
         return (JSONObject) generateValue(Type.OBJECT, schema, maxTreeSize + 1, rand);
     }
@@ -90,16 +94,21 @@ public class Generator {
         return enumHandler;
     }
 
-    public Object generateAccordingToConstraints(JSONSchema schema, int maxTreeSize, Random rand) throws JSONException, JSONSchemaException, GeneratorException {
-        if (schema.hasKey(Keys.dueToMergeKey)) {
-            return generateAccordingToConstraints(schema.getSubSchemaInAllOfDueToMerge("allOf"), maxTreeSize, rand);
+    public Object generateAccordingToConstraints(JSONSchema schema, int maxTreeSize, Random rand)
+            throws JSONException, JSONSchemaException, GeneratorException {
+        final JSONSchema fullSchema = getActualSchema(schema, rand);
+        // If we still have some constraints behind "allOf", "anyOf", "oneOf", or "not",
+        // we unfold them
+        if (fullSchema.hasKey("allOf") || fullSchema.hasKey("anyOf") || fullSchema.hasKey("oneOf")
+                || fullSchema.hasKey("not")) {
+            return generateAccordingToConstraints(fullSchema, maxTreeSize, rand);
         }
 
-        final JSONSchema fullSchema = schema.mergeNot(schema.getNot());
         Set<Type> allowedTypes = fullSchema.getAllowedTypes();
 
         if (allowedTypes.isEmpty()) {
-            throw new GeneratorException("Impossible to generate a value for the schema " + fullSchema + " as the set of allowed types is empty");
+            throw new GeneratorException("Impossible to generate a value for the schema " + fullSchema
+                    + " as the set of allowed types is empty");
         }
 
         Type type = new ArrayList<>(allowedTypes).get(rand.nextInt(allowedTypes.size()));
