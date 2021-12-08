@@ -5,7 +5,7 @@
         "description": {
             "type": "object",
             "properties": {
-                "arguments": {"$ref": "#/arguments"}
+                "arguments": {"$ref": "#/properties/arguments"}
             },
             "required": ["arguments"]
         },

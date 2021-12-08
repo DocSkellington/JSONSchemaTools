@@ -360,7 +360,7 @@ public final class JSONSchema {
             JSONSchema targetSchema = store.get(fullSchemaId);
             for (int i = 1; i < decompositions.length; i++) {
                 String key = decompositions[i];
-                targetSchema = targetSchema.getSubSchemaProperties(key);
+                targetSchema = targetSchema.getSubSchema(key);
             }
             return targetSchema;
         } else {
