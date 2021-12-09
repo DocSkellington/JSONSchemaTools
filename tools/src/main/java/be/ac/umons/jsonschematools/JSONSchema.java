@@ -113,6 +113,40 @@ public final class JSONSchema {
         types.add(Type.valueOf(type.toUpperCase()));
     }
 
+    public Set<String> getAllKeysDefinedInSchema() throws JSONSchemaException {
+        final Set<String> allKeys = new HashSet<>();
+
+        final Set<String> keys = getRequiredPropertiesKeys();
+        allKeys.addAll(keys);
+        for (String key : keys) {
+            try {
+                final JSONSchema subSchema = getSubSchemaProperties(key);
+                allKeys.addAll(subSchema.getAllKeysDefinedInSchema());
+            }
+            catch (JSONException e) {
+            }
+        }
+        for (Map.Entry<String, JSONSchema> entry : getNonRequiredProperties().entrySet()) {
+            allKeys.add(entry.getKey());
+            allKeys.addAll(entry.getValue().getAllKeysDefinedInSchema());
+        }
+
+        allKeys.addAll(getAllOf().getAllKeysDefinedInSchema());
+        for (final JSONSchema anyOf : getAnyOf()) {
+            allKeys.addAll(anyOf.getAllKeysDefinedInSchema());
+        }
+        for (final JSONSchema oneOf : getOneOf()) {
+            allKeys.addAll(oneOf.getAllKeysDefinedInSchema());
+        }
+        for (final JSONSchema not : getNot()) {
+            allKeys.addAll(not.getAllKeysDefinedInSchema());
+        }
+
+        // TODO: handle recursive schema case (otherwise, infinite loop)
+        
+        return allKeys;
+    }
+
     public Set<Type> getAllowedTypes() {
         return types;
     }
