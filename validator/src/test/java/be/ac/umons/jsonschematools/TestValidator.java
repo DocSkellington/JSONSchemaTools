@@ -15,14 +15,21 @@ public class TestValidator {
         return store.load(TestValidator.class.getResource("/" + path).toURI());
     }
 
+    private String escapeSymbol(String string) {
+        return "\"\\" + string + "\"";
+    }
+
     @Test
     public void testMissingRequiredPropertiesBasicTypes()
             throws FileNotFoundException, JSONException, JSONSchemaException, URISyntaxException {
         JSONSchema schema = loadSchemaResource("basicTypes.json");
         Validator validator = new DefaultValidator();
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("{").append("\"integer\": \"").append("\\" + AbstractConstants.integerConstant)
-                .append("\"").append("}");
+        // @formatter:off
+        stringBuilder.append("{").
+            append("\"integer\": ").append(escapeSymbol(AbstractConstants.integerConstant)).
+        append("}");
+        // @formatter:on
         Assert.assertFalse(validator.validate(schema, new JSONObject(stringBuilder.toString())));
     }
 
@@ -34,19 +41,25 @@ public class TestValidator {
         // @formatter:off
         builder.
             append('{').
-                append("\"integer\": \"").append("\\" + AbstractConstants.numberConstant).append("\"").
+                append("\"integer\": ").append(escapeSymbol(AbstractConstants.numberConstant)).
                 append(',').
                 append("\"boolean\": false").
                 append(',').
-                append("\"string\": \"").append("\\" + AbstractConstants.stringConstant).append("\"").
+                append("\"string\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
                 append(',').
-                append("\"double\": \"").append("\\" + AbstractConstants.numberConstant).append("\"").
+                append("\"double\": ").append(escapeSymbol(AbstractConstants.numberConstant)).
                 append(",").
-                append("\"enumVar\": \"").append("\\" + AbstractConstants.enumConstant).append("\"").
+                append("\"enumVar\": ").append(escapeSymbol(AbstractConstants.enumConstant)).
                 append(",").
-                append("\"object\": {\"anything\": \"").append("\\" + AbstractConstants.integerConstant).append("\"}").
+                append("\"object\": {").
+                    append("\"anything\": ").append(escapeSymbol(AbstractConstants.integerConstant)).
+                append("}").
                 append(",").
-                append("\"array\": [").append("\"\\" + AbstractConstants.stringConstant + "\"").append(',').append("\"\\" + AbstractConstants.stringConstant + "\"").append(']').
+                append("\"array\": [").
+                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(',').
+                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(']').
             append('}');
         // @formatter:on
         Assert.assertFalse(validator.validate(schema, new JSONObject(builder.toString())));
@@ -61,19 +74,25 @@ public class TestValidator {
         // @formatter:off
         builder.
             append('{').
-                append("\"integer\": \"").append("\\" + AbstractConstants.integerConstant).append("\"").
+                append("\"integer\": ").append(escapeSymbol(AbstractConstants.integerConstant)).
                 append(',').
-                append("\"boolean\": false").
+                append("\"boolean\": true").
                 append(',').
-                append("\"string\": \"").append("\\" + AbstractConstants.stringConstant).append("\"").
+                append("\"string\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
                 append(',').
-                append("\"double\": \"").append("\\" + AbstractConstants.numberConstant).append("\"").
+                append("\"double\": ").append(escapeSymbol(AbstractConstants.numberConstant)).
                 append(",").
-                append("\"enumVar\": \"").append("\\" + AbstractConstants.enumConstant).append("\"").
+                append("\"enumVar\": ").append(escapeSymbol(AbstractConstants.enumConstant)).
                 append(",").
-                append("\"object\": {\"anything\": \"").append("\\" + AbstractConstants.integerConstant).append("\"}").
+                append("\"object\": {").
+                    append("\"anything\": ").append(escapeSymbol(AbstractConstants.integerConstant)).
+                append("}").
                 append(",").
-                append("\"array\": [").append("\"\\" + AbstractConstants.stringConstant + "\"").append(',').append("\"\\" + AbstractConstants.stringConstant + "\"").append(']').
+                append("\"array\": [").
+                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(',').
+                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(']').
             append('}');
         // @formatter:on
         Assert.assertTrue(validator.validate(schema, new JSONObject(builder.toString())));
@@ -87,10 +106,10 @@ public class TestValidator {
         // @formatter:off
         builder.
             append('{').
-            append("\"name\": \"").append("\\" + AbstractConstants.stringConstant).append("\"").
+            append("\"name\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
             append(',').
             append("\"list\": [{").
-                    append("\"name\": \"").append("\\" + AbstractConstants.stringConstant).append("\"").
+                    append("\"name\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
                     append(',').
                     append("\"list\": [{").
                     append("}]").
@@ -108,13 +127,13 @@ public class TestValidator {
         // @formatter:off
         builder.
             append('{').
-            append("\"name\": \"").append("\\" + AbstractConstants.stringConstant).append("\"").
+            append("\"name\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
             append(',').
             append("\"list\": [{").
-                    append("\"name\": \"").append("\\" + AbstractConstants.stringConstant).append("\"").
+                    append("\"name\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
                     append(',').
                     append("\"list\": [{").
-                        append("\"name\": \"").append("\\" + AbstractConstants.integerConstant).append("\"").
+                        append("\"name\": ").append(escapeSymbol(AbstractConstants.integerConstant)).
                     append("}]").
                 append("}]").
             append('}');
@@ -130,13 +149,13 @@ public class TestValidator {
         // @formatter:off
         builder.
             append('{').
-            append("\"name\": \"").append("\\" + AbstractConstants.stringConstant).append("\"").
+            append("\"name\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
             append(',').
             append("\"list\": [{").
-                    append("\"name\": \"").append("\\" + AbstractConstants.stringConstant).append("\"").
+                    append("\"name\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
                     append(',').
                     append("\"list\": [{").
-                        append("\"name\": \"").append("\\" + AbstractConstants.stringConstant).append("\"").
+                        append("\"name\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
                     append("}]").
                 append("}]").
             append('}');
@@ -152,7 +171,7 @@ public class TestValidator {
         // @formatter:off
         builder.
             append('{').
-                append("\"comment\": \"").append("\\" + AbstractConstants.stringConstant).append("\"").
+                append("\"comment\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
                 append(',').
                 append("\"description\": {").
                     append("\"arguments\": {").
@@ -171,7 +190,7 @@ public class TestValidator {
         // @formatter:off
         builder.
             append('{').
-                append("\"comment\": \"").append("\\" + AbstractConstants.stringConstant).append("\"").
+                append("\"comment\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
                 append(',').
                 append("\"description\": {").
                     append("\"arguments\": {").
@@ -209,9 +228,9 @@ public class TestValidator {
         builder.
             append('{').
                 append("\"value\": {").
-                    append("\"comment\": \"\\").append(AbstractConstants.stringConstant).append("\"").
+                    append("\"comment\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
                     append(',').
-                    append("\"id\": \"\\").append(AbstractConstants.integerConstant).append("\"").
+                    append("\"id\": ").append(escapeSymbol(AbstractConstants.integerConstant)).
                     append('}').
                 append('}').
             append('}');
@@ -227,9 +246,9 @@ public class TestValidator {
         // @formatter:off
         builder.
             append('{').
-                append("\"str3\": \"\\").append(AbstractConstants.stringConstant).append("\"").
+                append("\"str3\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
                 append(',').
-                append("\"str1\": \"\\").append(AbstractConstants.stringConstant).append("\"").
+                append("\"str1\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
             append('}');
         // @formatter:on
         Assert.assertTrue(validator.validate(schema, new JSONObject(builder.toString())));
@@ -246,11 +265,326 @@ public class TestValidator {
         // @formatter:off
         builder.
             append('{').
-                append("\"str3\": \"\\").append(AbstractConstants.stringConstant).append("\"").
+                append("\"str3\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
                 append(',').
-                append("\"str1\": \"\\").append(AbstractConstants.stringConstant).append("\"").
+                append("\"str1\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
                 append(',').
-                append("\"str4\": \"\\").append(AbstractConstants.stringConstant).append("\"").
+                append("\"str4\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+            append('}');
+        // @formatter:on
+        Assert.assertFalse(validator.validate(schema, new JSONObject(builder.toString())));
+    }
+
+    @Test
+    public void testAllOf() throws FileNotFoundException, JSONSchemaException, URISyntaxException {
+        JSONSchema schema = loadSchemaResource("allOf.json");
+        Validator validator = new DefaultValidator();
+        StringBuilder builder = new StringBuilder();
+        // @formatter:off
+        builder.
+            append('{').
+                append("\"allOfObject\": {").
+                    append("\"prop\": [").
+                        append(escapeSymbol(AbstractConstants.integerConstant)).
+                        append(',').
+                        append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append("],").
+                    append("\"val\": ").append(escapeSymbol(AbstractConstants.numberConstant)).
+                append("},").
+                append("\"allOfArray\": [").
+                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(',').
+                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(',').
+                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                append("]").
+            append('}');
+        // @formatter:on
+        Assert.assertTrue(validator.validate(schema, new JSONObject(builder.toString())));
+
+        builder = new StringBuilder();
+        // @formatter:off
+        builder.
+            append('{').
+                append("\"allOfObject\": {").
+                    append("\"prop\": [").
+                        append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append("],").
+                    append("\"val\": ").append(escapeSymbol(AbstractConstants.numberConstant)).
+                append("},").
+                append("\"allOfArray\": [").
+                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(',').
+                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(',').
+                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                append("]").
+            append('}');
+        // @formatter:on
+        Assert.assertFalse(validator.validate(schema, new JSONObject(builder.toString())));
+     
+        builder = new StringBuilder();
+        // @formatter:off
+        builder.
+            append('{').
+                append("\"allOfObject\": {").
+                    append("\"prop\": [").
+                        append(escapeSymbol(AbstractConstants.integerConstant)).
+                        append(',').
+                        append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append("],").
+                    append("\"val\": ").append(escapeSymbol(AbstractConstants.numberConstant)).
+                append("},").
+                append("\"allOfArray\": [").
+                    append(escapeSymbol(AbstractConstants.numberConstant)).
+                    append(',').
+                    append(escapeSymbol(AbstractConstants.numberConstant)).
+                    append(',').
+                    append(escapeSymbol(AbstractConstants.numberConstant)).
+                append("]").
+            append('}');
+        // @formatter:on
+        Assert.assertFalse(validator.validate(schema, new JSONObject(builder.toString())));
+    }
+
+    @Test
+    public void testAnyOf() throws FileNotFoundException, JSONSchemaException, URISyntaxException {
+        JSONSchema schema = loadSchemaResource("anyOf.json");
+        Validator validator = new DefaultValidator();
+        StringBuilder builder = new StringBuilder();
+        // @formatter:off
+        builder.
+            append('{').
+                append("\"anyOfObject\": {").
+                    append("\"prop\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                append("},").
+                append("\"anyOfArray\": [").
+                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(',').
+                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(',').
+                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                append("]").
+            append('}');
+        // @formatter:on
+        Assert.assertTrue(validator.validate(schema, new JSONObject(builder.toString())));
+
+        builder = new StringBuilder();
+        // @formatter:off
+        builder.
+            append('{').
+                append("\"anyOfObject\": {").
+                    append("\"prop\": ").append(escapeSymbol(AbstractConstants.integerConstant)).
+                append("},").
+                append("\"anyOfArray\": [").
+                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                append("]").
+            append('}');
+        // @formatter:on
+        Assert.assertTrue(validator.validate(schema, new JSONObject(builder.toString())));
+
+        builder = new StringBuilder();
+        // @formatter:off
+        builder.
+            append('{').
+                append("\"anyOfObject\": {").
+                    append("\"prop\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                append("},").
+                append("\"anyOfArray\": [").
+                    append(false).
+                    append(',').
+                    append(true).
+                    append(',').
+                    append(true).
+                append("]").
+            append('}');
+        // @formatter:on
+        Assert.assertFalse(validator.validate(schema, new JSONObject(builder.toString())));
+    }
+
+    @Test
+    public void testOneOf() throws FileNotFoundException, JSONSchemaException, URISyntaxException {
+        JSONSchema schema = loadSchemaResource("oneOf.json");
+        Validator validator = new DefaultValidator();
+        StringBuilder builder = new StringBuilder();
+        // @formatter:off
+        builder.
+            append('{').
+                append("\"oneOfObject\": {").
+                append("},").
+                append("\"oneOfArray\": [").
+                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(',').
+                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(',').
+                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(',').
+                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                append("]").
+            append('}');
+        // @formatter:on
+        Assert.assertTrue(validator.validate(schema, new JSONObject(builder.toString())));
+
+        builder = new StringBuilder();
+        // @formatter:off
+        builder.
+            append('{').
+                append("\"oneOfObject\": {").
+                    append("\"prop1\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(',').
+                    append("\"prop2\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                append("},").
+                append("\"oneOfArray\": [").
+                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(',').
+                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(',').
+                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(',').
+                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                append("]").
+            append('}');
+        // @formatter:on
+        Assert.assertTrue(validator.validate(schema, new JSONObject(builder.toString())));
+
+        builder = new StringBuilder();
+        // @formatter:off
+        builder.
+            append('{').
+                append("\"oneOfObject\": {").
+                    append("\"prop1\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(',').
+                    append("\"prop2\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                append("},").
+                append("\"oneOfArray\": [").
+                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                append("]").
+            append('}');
+        // @formatter:on
+        Assert.assertTrue(validator.validate(schema, new JSONObject(builder.toString())));
+
+        builder = new StringBuilder();
+        // @formatter:off
+        builder.
+            append('{').
+                append("\"oneOfObject\": {").
+                    append("\"prop1\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                append("},").
+                append("\"oneOfArray\": [").
+                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(',').
+                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(',').
+                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(',').
+                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                append("]").
+            append('}');
+        // @formatter:on
+        Assert.assertFalse(validator.validate(schema, new JSONObject(builder.toString())));
+
+        builder = new StringBuilder();
+        // @formatter:off
+        builder.
+            append('{').
+                append("\"oneOfObject\": {").
+                    append("\"prop1\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(',').
+                    append("\"prop2\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                append("},").
+                append("\"oneOfArray\": [").
+                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(',').
+                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                append("]").
+            append('}');
+        // @formatter:on
+        Assert.assertFalse(validator.validate(schema, new JSONObject(builder.toString())));
+    }
+
+    @Test
+    public void testNot() throws FileNotFoundException, JSONSchemaException, URISyntaxException {
+        JSONSchema schema = loadSchemaResource("notSchema.json");
+        Validator validator = new DefaultValidator();
+        StringBuilder builder = new StringBuilder();
+        // @formatter:off
+        builder.
+            append('{').
+                append("\"subObject\": {").
+                    append("\"value\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(',').
+                    append("\"empty\": true").
+                append("}").
+            append('}');
+        // @formatter:on
+        Assert.assertTrue(validator.validate(schema, new JSONObject(builder.toString())));
+
+        builder = new StringBuilder();
+        // @formatter:off
+        builder.
+            append('{').
+                append("\"subObject\": {").
+                    append("\"value\": ").append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append(',').
+                    append("\"empty\": false").
+                append("}").
+            append('}');
+        // @formatter:on
+        Assert.assertFalse(validator.validate(schema, new JSONObject(builder.toString())));
+
+        builder = new StringBuilder();
+        // @formatter:off
+        builder.
+            append('{').
+                append("\"subObject\": {").
+                    append("\"value\": ").append(escapeSymbol(AbstractConstants.numberConstant)).
+                    append(',').
+                    append("\"empty\": false").
+                append("}").
+            append('}');
+        // @formatter:on
+        Assert.assertFalse(validator.validate(schema, new JSONObject(builder.toString())));
+    }
+
+    @Test
+    public void testNotError() throws FileNotFoundException, JSONSchemaException, URISyntaxException {
+        JSONSchema schema = loadSchemaResource("notSchemaError.json");
+        Validator validator = new DefaultValidator();
+        StringBuilder builder = new StringBuilder();
+        // @formatter:off
+        builder.
+            append('{').
+                append("\"subObject\": {").
+                    append("\"value\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(',').
+                    append("\"empty\": true").
+                append("}").
+            append('}');
+        // @formatter:on
+        Assert.assertFalse(validator.validate(schema, new JSONObject(builder.toString())));
+
+        builder = new StringBuilder();
+        // @formatter:off
+        builder.
+            append('{').
+                append("\"subObject\": {").
+                    append("\"value\": ").append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append(',').
+                    append("\"empty\": false").
+                append("}").
+            append('}');
+        // @formatter:on
+        Assert.assertFalse(validator.validate(schema, new JSONObject(builder.toString())));
+
+        builder = new StringBuilder();
+        // @formatter:off
+        builder.
+            append('{').
+                append("\"subObject\": {").
+                    append("\"value\": ").append(escapeSymbol(AbstractConstants.numberConstant)).
+                    append(',').
+                    append("\"empty\": false").
+                append("}").
             append('}');
         // @formatter:on
         Assert.assertFalse(validator.validate(schema, new JSONObject(builder.toString())));

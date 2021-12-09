@@ -7,7 +7,6 @@ import org.json.JSONObject;
 
 import be.ac.umons.jsonschematools.JSONSchema;
 import be.ac.umons.jsonschematools.JSONSchemaException;
-import be.ac.umons.jsonschematools.Type;
 import be.ac.umons.jsonschematools.Validator;
 
 public class DefaultObjectHandler implements Handler {
@@ -20,60 +19,35 @@ public class DefaultObjectHandler implements Handler {
         }
 
         final JSONObject document = (JSONObject) object;
-        Set<String> requiredKeys = schema.getRequiredProperties().keySet();
+        final int minProperties = schema.getIntOr("minProperties", 0);
+        final int maxProperties = schema.getIntOr("maxProperties", Integer.MAX_VALUE);
+        
+        if (!(minProperties <= document.length() && document.length() <= maxProperties)) {
+            return false;
+        }
+
+        Set<String> requiredKeys = schema.getRequiredPropertiesKeys();
         if (!document.keySet().containsAll(requiredKeys)) {
             return false;
         }
 
         for (String key : document.keySet()) {
-            if (!validateValue(validator, schema, document, key)) {
+            JSONSchema schemaForKey;
+            final Object objectForKey = document.get(key);
+
+            try {
+                schemaForKey = schema.getSubSchemaProperties(key);
+            }
+            catch (JSONException e) {
+                schemaForKey = schema.getStore().trueSchema();
+            }
+
+            if (!validator.validateValue(schemaForKey, objectForKey)) {
                 return false;
             }
         }
 
         return true;
-    }
-
-    static boolean validateValue(final Validator validator, final JSONSchema schema, final JSONObject object,
-            final String key) throws JSONException, JSONSchemaException {
-        final Object value = object.get(key);
-        final JSONSchema schemaForKey = schema.getSubSchemaProperties(key);
-        final Set<Type> allowedTypes = schemaForKey.getAllowedTypes();
-        for (Type type : allowedTypes) {
-            final boolean valid;
-            switch (type) {
-            case ARRAY:
-                valid = validator.getArrayHandler().validate(validator, schemaForKey, value);
-                break;
-            case BOOLEAN:
-                valid = validator.getBooleanHandler().validate(validator, schemaForKey, value);
-                break;
-            case ENUM:
-                valid = validator.getEnumHandler().validate(validator, schemaForKey, value);
-                break;
-            case INTEGER:
-                valid = validator.getIntegerHandler().validate(validator, schemaForKey, value);
-                break;
-            case NUMBER:
-                valid = validator.getNumberHandler().validate(validator, schemaForKey, value);
-                break;
-            case OBJECT:
-                valid = validator.getObjectHandler().validate(validator, schemaForKey, value);
-                break;
-            case STRING:
-                valid = validator.getStringHandler().validate(validator, schemaForKey, value);
-                break;
-            case NULL:
-            default:
-                valid = false;
-                break;
-            }
-
-            if (valid) {
-                return true;
-            }
-        }
-        return false;
     }
 
 }

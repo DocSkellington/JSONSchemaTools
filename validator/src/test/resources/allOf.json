@@ -1,0 +1,71 @@
+{
+    "type": "object",
+    "properties": {
+        "allOfObject": {
+            "type": "object",
+            "allOf": [
+                {
+                    "properties": {
+                        "prop": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                },
+                {
+                    "properties": {
+                        "prop": {
+                            "minItems": 2
+                        }
+                    }
+                },
+                {
+                    "properties": {
+                        "prop": {
+                            "maxItems": 2
+                        }
+                    }
+                },
+                {
+                    "properties": {
+                        "val": {
+                            "type": "number"
+                        }
+                    }
+                }
+            ],
+            "required": [
+                "prop",
+                "val"
+            ]
+        },
+        "allOfArray": {
+            "type": "array",
+            "allOf": [
+                {
+                    "minItems": 1
+                },
+                {
+                    "maxItems": 4
+                },
+                {
+                    "minItems": 2
+                },
+                {
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "minLength": 50
+                }
+            ]
+        }
+    },
+    "required": [
+        "allOfObject",
+        "allOfArray"
+    ]
+}

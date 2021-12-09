@@ -70,7 +70,7 @@ public class JSONSchemaStore {
         return document.length() == 0;
     }
 
-    public boolean isTrueSchema(JSONSchema schema) {
+    public static boolean isTrueSchema(JSONSchema schema) {
         return schema.getSchemaId() == TRUE_IDENTIFIER;
     }
 
@@ -86,7 +86,7 @@ public class JSONSchemaStore {
         return false;
     }
 
-    public boolean isFalseSchema(JSONSchema schema) {
+    public static boolean isFalseSchema(JSONSchema schema) {
         return schema.getSchemaId() == FALSE_IDENTIFIER;
     }
 

@@ -222,6 +222,24 @@ public final class JSONSchema {
         }
     }
 
+    public Set<String> getRequiredPropertiesKeys() throws JSONSchemaException {
+        if (!isObject()) {
+            throw new JSONSchemaException("Required properties are only defined for objects");
+        }
+
+        if (object.has("required")) {
+            Set<String> keys = new HashSet<>();
+            JSONArray required = object.getJSONArray("required");
+            for (int i = 0 ; i < required.length() ; i++) {
+                keys.add(required.getString(i));
+            }
+            return keys;
+        }
+        else {
+            return Collections.emptySet();
+        }
+    }
+
     public Map<String, JSONSchema> getRequiredProperties() throws JSONSchemaException {
         if (!isObject()) {
             throw new JSONSchemaException("Required properties are only defined for objects");
@@ -231,7 +249,7 @@ public final class JSONSchema {
             Map<String, JSONSchema> requiredProperties = new HashMap<>();
             JSONArray required = object.getJSONArray("required");
             for (Object value : required) {
-                if (value.getClass() != String.class) {
+                if (!(value instanceof String)) {
                     throw new JSONSchemaException("Values in the \"required\" field must be strings");
                 }
                 String key = (String) value;
