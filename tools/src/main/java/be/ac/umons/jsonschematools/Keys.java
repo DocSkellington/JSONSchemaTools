@@ -190,8 +190,8 @@ public class Keys {
 
     private static Set<String> keysToKeepInNot() {
         // TODO: more keywords?
-        // TODO: anyOf, allOf, oneOf
-        Set<String> set = new HashSet<>(Set.of("items", "properties", "type", "not"));
+        // TODO: oneOf
+        Set<String> set = new HashSet<>(Set.of("items", "properties", "type", "not", "enum", "anyOf", "allOf"));
         set.addAll(minKeys);
         set.addAll(maxKeys);
         return set;
@@ -229,6 +229,37 @@ public class Keys {
         }
         else if (key.equals("not")) {
             return (JSONObject) values.iterator().next();
+        }
+        else if (key.equals("allOf")) {
+            final JSONArray allOf = (JSONArray) applyOperation(key, values);
+            final JSONArray anyOf = new JSONArray(allOf.length());
+            for (int i = 0 ; i < allOf.length() ; i++) {
+                final JSONObject not = new JSONObject();
+                not.put("not", allOf.get(i));
+                anyOf.put(not);
+            }
+            final JSONObject schema = new JSONObject();
+            schema.put("anyOf", anyOf);
+            return schema;
+        }
+        else if (key.equals("anyOf")) {
+            final JSONArray anyOf = (JSONArray) applyOperation(key, values);
+            final JSONArray allOf = new JSONArray(anyOf.length());
+            for (int i = 0 ; i < anyOf.length() ; i++) {
+                final JSONObject not = new JSONObject();
+                not.put("not", anyOf.get(i));
+                allOf.put(not);
+            }
+            final JSONObject schema = new JSONObject();
+            schema.put("allOf", allOf);
+            return schema;
+        }
+        else if (key.equals("enum")) {
+            JSONObject enumObject = new JSONObject();
+            enumObject.put(key, new JSONArray(values));
+            JSONObject notEnum = new JSONObject();
+            notEnum.put("not", enumObject);
+            return notEnum;
         }
         else if (minKeys.contains(key)) {
             final String maxKey = maxToMin.get(key);

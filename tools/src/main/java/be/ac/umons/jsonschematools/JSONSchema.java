@@ -116,6 +116,51 @@ public final class JSONSchema {
         return object.has(key);
     }
 
+    public boolean needsFurtherUnfolding() {
+        if (object.has("not")) {
+            JSONObject not = object.getJSONObject("not");
+            if (not.length() == 1 && not.has("enum")) {
+                return false;
+            }
+            return true;
+        }
+
+        JSONArray array = null;
+        if (object.has("allOf")) {
+            array = object.getJSONArray("allOf");
+        }
+        else if (object.has("anyOf")) {
+            array = object.getJSONArray("anyOf");
+        }
+        else if (object.has("oneOf")) {
+            array = object.getJSONArray("oneOf");
+        }
+        else {
+            return false;
+        }
+        if (array.length() != 1) {
+            return true;
+        }
+        try {
+            JSONObject subSchema = array.getJSONObject(0);
+            if (subSchema.has("not")) {
+                JSONObject not = subSchema.getJSONObject("not");
+                if (not.length() == 1 && not.has("enum")) {
+                    return false;
+                }
+                else {
+                    return true;
+                }
+            }
+            else {
+                return true;
+            }
+        }
+        catch (JSONException e) {
+            return true;
+        }
+    }
+
     public Map<String, JSONSchema> getRequiredProperties() throws JSONSchemaException {
         if (!isObject()) {
             throw new JSONSchemaException("Required properties are only defined for objects");
@@ -334,7 +379,9 @@ public final class JSONSchema {
             if (not.has("$ref")) {
                 actualSchema = handleRef(not.getString("$ref"));
             }
-            actualSchema = new JSONSchema(not, store, fullSchemaId);
+            else {
+                actualSchema = new JSONSchema(not, store, fullSchemaId);
+            }
             final List<JSONSchema> schemas = new ArrayList<>(actualSchema.object.length());
 
             for (final String key : actualSchema.object.keySet()) {

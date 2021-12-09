@@ -131,8 +131,7 @@ public class Generator {
                     try {
                         // If we still have some constraints behind "allOf", "anyOf", "oneOf", or "not",
                         // we unfold them
-                        if (fullSchema.hasKey("allOf") || fullSchema.hasKey("anyOf") || fullSchema.hasKey("oneOf")
-                                || fullSchema.hasKey("not")) {
+                        if (fullSchema.needsFurtherUnfolding()) {
                             return generateAccordingToConstraints(fullSchema, maxTreeSize, rand);
                         }
 
