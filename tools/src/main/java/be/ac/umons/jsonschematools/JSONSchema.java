@@ -117,6 +117,26 @@ public final class JSONSchema {
         return types;
     }
 
+    public Set<Object> getForbiddenValues() {
+        Set<Object> forbiddenValues = new HashSet<>();
+        if (object.has("anyOf")) {
+            JSONArray anyOf = object.getJSONArray("anyOf");
+            for (int i = 0 ; i < anyOf.length() ; i++) {
+                JSONObject subSchema = anyOf.getJSONObject(i);
+                if (subSchema.has("not")) {
+                    JSONObject not = subSchema.getJSONObject("not");
+                    if (not.has("enum")) {
+                        JSONArray enumArray = not.getJSONArray("enum");
+                        for (int j = 0 ; j < enumArray.length() ; j++) {
+                            forbiddenValues.add(enumArray.get(j));
+                        }
+                    }
+                }
+            }
+        }
+        return forbiddenValues;
+    }
+
     public List<Type> getListTypes() {
         return new ArrayList<>(types);
     }
