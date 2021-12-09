@@ -57,15 +57,56 @@ public final class JSONSchema {
         }
 
         if (isObject()) {
-            JSONObject prop = null;
-            try {
-                prop = object.getJSONObject("properties");
-            } catch (JSONException e) {
+            if (object.has("properties")) {
+                this.properties = object.getJSONObject("properties");
             }
-            this.properties = prop;
+            else {
+                this.properties = new JSONObject();
+            }
+            JSONObject additionalProperties = getAdditionalProperties();
+
+            if (!JSONSchemaStore.isTrueDocument(additionalProperties) && !JSONSchemaStore.isFalseDocument(additionalProperties)) {
+                for (final String key : additionalProperties.keySet()) {
+                    if (!this.properties.has(key)) {
+                        this.properties.put(key, additionalProperties.getJSONObject(key));
+                    }
+                }
+            }
         } else {
             this.properties = null;
         }
+    }
+
+    private JSONObject getAdditionalProperties() throws JSONSchemaException {
+        JSONObject schemaForAdditionalProperties;
+        if (this.object.has("additionalProperties")) {
+            Object additionalProperties = object.get("additionalProperties");
+            if (additionalProperties instanceof Boolean) {
+                boolean value = (Boolean)additionalProperties;
+                if (value) {
+                    schemaForAdditionalProperties = JSONSchemaStore.trueDocument();
+                }
+                else {
+                    schemaForAdditionalProperties = JSONSchemaStore.falseDocument();
+                }
+            }
+            else if (additionalProperties instanceof JSONObject) {
+                JSONObject value = (JSONObject)additionalProperties;
+                if (value.has("$ref")) {
+                    schemaForAdditionalProperties = handleRef(value.getString("$ref")).object;
+                }
+                else {
+                    schemaForAdditionalProperties = value;
+                }
+            }
+            else {
+                throw new JSONSchemaException("Invalid schema: the value for \"additionalProperties\" must be a valid JSON Schema. Received: "+ additionalProperties);
+            }
+        }
+        else {
+            schemaForAdditionalProperties = JSONSchemaStore.trueDocument();
+        }
+        return schemaForAdditionalProperties;
     }
 
     private void addType(String type) {
