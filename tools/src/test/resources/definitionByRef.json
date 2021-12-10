@@ -1,0 +1,28 @@
+{
+    "type": "object",
+    "properties": {
+        "comment": {"type": "string"},
+        "description": {
+            "type": "object",
+            "properties": {
+                "arguments": {"$ref": "#/properties/arguments"}
+            },
+            "required": ["arguments"]
+        },
+        "arguments": {
+            "type": "object",
+            "properties": {
+                "values": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/properties/description"
+                    },
+                    "minItems": 1,
+                    "maxItems": 5
+                }
+            },
+            "required": ["values"]
+        }
+    },
+    "required": ["description"]
+}

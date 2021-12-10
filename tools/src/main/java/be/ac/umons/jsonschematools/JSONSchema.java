@@ -6,8 +6,10 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 
 import org.json.JSONArray;
@@ -114,36 +116,98 @@ public final class JSONSchema {
     }
 
     public Set<String> getAllKeysDefinedInSchema() throws JSONSchemaException {
+        class InQueue {
+            public final String path;
+            public final JSONObject object;
+
+            public InQueue(final String path, final JSONObject object) {
+                this.path = path;
+                this.object = object;
+            }
+        }
+
+        if (!isObject() && !isArray()) {
+            return Collections.emptySet();
+        }
+
         final Set<String> allKeys = new HashSet<>();
+        final Set<String> seenPaths = new HashSet<>(); // Store "#/properties/object/value", and so on
+        final Queue<InQueue> queue = new LinkedList<>();
+        queue.add(new InQueue("#", object));
+        seenPaths.add("#");
 
-        final Set<String> keys = getRequiredPropertiesKeys();
-        allKeys.addAll(keys);
-        for (String key : keys) {
-            try {
-                final JSONSchema subSchema = getSubSchemaProperties(key);
-                allKeys.addAll(subSchema.getAllKeysDefinedInSchema());
+        while (!queue.isEmpty()) {
+            final InQueue current = queue.poll();
+            JSONObject document = (JSONObject) current.object;
+            if (document.has("$ref")) {
+                final String ref = document.getString("$ref");
+                if (seenPaths.contains(ref)) {
+                    continue;
+                }
+                document = handleRef(ref).object;
             }
-            catch (JSONException e) {
+            if (document.has("properties")) {
+                final JSONObject properties = document.getJSONObject("properties");
+                for (final String key : properties.keySet()) {
+                    allKeys.add(key);
+                    final String path = current.path + "/properties/" + key;
+                    if (!seenPaths.contains(path)) {
+                        seenPaths.add(path);
+                        queue.add(new InQueue(path, properties.getJSONObject(key)));
+                    }
+                }
+            }
+            if (document.has("additionalProperties")) {
+                final Object additionalProperties = document.get("additionalProperties");
+                if (additionalProperties instanceof JSONObject) {
+                    final JSONObject addProperties = (JSONObject)additionalProperties;
+                    for (final String key : addProperties.keySet()) {
+                        allKeys.add(key);
+                        final String path = current.path + "/additionalProperties/" + key;
+                        if (!seenPaths.contains(path)) {
+                            seenPaths.add(path);
+                            queue.add(new InQueue(path, addProperties.getJSONObject(key)));
+                        }
+                    }
+                }
+            }
+            if (document.has("items")) {
+                final JSONObject items = document.getJSONObject("items");
+                final String path = current.path + "/items";
+                if (!seenPaths.contains(path)) {
+                    seenPaths.add(path);
+                    queue.add(new InQueue(path, items));
+                }
+            }
+            if (document.has("allOf")) {
+                final JSONArray allOf = document.getJSONArray("allOf");
+                final String path = current.path + "/allOf";
+                for (final Object object : allOf) {
+                    final JSONObject subSchema = (JSONObject)object;
+                    queue.add(new InQueue(path, subSchema));
+                }
+            }
+            if (document.has("anyOf")) {
+                final JSONArray anyOf = document.getJSONArray("anyOf");
+                final String path = current.path + "/anyOf";
+                for (final Object object : anyOf) {
+                    final JSONObject subSchema = (JSONObject)object;
+                    queue.add(new InQueue(path, subSchema));
+                }
+            }
+            if (document.has("oneOf")) {
+                final JSONArray oneOf = document.getJSONArray("oneOf");
+                final String path = current.path + "/oneOf";
+                for (final Object object : oneOf) {
+                    final JSONObject subSchema = (JSONObject)object;
+                    queue.add(new InQueue(path, subSchema));
+                }
+            }
+            if (document.has("not")) {
+                queue.add(new InQueue(current.path + "/not", document.getJSONObject("not")));
             }
         }
-        for (Map.Entry<String, JSONSchema> entry : getNonRequiredProperties().entrySet()) {
-            allKeys.add(entry.getKey());
-            allKeys.addAll(entry.getValue().getAllKeysDefinedInSchema());
-        }
 
-        allKeys.addAll(getAllOf().getAllKeysDefinedInSchema());
-        for (final JSONSchema anyOf : getAnyOf()) {
-            allKeys.addAll(anyOf.getAllKeysDefinedInSchema());
-        }
-        for (final JSONSchema oneOf : getOneOf()) {
-            allKeys.addAll(oneOf.getAllKeysDefinedInSchema());
-        }
-        for (final JSONSchema not : getNot()) {
-            allKeys.addAll(not.getAllKeysDefinedInSchema());
-        }
-
-        // TODO: handle recursive schema case (otherwise, infinite loop)
-        
         return allKeys;
     }
 
