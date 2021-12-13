@@ -1,4 +1,4 @@
-package be.ac.umons.jsonschematools.handlers;
+package be.ac.umons.jsonschematools.validatorhandlers;
 
 import java.util.Set;
 

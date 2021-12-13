@@ -1,4 +1,4 @@
-package be.ac.umons.jsonschematools.handlers;
+package be.ac.umons.jsonschematools.generatorhandlers;
 
 import java.util.Random;
 

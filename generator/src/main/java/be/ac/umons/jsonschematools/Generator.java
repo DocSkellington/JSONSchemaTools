@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import be.ac.umons.jsonschematools.handlers.Handler;
+import be.ac.umons.jsonschematools.generatorhandlers.Handler;
 
 public class Generator {
 

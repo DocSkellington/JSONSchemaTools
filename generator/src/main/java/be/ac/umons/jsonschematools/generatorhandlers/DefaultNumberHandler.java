@@ -1,4 +1,4 @@
-package be.ac.umons.jsonschematools.handlers;
+package be.ac.umons.jsonschematools.generatorhandlers;
 
 import java.util.Random;
 
@@ -10,12 +10,12 @@ import be.ac.umons.jsonschematools.GeneratorException;
 import be.ac.umons.jsonschematools.JSONSchema;
 import be.ac.umons.jsonschematools.JSONSchemaException;
 
-public class DefaultIntegerHandler implements Handler {
+public class DefaultNumberHandler implements Handler {
 
     @Override
     public Object generate(Generator generator, JSONSchema schema, int maxTreeSize,
             Random rand) throws JSONSchemaException, GeneratorException, JSONException {
-        return AbstractConstants.integerConstant;
+        return AbstractConstants.numberConstant;
     }
 
 }

@@ -5,7 +5,7 @@ import java.util.Set;
 
 import org.json.JSONObject;
 
-import be.ac.umons.jsonschematools.handlers.Handler;
+import be.ac.umons.jsonschematools.validatorhandlers.Handler;
 
 public class Validator {
 

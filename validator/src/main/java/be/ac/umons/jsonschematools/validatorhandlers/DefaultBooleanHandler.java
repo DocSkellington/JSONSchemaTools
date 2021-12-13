@@ -1,4 +1,4 @@
-package be.ac.umons.jsonschematools.handlers;
+package be.ac.umons.jsonschematools.validatorhandlers;
 
 import be.ac.umons.jsonschematools.JSONSchema;
 import be.ac.umons.jsonschematools.Validator;

@@ -1,12 +1,12 @@
 package be.ac.umons.jsonschematools;
 
-import be.ac.umons.jsonschematools.handlers.DefaultArrayHandler;
-import be.ac.umons.jsonschematools.handlers.DefaultBooleanHandler;
-import be.ac.umons.jsonschematools.handlers.DefaultEnumHandler;
-import be.ac.umons.jsonschematools.handlers.DefaultIntegerHandler;
-import be.ac.umons.jsonschematools.handlers.DefaultNumberHandler;
-import be.ac.umons.jsonschematools.handlers.DefaultObjectHandler;
-import be.ac.umons.jsonschematools.handlers.DefaultStringHandler;
+import be.ac.umons.jsonschematools.validatorhandlers.DefaultArrayHandler;
+import be.ac.umons.jsonschematools.validatorhandlers.DefaultBooleanHandler;
+import be.ac.umons.jsonschematools.validatorhandlers.DefaultEnumHandler;
+import be.ac.umons.jsonschematools.validatorhandlers.DefaultIntegerHandler;
+import be.ac.umons.jsonschematools.validatorhandlers.DefaultNumberHandler;
+import be.ac.umons.jsonschematools.validatorhandlers.DefaultObjectHandler;
+import be.ac.umons.jsonschematools.validatorhandlers.DefaultStringHandler;
 
 public class DefaultValidator extends Validator {
     public DefaultValidator() {
