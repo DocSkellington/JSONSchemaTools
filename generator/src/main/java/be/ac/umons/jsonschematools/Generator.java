@@ -183,33 +183,10 @@ public class Generator {
                 return null;
         }
 
-        final JSONSchema allOf = schema.getAllOf();
-        final List<JSONSchema> anyOfList = schema.getAnyOf();
-        final List<JSONSchema> oneOfList = schema.getOneOf();
-        final List<JSONSchema> notList = schema.getNot();
-
-        final List<Integer> indicesAnyOf = generateIndicesRandomOrder(anyOfList, rand);
-        final List<Integer> indicesOneOf = generateIndicesRandomOrder(oneOfList, rand);
-        final List<Integer> indicesNot = generateIndicesRandomOrder(notList, rand);
-
-        for (final int indexAnyOf : indicesAnyOf) {
-            final JSONSchema anyOf = anyOfList.get(indexAnyOf);
-            for (final int indexOneOf : indicesOneOf) {
-                final JSONSchema oneOf = oneOfList.get(indexOneOf);
-                for (final int indexNot : indicesNot) {
-                    final JSONSchema not = notList.get(indexNot);
-                    final JSONSchema fullSchema = getMergedSchema(schema, allOf, anyOf, oneOf, not);
-                    try {
-                        return handler.generate(this, fullSchema, maxTreeSize, rand);
-                    } catch (GeneratorException e) {
-                        // The choice we made lead to an invalid schema. We retry with a different
-                        // choice
-                    }
-                }
-            }
+        if ((type == Type.OBJECT || type == Type.ARRAY) && maxTreeSize == 0) {
+            return Type.NULL;
         }
-
-        throw new GeneratorException("Impossible to generate a document: all tries failed for the schema " + schema);
+        return handler.generate(this, schema, maxTreeSize, rand);
     }
 
     private static List<Integer> generateIndicesRandomOrder(final List<?> list, Random rand) {

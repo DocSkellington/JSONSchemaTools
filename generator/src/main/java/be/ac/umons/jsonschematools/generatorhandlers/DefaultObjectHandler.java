@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
 
@@ -14,6 +15,7 @@ import be.ac.umons.jsonschematools.Generator;
 import be.ac.umons.jsonschematools.GeneratorException;
 import be.ac.umons.jsonschematools.JSONSchema;
 import be.ac.umons.jsonschematools.JSONSchemaException;
+import be.ac.umons.jsonschematools.Type;
 
 public class DefaultObjectHandler implements Handler {
 
@@ -32,10 +34,8 @@ public class DefaultObjectHandler implements Handler {
     public Object generate(Generator generator, JSONSchema schema, int maxTreeSize,
             Random rand) throws JSONSchemaException, GeneratorException, JSONException {
         JSONObject jsonObject = new JSONObject();
-        if (maxTreeSize <= 0) {
-            return jsonObject;
-        }
 
+        final int newMaxTreeSize = maxTreeSize - 1;
         int minProperties = schema.getIntOr("minProperties", 0);
         int maxProperties = schema.getIntOr("maxProperties", this.maxProperties);
         if (maxProperties < minProperties) {
@@ -46,7 +46,10 @@ public class DefaultObjectHandler implements Handler {
         for (Map.Entry<String, JSONSchema> entry : schema.getRequiredProperties().entrySet()) {
             JSONSchema subSchema = entry.getValue();
             String key = entry.getKey();
-            jsonObject.put(key, generator.generateAccordingToConstraints(subSchema, maxTreeSize, rand));
+            Object value = generator.generateAccordingToConstraints(subSchema, newMaxTreeSize, rand);
+            if (!Objects.equals(value, Type.NULL)) {
+                jsonObject.put(key, value);
+            }
         }
 
         int missingProperties = Math.max(0, minProperties - jsonObject.length());
@@ -71,7 +74,10 @@ public class DefaultObjectHandler implements Handler {
 
         for (String key : selectedProperties) {
             JSONSchema subSchema = schema.getSubSchemaProperties(key);
-            jsonObject.put(key, generator.generateAccordingToConstraints(subSchema, maxTreeSize, rand));
+            Object value = generator.generateAccordingToConstraints(subSchema, newMaxTreeSize, rand);
+            if (!Objects.equals(value, Type.NULL)) {
+                jsonObject.put(key, value);
+            }
             nonRequiredProperties.remove(key);
         }
 
@@ -83,7 +89,10 @@ public class DefaultObjectHandler implements Handler {
             JSONSchema subSchema = entry.getValue();
             String key = entry.getKey();
             if (rand.nextBoolean()) {
-                jsonObject.put(key, generator.generateAccordingToConstraints(subSchema, maxTreeSize, rand));
+                Object value = generator.generateAccordingToConstraints(subSchema, newMaxTreeSize, rand);
+                if (!Objects.equals(value, Type.NULL)) {
+                    jsonObject.put(key, value);
+                }
 
                 if (jsonObject.length() >= maxProperties) {
                     break;

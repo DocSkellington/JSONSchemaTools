@@ -1,5 +1,6 @@
 package be.ac.umons.jsonschematools.generatorhandlers;
 
+import java.util.Objects;
 import java.util.Random;
 
 import org.json.JSONArray;
@@ -10,6 +11,7 @@ import be.ac.umons.jsonschematools.Generator;
 import be.ac.umons.jsonschematools.GeneratorException;
 import be.ac.umons.jsonschematools.JSONSchema;
 import be.ac.umons.jsonschematools.JSONSchemaException;
+import be.ac.umons.jsonschematools.Type;
 
 public class DefaultArrayHandler implements Handler {
 
@@ -27,8 +29,9 @@ public class DefaultArrayHandler implements Handler {
     public Object generate(Generator generator, JSONSchema schema, int maxTreeSize,
             Random rand) throws JSONSchemaException, GeneratorException, JSONException {
         JSONArray array = new JSONArray();
-        if (maxTreeSize <= 0) {
-            return array;
+
+        if (maxTreeSize == 0) {
+            return new JSONArray();
         }
 
         int minItems = schema.getIntOr("minItems", 0);
@@ -50,7 +53,10 @@ public class DefaultArrayHandler implements Handler {
         }
         else {
             for (int i = 0; i < size; i++) {
-                array.put(generator.generateAccordingToConstraints(itemsSchema, maxTreeSize, rand));
+                Object value = generator.generateAccordingToConstraints(itemsSchema, maxTreeSize - 1, rand);
+                if (!Objects.equals(value, Type.NULL)) {
+                    array.put(value);
+                }
             }
         }
 
