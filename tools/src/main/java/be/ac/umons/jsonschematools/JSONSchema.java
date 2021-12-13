@@ -153,13 +153,8 @@ public final class JSONSchema {
                     JSONObject prop = properties.getJSONObject(key);
                     allKeys.add(key);
                     if (prop.has("$ref")) {
-                        final String ref = prop.getString("$ref");
-                        if (seenPaths.contains(ref)) {
-                            continue;
-                        }
-                        prop = handleRef(ref).object;
-                        seenPaths.add(ref);
-                        queue.add(new InQueue(ref, prop));
+                        queue.add(new InQueue(current.path + "/properties", prop));
+                        continue;
                     }
                     else {
                         final String path = current.path + "/properties/" + key;
@@ -174,23 +169,22 @@ public final class JSONSchema {
                 final Object additionalProperties = document.get("additionalProperties");
                 if (additionalProperties instanceof JSONObject) {
                     final JSONObject addProperties = (JSONObject)additionalProperties;
-                    for (final String key : addProperties.keySet()) {
-                        JSONObject prop = addProperties.getJSONObject(key);
-                        allKeys.add(key);
-                        if (addProperties.has("$ref")) {
-                            final String ref = prop.getString("$ref");
-                            if (seenPaths.contains(ref)) {
-                                continue;
+                    if (addProperties.has("$ref")) {
+                        queue.add(new InQueue(current.path + "/additionalProperties", addProperties));
+                    }
+                    else {
+                        for (final String key : addProperties.keySet()) {
+                            JSONObject prop = addProperties.getJSONObject(key);
+                            allKeys.add(key);
+                            if (prop.has("$ref")) {
+                                queue.add(new InQueue(current.path + "/additionalProperties/" + key, prop));
                             }
-                            prop = handleRef(ref).object;
-                            seenPaths.add(ref);
-                            queue.add(new InQueue(ref, prop));
-                        }
-                        else {
-                            final String path = current.path + "/additionalProperties/" + key;
-                            if (!seenPaths.contains(path)) {
-                                seenPaths.add(path);
-                                queue.add(new InQueue(path, prop));
+                            else {
+                                final String path = current.path + "/additionalProperties/" + key;
+                                if (!seenPaths.contains(path)) {
+                                    seenPaths.add(path);
+                                    queue.add(new InQueue(path, prop));
+                                }
                             }
                         }
                     }
