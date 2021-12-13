@@ -145,15 +145,28 @@ public final class JSONSchema {
                     continue;
                 }
                 document = handleRef(ref).object;
+                seenPaths.add(ref);
             }
             if (document.has("properties")) {
                 final JSONObject properties = document.getJSONObject("properties");
                 for (final String key : properties.keySet()) {
+                    JSONObject prop = properties.getJSONObject(key);
                     allKeys.add(key);
-                    final String path = current.path + "/properties/" + key;
-                    if (!seenPaths.contains(path)) {
-                        seenPaths.add(path);
-                        queue.add(new InQueue(path, properties.getJSONObject(key)));
+                    if (prop.has("$ref")) {
+                        final String ref = prop.getString("$ref");
+                        if (seenPaths.contains(ref)) {
+                            continue;
+                        }
+                        prop = handleRef(ref).object;
+                        seenPaths.add(ref);
+                        queue.add(new InQueue(ref, prop));
+                    }
+                    else {
+                        final String path = current.path + "/properties/" + key;
+                        if (!seenPaths.contains(path)) {
+                            seenPaths.add(path);
+                            queue.add(new InQueue(path, prop));
+                        }
                     }
                 }
             }
@@ -162,11 +175,23 @@ public final class JSONSchema {
                 if (additionalProperties instanceof JSONObject) {
                     final JSONObject addProperties = (JSONObject)additionalProperties;
                     for (final String key : addProperties.keySet()) {
+                        JSONObject prop = addProperties.getJSONObject(key);
                         allKeys.add(key);
-                        final String path = current.path + "/additionalProperties/" + key;
-                        if (!seenPaths.contains(path)) {
-                            seenPaths.add(path);
-                            queue.add(new InQueue(path, addProperties.getJSONObject(key)));
+                        if (addProperties.has("$ref")) {
+                            final String ref = prop.getString("$ref");
+                            if (seenPaths.contains(ref)) {
+                                continue;
+                            }
+                            prop = handleRef(ref).object;
+                            seenPaths.add(ref);
+                            queue.add(new InQueue(ref, prop));
+                        }
+                        else {
+                            final String path = current.path + "/additionalProperties/" + key;
+                            if (!seenPaths.contains(path)) {
+                                seenPaths.add(path);
+                                queue.add(new InQueue(path, prop));
+                            }
                         }
                     }
                 }
@@ -204,7 +229,8 @@ public final class JSONSchema {
                 }
             }
             if (document.has("not")) {
-                queue.add(new InQueue(current.path + "/not", document.getJSONObject("not")));
+                final JSONObject not = document.getJSONObject("not");
+                queue.add(new InQueue(current.path + "/not", not));
             }
         }
 
