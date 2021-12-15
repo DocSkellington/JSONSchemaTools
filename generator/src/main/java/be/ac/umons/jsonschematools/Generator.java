@@ -34,7 +34,10 @@ public class Generator {
     }
 
     public static JSONSchema getMergedSchema(final JSONSchema baseSchema, final JSONSchema allOf,
-            final JSONSchema anyOf, final JSONSchema oneOf, final JSONSchema not) throws JSONSchemaException {
+            final JSONSchema anyOf, final JSONSchema oneOf, final JSONSchema not) throws JSONSchemaException, GeneratorException {
+        if (JSONSchemaStore.isFalseSchema(baseSchema) || JSONSchemaStore.isFalseSchema(allOf) || JSONSchemaStore.isFalseSchema(anyOf) || JSONSchemaStore.isFalseSchema(oneOf) || JSONSchemaStore.isFalseSchema(not)) {
+            throw new GeneratorException("Impossible to generate a document as one of the sub schemas is the false schema");
+        }
         return baseSchema.dropAllOfAnyOfOneOfAndNot().merge(allOf).merge(anyOf).merge(oneOf).merge(not);
     }
 
@@ -65,12 +68,12 @@ public class Generator {
                 final JSONSchema oneOf = oneOfList.get(indexOneOf);
                 for (final int indexNot : indicesNot) {
                     final JSONSchema not = notList.get(indexNot);
-                    final JSONSchema fullSchema = getMergedSchema(schema, allOf, anyOf, oneOf, not);
-                    List<Type> types = fullSchema.getListTypes();
-                    if (!types.contains(Type.OBJECT)) {
-                        continue;
-                    }
                     try {
+                        final JSONSchema fullSchema = getMergedSchema(schema, allOf, anyOf, oneOf, not);
+                        List<Type> types = fullSchema.getListTypes();
+                        if (!types.contains(Type.OBJECT)) {
+                            continue;
+                        }
                         return (JSONObject) generateValue(Type.OBJECT, fullSchema, maxTreeSize, rand);
                     } catch (GeneratorException e) {
                         // The choice we made lead to an invalid schema. We retry with a different
@@ -127,8 +130,8 @@ public class Generator {
                 final JSONSchema oneOf = oneOfList.get(indexOneOf);
                 for (final int indexNot : indicesNot) {
                     final JSONSchema not = notList.get(indexNot);
-                    final JSONSchema fullSchema = getMergedSchema(schema, allOf, anyOf, oneOf, not);
                     try {
+                        final JSONSchema fullSchema = getMergedSchema(schema, allOf, anyOf, oneOf, not);
                         // If we still have some constraints behind "allOf", "anyOf", "oneOf", or "not",
                         // we unfold them
                         if (fullSchema.needsFurtherUnfolding()) {

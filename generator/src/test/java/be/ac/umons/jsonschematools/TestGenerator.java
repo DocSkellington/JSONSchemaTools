@@ -223,4 +223,13 @@ public class TestGenerator {
         Generator generator = new DefaultGenerator();
         generator.generate(schema, 5);
     }
+
+    @Test(invocationCount = 100, timeOut = 1000)
+    public void testCodecov() throws FileNotFoundException, JSONSchemaException, URISyntaxException, JSONException, GeneratorException {
+        JSONSchema schema = loadSchema("codecov.json");
+        Validator validator = new DefaultValidator();
+        Generator generator = new DefaultGenerator(5, 5);
+        JSONObject document = generator.generate(schema, 5);
+        Assert.assertTrue(validator.validate(schema, document));
+    }
 }

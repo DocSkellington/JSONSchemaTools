@@ -71,7 +71,7 @@ public class JSONSchemaStore {
     }
 
     public static boolean isTrueSchema(JSONSchema schema) {
-        return schema.getSchemaId() == TRUE_IDENTIFIER;
+        return schema.getSchemaId() == TRUE_IDENTIFIER || isTrueDocument(schema.getSchema());
     }
 
     public static boolean isFalseDocument(JSONObject document) {
@@ -87,7 +87,7 @@ public class JSONSchemaStore {
     }
 
     public static boolean isFalseSchema(JSONSchema schema) {
-        return schema.getSchemaId() == FALSE_IDENTIFIER;
+        return schema.getSchemaId() == FALSE_IDENTIFIER || isFalseDocument(schema.getSchema());
     }
 
     JSONSchema get(int schemaId) {

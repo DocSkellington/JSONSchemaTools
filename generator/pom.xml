@@ -48,5 +48,11 @@ limitations under the License.
             <artifactId>testng</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>be.ac.umons.jsonschematools</groupId>
+            <artifactId>jsonschematools-validator</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>
