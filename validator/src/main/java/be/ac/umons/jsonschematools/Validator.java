@@ -115,8 +115,8 @@ public class Validator {
     }
 
     private boolean validateNot(final JSONSchema schema, final Object object) throws JSONSchemaException {
-        final List<JSONSchema> listNot = schema.getNot();
-        return validateAnyOf(listNot, object);
+        final JSONSchema not = schema.getRawNot();
+        return !validateValue(not, object);
     }
 
     public boolean validateValue(final JSONSchema schema, final Object object) throws JSONSchemaException {
