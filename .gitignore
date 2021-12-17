@@ -13,3 +13,8 @@ buildNumber.properties
 .settings
 .classpath
 .project
+
+docs/.bundle
+docs/_site
+docs/vendor
+docs/Gemfile.lock
