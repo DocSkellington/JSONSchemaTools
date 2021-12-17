@@ -1,0 +1,10 @@
+{
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "cSpell.words": [
+        "Tokener"
+    ],
+    "files.watcherExclude": {
+        "**/target/**": true
+    },
+    "debug.terminal.clearBeforeReusing": true
+}

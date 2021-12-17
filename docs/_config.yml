@@ -26,12 +26,17 @@ github_username:  DocSkellington
 markdown: kramdown
 theme: minima
 
+plugins:
+  - font-awesome-sass
+  - jekyll-font-awesome-sass
+
 header_pages:
   - structure.md
   - todos.md
   - about.md
 
-show_excerpts: true
+sass:
+  sass_dir: _sass
 
 # Exclude from processing.
 # The following items will not be processed, by default. Create a custom list
