@@ -269,6 +269,7 @@ More precisely, the following table indicates which value is returned, depending
 | Enumeration | \E    |
 
 The reasons for these abstractions are explained on [the home page](index#goal-of-the-project).
+An implication of this choice is that keywords that impose constraints on numbers, integers, strings, or enumerations are ignored, such as "multipleOf", "minimum", "maximum", and so on.
 
 ### Generating arrays
 To generate arrays, we must take into account the minimal and the maximal number of items.
