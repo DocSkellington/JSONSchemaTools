@@ -12,7 +12,7 @@ import java.util.Set;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class Keys {
+class Keys {
     private static enum Operation {
         MINIMUM,
         MAXIMUM,

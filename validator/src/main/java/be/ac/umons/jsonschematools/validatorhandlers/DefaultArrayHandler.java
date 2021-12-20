@@ -17,7 +17,6 @@ public class DefaultArrayHandler implements Handler {
         }
         JSONArray array = (JSONArray) object;
 
-        JSONSchema itemsArraySchema = schema.getItemsArray();
         int minItem = schema.getIntOr("minItems", 0);
         int maxItem = schema.getIntOr("maxItems", Integer.MAX_VALUE);
 
@@ -25,10 +24,22 @@ public class DefaultArrayHandler implements Handler {
             return false;
         }
 
-        for (Object item : array) {
-            if (!validator.validateValue(itemsArraySchema, item)) {
-                return false;
+        boolean atLeastOne = false;
+        for (JSONSchema itemsArraySchema : schema.getItemsArray()) {
+            boolean valid = true;
+            for (Object item : array) {
+                if (!validator.validateValue(itemsArraySchema, item)) {
+                    valid = false;
+                    break;
+                }
             }
+            if (valid) {
+                atLeastOne = true;
+                break;
+            }
+        }
+        if (!atLeastOne) {
+            return false;
         }
 
         return true;

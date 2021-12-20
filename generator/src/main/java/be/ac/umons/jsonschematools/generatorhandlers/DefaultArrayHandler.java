@@ -1,5 +1,6 @@
 package be.ac.umons.jsonschematools.generatorhandlers;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 
@@ -39,11 +40,9 @@ public class DefaultArrayHandler implements Handler {
         if (minItems > maxItems) {
             throw new GeneratorException("Array: minItems can not be strictly greater than maxItems");
         }
-        JSONSchema itemsSchema = null;
-        try {
-            itemsSchema = schema.getItemsArray();
-        } catch (JSONSchemaException e) {
-        }
+        List<JSONSchema> itemsSchemaList = null;
+        itemsSchemaList = schema.getItemsArray();
+        JSONSchema itemsSchema = itemsSchemaList.get(rand.nextInt(itemsSchemaList.size()));
 
         int size = rand.nextInt(maxItems - minItems + 1) + minItems;
         if (itemsSchema == null) {

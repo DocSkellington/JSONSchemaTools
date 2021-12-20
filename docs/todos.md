@@ -6,8 +6,6 @@ title: List of unsupported keywords
 This is a technical page listing the keywords that are not (yet) supported and ideas for their implementations.
 
 ## Partially supported keywords
-  * `items` is currently assumed to be a JSON object.
-    However, the implementation should support JSON arrays.
 
 ## Unsupported keywords
   * `const`, `dependentSchemas`, `if`, `then`, and `else` for any type.
