@@ -66,10 +66,14 @@ public final class JSONSchema {
             }
             JSONObject additionalProperties = getAdditionalProperties();
 
+            // TODO: is it allowed to have "additionalProperties" inside "additionalProperties"
             if (!JSONSchemaStore.isTrueDocument(additionalProperties) && !JSONSchemaStore.isFalseDocument(additionalProperties)) {
-                for (final String key : additionalProperties.keySet()) {
-                    if (!this.properties.has(key)) {
-                        this.properties.put(key, additionalProperties.getJSONObject(key));
+                if (additionalProperties.has("properties")) {
+                    JSONObject prop = additionalProperties.getJSONObject("properties");
+                    for (final String key : prop.keySet()) {
+                        if (!this.properties.has(key)) {
+                            this.properties.put(key, prop.get(key));
+                        }
                     }
                 }
             }
@@ -234,11 +238,21 @@ public final class JSONSchema {
                 }
             }
             if (document.has("items")) {
-                final JSONObject items = document.getJSONObject("items");
-                final String path = current.path + "/items";
-                if (!seenPaths.contains(path)) {
-                    seenPaths.add(path);
-                    queue.add(new InQueue(path, items));
+                final Object object = document.get("items");
+                final JSONArray items;
+                if (object instanceof JSONArray) {
+                    items = (JSONArray)object;
+                }
+                else {
+                    items = new JSONArray();
+                    items.put((JSONObject)object);
+                }
+                for (int i = 0 ; i < items.length() ; i++) {
+                    final String path = current.path + "/items" + i;
+                    if (!seenPaths.contains(path)) {
+                        seenPaths.add(path);
+                        queue.add(new InQueue(path, items.getJSONObject(i)));
+                    }
                 }
             }
             if (document.has("allOf")) {
@@ -687,18 +701,38 @@ public final class JSONSchema {
         }
     }
 
-    public JSONSchema getItemsArray() throws JSONException, JSONSchemaException {
-        // TODO: sometimes, items is a list of objects (or just an object), not a list
-        // of types
+    public List<JSONSchema> getItemsArray() throws JSONException, JSONSchemaException {
         if (!schema.has("items")) {
-            return null;
+            return Collections.singletonList(store.trueSchema());
         }
-        JSONObject subObject = schema.getJSONObject("items");
-        if (subObject.has("$ref")) {
-            return handleRef(subObject.getString("$ref"));
-        } else {
-            return new JSONSchema(subObject, store, fullSchemaId);
+        List<JSONSchema> list = new ArrayList<>();
+        Object items = schema.get("items");
+        JSONArray array;
+        if (items instanceof JSONArray) {
+            array = (JSONArray)items;
         }
+        else if (items instanceof JSONObject) {
+            array = new JSONArray();
+            array.put((JSONObject)items);
+        }
+        else {
+            throw new JSONSchemaException("Invalid type for \"items\" in schema " + this);
+        }
+
+        for (int i = 0 ; i < array.length() ; i++) {
+            JSONObject subObject = array.getJSONObject(i);
+            JSONSchema subSchema;
+            if (subObject.has("$ref")) {
+                subSchema = handleRef(subObject.getString("$ref"));
+            } else {
+                subSchema = new JSONSchema(subObject, store, fullSchemaId);
+            }
+            list.add(subSchema);
+        }
+        if (list.size() == 0) {
+            return Collections.singletonList(store.trueSchema());
+        }
+        return list;
     }
 
     public int getInt(String key) {
