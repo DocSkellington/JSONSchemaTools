@@ -224,12 +224,43 @@ public class TestGenerator {
         generator.generate(schema, 5);
     }
 
-    @Test(invocationCount = 100, timeOut = 1000)
+    @Test(invocationCount = 100, timeOut = 1000, successPercentage = 90)
     public void testCodecov() throws FileNotFoundException, JSONSchemaException, URISyntaxException, JSONException, GeneratorException {
         JSONSchema schema = loadSchema("codecov.json");
         Validator validator = new DefaultValidator();
         Generator generator = new DefaultGenerator(5, 5);
         JSONObject document = generator.generate(schema, 5);
         Assert.assertTrue(validator.validate(schema, document));
+    }
+
+    @Test(invocationCount = 100, timeOut = 1000)
+    public void testConst() throws FileNotFoundException, JSONSchemaException, URISyntaxException, JSONException, GeneratorException {
+        JSONSchema schema = loadSchema("withConst.json");
+        Generator generator = new DefaultGenerator(5, 5);
+        JSONObject document = generator.generate(schema, 5);
+
+        Assert.assertTrue(document.getBoolean("positiveConstBoolean"));
+        Assert.assertFalse(document.getBoolean("negativeConstBoolean"));
+
+        Assert.assertEquals(document.getString("positiveConstInteger"), AbstractConstants.integerConstant);
+        Assert.assertEquals(document.getString("negativeConstInteger"), AbstractConstants.integerConstant);
+
+        Assert.assertEquals(document.getString("positiveConstNumber"), AbstractConstants.numberConstant);
+        Assert.assertEquals(document.getString("negativeConstNumber"), AbstractConstants.numberConstant);
+
+        Assert.assertEquals(document.getString("positiveConstString"), AbstractConstants.stringConstant);
+        Assert.assertEquals(document.getString("negativeConstString"), AbstractConstants.stringConstant);
+
+        JSONObject testObject = new JSONObject();
+        testObject.put("test", true);
+        testObject.put("int", AbstractConstants.integerConstant);
+        Assert.assertTrue(document.getJSONObject("positiveConstObject").similar(testObject));
+        Assert.assertFalse(document.getJSONObject("negativeConstObject").similar(testObject));
+
+        JSONArray testArray = new JSONArray();
+        testArray.put(AbstractConstants.integerConstant);
+        testArray.put(AbstractConstants.integerConstant);
+        testArray.put(AbstractConstants.integerConstant);
+        Assert.assertTrue(document.getJSONArray("positiveConstArray").similar(testArray));
     }
 }

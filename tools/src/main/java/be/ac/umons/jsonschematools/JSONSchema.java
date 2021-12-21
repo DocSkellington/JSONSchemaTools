@@ -27,6 +27,8 @@ public final class JSONSchema {
     private final Set<Type> types = new HashSet<>();
     private final JSONSchemaStore store;
     private final int fullSchemaId;
+    private final Object constValue;
+    private final Object forbiddenValue;
 
     JSONSchema(final JSONObject object, final JSONSchemaStore store, final int fullSchemaId)
             throws JSONSchemaException {
@@ -34,26 +36,72 @@ public final class JSONSchema {
         this.store = store;
         this.fullSchemaId = fullSchemaId;
 
+        boolean atLeastOne = false;
         if (object.has("type")) {
             addTypes(object.get("type"));
-        } else if (object.has("enum")) {
+            atLeastOne = true;
+        }
+        if (object.has("enum")) {
             types.add(Type.ENUM);
-        } else if (object.has("const")) {
-            // TODO: get type of data
-        } else {
+            atLeastOne = true;
+        }
+        if (object.has("const")) {
+            constValue = object.get("const");
+            atLeastOne = true;
+            types.add(getConstType());
+        }
+        else {
+            constValue = null;
+        }
+        
+        if (!atLeastOne) {
             types.addAll(EnumSet.allOf(Type.class));
         }
 
         if (object.has("not")) {
-            JSONObject not = schema.getJSONObject("not");
+            JSONObject not = object.getJSONObject("not");
             if (not.has("type")) {
                 removeTypes(not.get("type"));
             }
-            else if (not.has("enum")) {
-                // We ignore this, as we ignore the actual enum values
+
+            if (not.has("enum")) {
+                types.add(Type.ENUM);
             }
-            else if (object.has("const")) {
-                // TODO
+
+            if (not.has("const")) {
+                forbiddenValue = not.get("const");
+                if (!atLeastOne) {
+                    types.retainAll(Collections.singleton(getForbiddenType()));
+                }
+            }
+            else {
+                forbiddenValue = null;
+            }
+        }
+        else {
+            // By transformation, we will not always obtain a meaningful "not" directly. It can be hidden inside an "anyOf"
+            if (object.has("anyOf") && object.getJSONArray("anyOf").length() == 1 && object.getJSONArray("anyOf").getJSONObject(0).has("not")) {
+                JSONObject not = object.getJSONArray("anyOf").getJSONObject(0).getJSONObject("not");
+                if (not.has("type")) {
+                    removeTypes(not.get("type"));
+                }
+
+                if (not.has("enum")) {
+                    types.add(Type.ENUM);
+                }
+
+                if (not.has("const")) {
+                    forbiddenValue = not.get("const");
+                    if (!atLeastOne) {
+                        types.retainAll(Collections.singleton(getForbiddenType()));
+                    }
+                }
+                else {
+                    forbiddenValue = null;
+                }
+            }
+            else {
+                forbiddenValue = null;
             }
         }
 
@@ -84,6 +132,38 @@ public final class JSONSchema {
 
     public JSONObject getSchema() {
         return schema;
+    }
+
+    private Type getType(Object object) {
+        if (object instanceof Integer) {
+            return Type.INTEGER;
+        }
+        else if (object instanceof Number) {
+            return Type.NUMBER;
+        }
+        else if (object instanceof Boolean) {
+            return Type.BOOLEAN;
+        }
+        else if (object instanceof String) {
+            return Type.STRING;
+        }
+        else if (object instanceof JSONArray) {
+            return Type.ARRAY;
+        }
+        else if (object instanceof JSONObject) {
+            return Type.OBJECT;
+        }
+        else {
+            return Type.NULL;
+        }
+    }
+
+    private Type getForbiddenType() {
+        return getType(forbiddenValue);
+    }
+
+    private Type getConstType() {
+        return getType(constValue);
     }
 
     private JSONObject getAdditionalProperties() throws JSONSchemaException {
@@ -309,7 +389,15 @@ public final class JSONSchema {
                 }
             }
         }
+
+        if (forbiddenValue != null) {
+            forbiddenValues.add(forbiddenValue);
+        }
         return forbiddenValues;
+    }
+
+    public Object getConstValue() {
+        return constValue;
     }
 
     public List<Type> getListTypes() {
@@ -352,28 +440,20 @@ public final class JSONSchema {
         return schema.has(key);
     }
 
-    public boolean needsFurtherUnfolding() {
-        if (schema.has("not")) {
-            JSONObject not = schema.getJSONObject("not");
-            if (not.length() == 1 && not.has("enum")) {
-                return false;
-            }
-            return true;
-        }
-
-        JSONArray array = null;
-        if (schema.has("allOf")) {
-            array = schema.getJSONArray("allOf");
-        }
-        else if (schema.has("anyOf")) {
-            array = schema.getJSONArray("anyOf");
-        }
-        else if (schema.has("oneOf")) {
-            array = schema.getJSONArray("oneOf");
-        }
-        else {
+    private boolean needsFurtherUnfoldingNot(JSONObject not) {
+        if (not.has("enum") && not.has("const") && not.length() == 2) {
             return false;
         }
+        else if (not.length() == 1 && not.has("const")) {
+            return false;
+        }
+        else if (not.length() == 1 && not.has("enum")) {
+            return false;
+        }
+        return true;
+    }
+
+    private boolean needsFurtherUnfolding(JSONArray array) {
         if (array.length() != 1) {
             return true;
         }
@@ -381,10 +461,7 @@ public final class JSONSchema {
             JSONObject subSchema = array.getJSONObject(0);
             if (subSchema.has("not")) {
                 JSONObject not = subSchema.getJSONObject("not");
-                if (not.length() == 1 && not.has("enum")) {
-                    return false;
-                }
-                else {
+                if (needsFurtherUnfoldingNot(not)) {
                     return true;
                 }
             }
@@ -395,6 +472,28 @@ public final class JSONSchema {
         catch (JSONException e) {
             return true;
         }
+        return false;
+    }
+
+    public boolean needsFurtherUnfolding() {
+        if (schema.has("not")) {
+            JSONObject not = schema.getJSONObject("not");
+            if (needsFurtherUnfoldingNot(not)) {
+                return true;
+            }
+        }
+
+        if (schema.has("allOf") && needsFurtherUnfolding(schema.getJSONArray("allOf"))) {
+            return true;
+        }
+        if (schema.has("anyOf") && needsFurtherUnfolding(schema.getJSONArray("anyOf"))) {
+            return true;
+        }
+        if (schema.has("oneOf") && needsFurtherUnfolding(schema.getJSONArray("oneOf"))) {
+            return true;
+        }
+
+        return false;
     }
 
     public Set<String> getRequiredPropertiesKeys() throws JSONSchemaException {

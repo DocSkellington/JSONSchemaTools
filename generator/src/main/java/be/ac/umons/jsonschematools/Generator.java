@@ -6,6 +6,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -190,6 +191,42 @@ public class Generator {
             return Type.NULL;
         }
         return handler.generate(this, schema, maxTreeSize, rand);
+    }
+
+    public static Object abstractConstValue(Object object) throws GeneratorException {
+        if (object instanceof String) {
+            return AbstractConstants.stringConstant;
+        }
+        else if (object instanceof Integer) {
+            return AbstractConstants.integerConstant;
+        }
+        else if (object instanceof Number) {
+            return AbstractConstants.numberConstant;
+        }
+        else if (object instanceof Boolean) {
+            return object;
+        }
+        else if (object instanceof JSONArray) {
+            final JSONArray array = (JSONArray)object;
+            final JSONArray newArray = new JSONArray(array.length());
+            for (Object inArray : array) {
+                newArray.put(abstractConstValue(inArray));
+            }
+            return newArray;
+        }
+        else if (object instanceof JSONObject) {
+            final JSONObject original = (JSONObject)object;
+            final JSONObject newObject = new JSONObject();
+            for (String key : original.keySet()) {
+                newObject.put(key, abstractConstValue(original.get(key)));
+            }
+            return newObject;
+        }
+        else if (object == null) {
+            return null;
+        }
+
+        throw new GeneratorException("Impossible to abstract value " + object);
     }
 
     private static List<Integer> generateIndicesRandomOrder(final List<?> list, Random rand) {

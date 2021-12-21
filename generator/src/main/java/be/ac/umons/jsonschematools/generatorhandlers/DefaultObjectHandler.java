@@ -33,14 +33,44 @@ public class DefaultObjectHandler implements Handler {
     @Override
     public Object generate(Generator generator, JSONSchema schema, int maxTreeSize,
             Random rand) throws JSONSchemaException, GeneratorException, JSONException {
-        JSONObject jsonObject = new JSONObject();
+        JSONObject jsonObject = generateObject(generator, schema, maxTreeSize, rand);
 
+        for (int i = 0 ; i < 1000 ; i++) {
+            boolean correct = true;
+            for (Object forbidden : schema.getForbiddenValues()) {
+                if (jsonObject.similar(forbidden)) {
+                    correct = false;
+                    break;
+                }
+            }
+            if (correct) {
+                return jsonObject;
+            }
+            else {
+                jsonObject = generateObject(generator, schema, maxTreeSize, rand);
+            }
+        }
+
+        throw new GeneratorException("Impossible to generate a valid object with 1000 tries " + schema);
+    }
+
+    private JSONObject generateObject(Generator generator, JSONSchema schema, int maxTreeSize,
+            Random rand) throws JSONSchemaException, GeneratorException, JSONException {
+        final JSONObject jsonObject = new JSONObject();
         final int newMaxTreeSize = maxTreeSize - 1;
         int minProperties = schema.getIntOr("minProperties", 0);
         int maxProperties = schema.getIntOr("maxProperties", this.maxProperties);
         if (maxProperties < minProperties) {
             throw new GeneratorException("Impossible to generate an object for schema " + schema
                     + " as minProperties = " + minProperties + " > maxProperties = " + maxProperties);
+        }
+
+        if (schema.getConstValue() != null) {
+            JSONObject constValue = (JSONObject)schema.getConstValue();
+            if (!(minProperties <= constValue.length() && constValue.length() <= maxProperties && constValue.keySet().containsAll(schema.getRequiredPropertiesKeys()))) {
+                throw new GeneratorException("Impossible to generate an object for schema " + schema + " since the const value is incorrect, with regards to minProperties, maxProperties, or required");
+            }
+            return (JSONObject)Generator.abstractConstValue(constValue);
         }
 
         for (Map.Entry<String, JSONSchema> entry : schema.getRequiredProperties().entrySet()) {
@@ -102,5 +132,4 @@ public class DefaultObjectHandler implements Handler {
 
         return jsonObject;
     }
-
 }

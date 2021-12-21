@@ -191,7 +191,7 @@ class Keys {
     private static Set<String> keysToKeepInNot() {
         // TODO: more keywords?
         // TODO: oneOf
-        Set<String> set = new HashSet<>(Set.of("items", "properties", "type", "not", "enum", "anyOf", "allOf"));
+        Set<String> set = new HashSet<>(Set.of("items", "properties", "type", "not", "enum", "const", "anyOf", "allOf"));
         set.addAll(minKeys);
         set.addAll(maxKeys);
         return set;
@@ -256,10 +256,18 @@ class Keys {
         }
         else if (key.equals("enum")) {
             JSONObject enumObject = new JSONObject();
+            // TODO: values.iterator().next()?
             enumObject.put(key, new JSONArray(values));
             JSONObject notEnum = new JSONObject();
             notEnum.put("not", enumObject);
             return notEnum;
+        }
+        else if (key.equals("const")) {
+            JSONObject constObject = new JSONObject();
+            constObject.put(key, values.iterator().next());
+            JSONObject notConst = new JSONObject();
+            notConst.put("not", constObject);
+            return notConst;
         }
         else if (minKeys.contains(key)) {
             final String maxKey = maxToMin.get(key);
@@ -375,6 +383,8 @@ class Keys {
             case "properties":
             case "items":
             case "type":
+            case "const":
+            case "enum":
                 return key;
         }
         return null;
