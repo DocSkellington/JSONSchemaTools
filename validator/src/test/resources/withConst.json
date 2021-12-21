@@ -1,0 +1,85 @@
+{
+    "type": "object",
+    "properties": {
+        "positiveConstBoolean": {
+            "const": true
+        },
+        "negativeConstBoolean": {
+            "type": [
+                "boolean"
+            ],
+            "not": {
+                "const": true
+            }
+        },
+        "positiveConstInteger": {
+            "type": [
+                "integer"
+            ],
+            "const": 53
+        },
+        "negativeConstInteger": {
+            "not": {
+                "const": 654
+            }
+        },
+        "positiveConstNumber": {
+            "type": [
+                "number"
+            ],
+            "const": 53.6
+        },
+        "negativeConstNumber": {
+            "type": [
+                "number"
+            ],
+            "not": {
+                "const": 654.2
+            }
+        },
+        "positiveConstString": {
+            "const": "hello"
+        },
+        "negativeConstString": {
+            "not": {
+                "const": "hello"
+            }
+        },
+        "positiveConstObject": {
+            "const": {
+                "test": true,
+                "int": 3
+            }
+        },
+        "negativeConstObject": {
+            "not": {
+                "const": {
+                    "test": true,
+                    "int": 3
+                }
+            }
+        },
+        "positiveConstArray": {
+            "const": [1, 2, 3]
+        },
+        "negativeConstArray": {
+            "not": {
+                "const": [false, "hello"]
+            }
+        }
+    },
+    "required": [
+        "positiveConstBoolean",
+        "negativeConstBoolean",
+        "positiveConstInteger",
+        "negativeConstInteger",
+        "positiveConstNumber",
+        "negativeConstNumber",
+        "positiveConstString",
+        "negativeConstString",
+        "positiveConstObject",
+        "negativeConstObject",
+        "positiveConstArray",
+        "negativeConstArray"
+    ]
+}

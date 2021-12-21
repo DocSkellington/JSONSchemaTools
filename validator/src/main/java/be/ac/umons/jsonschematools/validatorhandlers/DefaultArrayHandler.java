@@ -42,6 +42,17 @@ public class DefaultArrayHandler implements Handler {
             return false;
         }
 
+        if (schema.getForbiddenValues().stream().filter(v -> array.similar(v)).count() != 0) {
+            return false;
+        }
+
+        if (schema.getConstValue() != null) {
+            JSONArray abstracted = (JSONArray)Validator.abstractConstValue(schema.getConstValue());
+            if (!array.similar(abstracted)) {
+                return false;
+            }
+        }
+
         return true;
     }
 

@@ -589,4 +589,156 @@ public class TestValidator {
         // @formatter:on
         Assert.assertFalse(validator.validate(schema, new JSONObject(builder.toString())));
     }
+
+    // @Test
+    public void testConst() throws FileNotFoundException, JSONSchemaException, URISyntaxException {
+        JSONSchema schema = loadSchemaResource("withConst.json");
+        Validator validator = new DefaultValidator();
+        StringBuilder builder = new StringBuilder();
+        // @formatter:off
+        builder.
+            append('{').
+                append("\"positiveConstBoolean\": true").
+                append(',').
+                append("\"negativeConstBoolean\": false").
+                append(',').
+                append("\"positiveConstInteger\": ").append(escapeSymbol(AbstractConstants.integerConstant)).
+                append(',').
+                append("\"negativeConstInteger\": ").append(escapeSymbol(AbstractConstants.integerConstant)).
+                append(',').
+                append("\"positiveConstNumber\": ").append(escapeSymbol(AbstractConstants.numberConstant)).
+                append(',').
+                append("\"negativeConstNumber\": ").append(escapeSymbol(AbstractConstants.numberConstant)).
+                append(',').
+                append("\"positiveConstString\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                append(',').
+                append("\"negativeConstString\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                append(',').
+                append("\"positiveConstObject\": {").
+                    append("\"test\": true").
+                    append(',').
+                    append("\"int\": ").append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append("}").
+                append(',').
+                append("\"negativeConstObject\": {").
+                    append("\"int\": ").append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append("}").
+                append(',').
+                append("\"positiveConstArray\": [").
+                    append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append(',').
+                    append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append(',').
+                    append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append(']').
+                append(',').
+                append("\"negativeConstArray\": [").
+                    append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append(',').
+                    append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append(',').
+                    append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append(']').
+            append('}');
+        // @formatter:on
+        Assert.assertTrue(validator.validate(schema, new JSONObject(builder.toString())));
+
+        builder = new StringBuilder();
+        // @formatter:off
+        builder.
+            append('{').
+                append("\"positiveConstBoolean\": true").
+                append(',').
+                append("\"negativeConstBoolean\": false").
+                append(',').
+                append("\"positiveConstInteger\": ").append(escapeSymbol(AbstractConstants.integerConstant)).
+                append(',').
+                append("\"negativeConstInteger\": ").append(escapeSymbol(AbstractConstants.integerConstant)).
+                append(',').
+                append("\"positiveConstNumber\": ").append(escapeSymbol(AbstractConstants.numberConstant)).
+                append(',').
+                append("\"negativeConstNumber\": ").append(escapeSymbol(AbstractConstants.numberConstant)).
+                append(',').
+                append("\"positiveConstString\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                append(',').
+                append("\"negativeConstString\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                append(',').
+                append("\"positiveConstObject\": {").
+                    append("\"test\": true").
+                    append(',').
+                    append("\"int\": ").append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append("}").
+                append(',').
+                append("\"negativeConstObject\": {").
+                    append("\"test\": true").
+                    append(',').
+                    append("\"int\": ").append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append("}").
+                append(',').
+                append("\"positiveConstArray\": [").
+                    append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append(',').
+                    append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append(',').
+                    append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append(']').
+                append(',').
+                append("\"negativeConstArray\": [").
+                    append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append(',').
+                    append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append(',').
+                    append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append(']').
+            append('}');
+        // @formatter:on
+        Assert.assertFalse(validator.validate(schema, new JSONObject(builder.toString())));
+
+        builder = new StringBuilder();
+        // @formatter:off
+        builder.
+            append('{').
+                append("\"positiveConstBoolean\": true").
+                append(',').
+                append("\"negativeConstBoolean\": false").
+                append(',').
+                append("\"positiveConstInteger\": ").append(escapeSymbol(AbstractConstants.integerConstant)).
+                append(',').
+                append("\"negativeConstInteger\": ").append(escapeSymbol(AbstractConstants.integerConstant)).
+                append(',').
+                append("\"positiveConstNumber\": ").append(escapeSymbol(AbstractConstants.numberConstant)).
+                append(',').
+                append("\"negativeConstNumber\": ").append(escapeSymbol(AbstractConstants.numberConstant)).
+                append(',').
+                append("\"positiveConstString\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                append(',').
+                append("\"negativeConstString\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                append(',').
+                append("\"positiveConstObject\": {").
+                    append("\"test\": true").
+                    append(',').
+                    append("\"int\": ").append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append("}").
+                append(',').
+                append("\"negativeConstObject\": {").
+                    append("\"int\": ").append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append("}").
+                append(',').
+                append("\"positiveConstArray\": [").
+                    append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append(',').
+                    append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append(',').
+                    append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append(']').
+                append(',').
+                append("\"negativeConstArray\": [").
+                    append(false).
+                    append(',').
+                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(']').
+            append('}');
+        // @formatter:on
+        Assert.assertFalse(validator.validate(schema, new JSONObject(builder.toString())));
+    }
 }

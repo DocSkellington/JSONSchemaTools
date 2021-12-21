@@ -47,6 +47,17 @@ public class DefaultObjectHandler implements Handler {
             }
         }
 
+        if (schema.getForbiddenValues().stream().filter(v -> document.similar(v)).count() != 0) {
+            return false;
+        }
+
+        if (schema.getConstValue() != null) {
+            JSONObject abstracted = (JSONObject)Validator.abstractConstValue(schema.getConstValue());
+            if (!document.similar(abstracted)) {
+                return false;
+            }
+        }
+
         return true;
     }
 
