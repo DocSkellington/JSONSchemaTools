@@ -35,9 +35,13 @@ public class Generator {
     }
 
     public static JSONSchema getMergedSchema(final JSONSchema baseSchema, final JSONSchema allOf,
-            final JSONSchema anyOf, final JSONSchema oneOf, final JSONSchema not) throws JSONSchemaException, GeneratorException {
-        if (JSONSchemaStore.isFalseSchema(baseSchema) || JSONSchemaStore.isFalseSchema(allOf) || JSONSchemaStore.isFalseSchema(anyOf) || JSONSchemaStore.isFalseSchema(oneOf) || JSONSchemaStore.isFalseSchema(not)) {
-            throw new GeneratorException("Impossible to generate a document as one of the sub schemas is the false schema");
+            final JSONSchema anyOf, final JSONSchema oneOf, final JSONSchema not)
+            throws JSONSchemaException, GeneratorException {
+        if (JSONSchemaStore.isFalseSchema(baseSchema) || JSONSchemaStore.isFalseSchema(allOf)
+                || JSONSchemaStore.isFalseSchema(anyOf) || JSONSchemaStore.isFalseSchema(oneOf)
+                || JSONSchemaStore.isFalseSchema(not)) {
+            throw new GeneratorException(
+                    "Impossible to generate a document as one of the sub schemas is the false schema");
         }
         return baseSchema.dropAllOfAnyOfOneOfAndNot().merge(allOf).merge(anyOf).merge(oneOf).merge(not);
     }
@@ -196,33 +200,27 @@ public class Generator {
     public static Object abstractConstValue(Object object) throws GeneratorException {
         if (object instanceof String) {
             return AbstractConstants.stringConstant;
-        }
-        else if (object instanceof Integer) {
+        } else if (object instanceof Integer) {
             return AbstractConstants.integerConstant;
-        }
-        else if (object instanceof Number) {
+        } else if (object instanceof Number) {
             return AbstractConstants.numberConstant;
-        }
-        else if (object instanceof Boolean) {
+        } else if (object instanceof Boolean) {
             return object;
-        }
-        else if (object instanceof JSONArray) {
-            final JSONArray array = (JSONArray)object;
+        } else if (object instanceof JSONArray) {
+            final JSONArray array = (JSONArray) object;
             final JSONArray newArray = new JSONArray(array.length());
             for (Object inArray : array) {
                 newArray.put(abstractConstValue(inArray));
             }
             return newArray;
-        }
-        else if (object instanceof JSONObject) {
-            final JSONObject original = (JSONObject)object;
+        } else if (object instanceof JSONObject) {
+            final JSONObject original = (JSONObject) object;
             final JSONObject newObject = new JSONObject();
             for (String key : original.keySet()) {
                 newObject.put(key, abstractConstValue(original.get(key)));
             }
             return newObject;
-        }
-        else if (object == null) {
+        } else if (object == null) {
             return null;
         }
 
@@ -230,6 +228,13 @@ public class Generator {
     }
 
     private static List<Integer> generateIndicesRandomOrder(final List<?> list, Random rand) {
-        return rand.ints(0, list.size()).distinct().limit(list.size()).boxed().collect(Collectors.toList());
+        // @formatter:off
+        List<Integer> values = rand.ints(0, list.size())
+            .distinct()
+            .limit(list.size())
+            .boxed()
+            .collect(Collectors.toList());
+        // @formatter:on
+        return values;
     }
 }

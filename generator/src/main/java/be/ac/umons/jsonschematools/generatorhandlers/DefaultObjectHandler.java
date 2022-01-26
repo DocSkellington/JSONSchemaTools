@@ -1,7 +1,7 @@
 package be.ac.umons.jsonschematools.generatorhandlers;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -93,7 +93,7 @@ public class DefaultObjectHandler implements Handler {
         // First, we randomly select enough properties to satisfy minProperties
         // Second, we randomly pick other properties, as long as we do not exceed
         // maxProperties
-        Set<String> selectedProperties = new HashSet<>();
+        Set<String> selectedProperties = new LinkedHashSet<>();
         List<String> allKeys = new ArrayList<>(nonRequiredProperties.keySet());
         while (missingProperties > 0) {
             int id = rand.nextInt(allKeys.size());

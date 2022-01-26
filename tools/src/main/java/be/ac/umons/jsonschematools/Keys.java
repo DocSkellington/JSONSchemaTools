@@ -2,12 +2,13 @@ package be.ac.umons.jsonschematools;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -26,12 +27,12 @@ class Keys {
         NOT
     }
 
-    private static final Map<String, Operation> keyToOperation = new HashMap<>();
+    private static final Map<String, Operation> keyToOperation = new TreeMap<>();
 
-    private static final Set<String> minKeys = new HashSet<>();
-    private static final Set<String> maxKeys = new HashSet<>();
-    private static final Map<String, String> minToMax = new HashMap<>();
-    private static final Map<String, String> maxToMin = new HashMap<>();
+    private static final Set<String> minKeys = new TreeSet<>();
+    private static final Set<String> maxKeys = new TreeSet<>();
+    private static final Map<String, String> minToMax = new TreeMap<>();
+    private static final Map<String, String> maxToMin = new TreeMap<>();
 
     public static void prepareKeys() {
         String[] mini = {"minItems", "minProperties", "minimum", "exclusiveMinimum", "minLength", "minContains"};
@@ -88,7 +89,7 @@ class Keys {
     }
 
     public static Set<String> getKeys() {
-        return Collections.unmodifiableSet(keyToOperation.keySet());
+        return keyToOperation.keySet();
     }
 
     private static Operation getOperation(String key) {
@@ -112,7 +113,7 @@ class Keys {
     }
 
     private static JSONArray getConcatenation(Set<Object> values) {
-        Set<Object> union = new HashSet<>();
+        Set<Object> union = new LinkedHashSet<>();
         Iterator<Object> iterator = values.iterator();
         JSONArray value = (JSONArray)iterator.next();
         union.addAll(value.toList());
@@ -120,11 +121,11 @@ class Keys {
             value = (JSONArray)iterator.next();
             union.addAll(value.toList());
         }
-        return new JSONArray(union);
+        return new ComparableJSONArray(union);
     }
 
     private static JSONArray getIntersection(Set<Object> values) {
-        Set<Object> intersection = new HashSet<>();
+        Set<Object> intersection = new LinkedHashSet<>();
         Iterator<Object> iterator = values.iterator();
         Object nextValue = iterator.next();
         if (nextValue instanceof String) {
@@ -144,31 +145,31 @@ class Keys {
                 intersection.retainAll(value.toList());
             }
         }
-        return new JSONArray(intersection);
+        return new ComparableJSONArray(intersection);
     }
 
     public static JSONObject getMergeProperties(Set<Object> values) {
         // The idea is, for each key, to define a schema using allOf to merge all the values. The actual merging will be done at a later point
-        Map<String, Set<JSONObject>> byKey = new HashMap<>();
+        Map<String, Set<JSONObject>> byKey = new TreeMap<>();
         for (Object o : values) {
             JSONObject subSchema = (JSONObject)o;
             for (String key : subSchema.keySet()) {
                 JSONObject value = subSchema.getJSONObject(key);
                 if (!byKey.containsKey(key)) {
-                    byKey.put(key, new HashSet<>());
+                    byKey.put(key, new TreeSet<>());
                 }
                 byKey.get(key).add(value);
             }
         }
-        JSONObject merge = new JSONObject();
+        JSONObject merge = new ComparableJSONObject();
         for (Map.Entry<String, Set<JSONObject>> entry : byKey.entrySet()) {
-            JSONObject subSchema = new JSONObject();
+            JSONObject subSchema = new ComparableJSONObject();
             Set<JSONObject> objects = entry.getValue();
             if (objects.size() == 1) {
                 subSchema = objects.iterator().next();
             }
             else if (objects.size() > 1) {
-                subSchema.put("allOf", new JSONArray(objects));
+                subSchema.put("allOf", new ComparableJSONArray(objects));
             }
             merge.put(entry.getKey(), subSchema);
         }
@@ -176,8 +177,8 @@ class Keys {
     }
 
     public static JSONObject getMergeItems(Set<Object> values) {
-        JSONObject merge = new JSONObject();
-        merge.put("allOf", new JSONArray(values));
+        JSONObject merge = new ComparableJSONObject();
+        merge.put("allOf", new ComparableJSONArray(values));
         return merge;
     }
 
@@ -191,7 +192,7 @@ class Keys {
     private static Set<String> keysToKeepInNot() {
         // TODO: more keywords?
         // TODO: oneOf
-        Set<String> set = new HashSet<>(Set.of("items", "properties", "type", "not", "enum", "const", "anyOf", "allOf"));
+        Set<String> set = new TreeSet<>(Set.of("items", "properties", "type", "not", "enum", "const", "anyOf", "allOf"));
         set.addAll(minKeys);
         set.addAll(maxKeys);
         return set;
@@ -200,31 +201,31 @@ class Keys {
     public static JSONObject applyNot(final String key, final Set<Object> values) throws JSONSchemaException {
         if (key.equals("properties")) {
             final JSONObject properties = (JSONObject) applyOperation(key, values);
-            final JSONObject notProperties = new JSONObject();
+            final JSONObject notProperties = new ComparableJSONObject();
             for (final String propertyKey : properties.keySet()) {
-                final JSONObject notProperty = new JSONObject();
+                final JSONObject notProperty = new ComparableJSONObject();
                 notProperty.put("not", properties.get(propertyKey));
                 notProperties.put(propertyKey, notProperty);
             }
-            final JSONObject schema = new JSONObject();
+            final JSONObject schema = new ComparableJSONObject();
             schema.put("properties", notProperties);
             return schema;
         }
         else if (key.equals("items")) {
             final JSONObject items = (JSONObject) applyOperation(key, values);
-            final JSONObject schema = new JSONObject();
+            final JSONObject schema = new ComparableJSONObject();
             schema.put("items", items);
             return schema;
         }
         else if (key.equals("type")) {
             final JSONArray types = (JSONArray) applyOperation(key, values);
-            Set<String> allTypes = new HashSet<>(Set.of("string", "integer", "number", "object", "array", "boolean", "null"));
+            Set<String> allTypes = new TreeSet<>(Set.of("string", "integer", "number", "object", "array", "boolean", "null"));
             for (int i = 0 ; i < types.length() ; i++) {
                 String type = types.getString(i);
                 allTypes.remove(type);
             }
-            final JSONObject schema = new JSONObject();
-            schema.put("type", new JSONArray(allTypes));
+            final JSONObject schema = new ComparableJSONObject();
+            schema.put("type", new ComparableJSONArray(allTypes));
             return schema;
         }
         else if (key.equals("not")) {
@@ -232,54 +233,54 @@ class Keys {
         }
         else if (key.equals("allOf")) {
             final JSONArray allOf = (JSONArray) applyOperation(key, values);
-            final JSONArray anyOf = new JSONArray(allOf.length());
+            final JSONArray anyOf = new ComparableJSONArray(allOf.length());
             for (int i = 0 ; i < allOf.length() ; i++) {
-                final JSONObject not = new JSONObject();
+                final JSONObject not = new ComparableJSONObject();
                 not.put("not", allOf.get(i));
                 anyOf.put(not);
             }
-            final JSONObject schema = new JSONObject();
+            final JSONObject schema = new ComparableJSONObject();
             schema.put("anyOf", anyOf);
             return schema;
         }
         else if (key.equals("anyOf")) {
             final JSONArray anyOf = (JSONArray) applyOperation(key, values);
-            final JSONArray allOf = new JSONArray(anyOf.length());
+            final JSONArray allOf = new ComparableJSONArray(anyOf.length());
             for (int i = 0 ; i < anyOf.length() ; i++) {
-                final JSONObject not = new JSONObject();
+                final JSONObject not = new ComparableJSONObject();
                 not.put("not", anyOf.get(i));
                 allOf.put(not);
             }
-            final JSONObject schema = new JSONObject();
+            final JSONObject schema = new ComparableJSONObject();
             schema.put("allOf", allOf);
             return schema;
         }
         else if (key.equals("enum")) {
-            JSONObject enumObject = new JSONObject();
+            JSONObject enumObject = new ComparableJSONObject();
             // TODO: values.iterator().next()?
-            enumObject.put(key, new JSONArray(values));
-            JSONObject notEnum = new JSONObject();
+            enumObject.put(key, new ComparableJSONArray(values));
+            JSONObject notEnum = new ComparableJSONObject();
             notEnum.put("not", enumObject);
             return notEnum;
         }
         else if (key.equals("const")) {
-            JSONObject constObject = new JSONObject();
+            JSONObject constObject = new ComparableJSONObject();
             constObject.put(key, values.iterator().next());
-            JSONObject notConst = new JSONObject();
+            JSONObject notConst = new ComparableJSONObject();
             notConst.put("not", constObject);
             return notConst;
         }
         else if (minKeys.contains(key)) {
             final String maxKey = maxToMin.get(key);
             int value = (int) applyOperation(key, values);
-            final JSONObject schema = new JSONObject();
+            final JSONObject schema = new ComparableJSONObject();
             schema.put(maxKey, value + 1);
             return schema;
         }
         else if (maxKeys.contains(key)) {
             final String minKey = minToMax.get(key);
             int value = (int) applyOperation(key, values);
-            final JSONObject schema = new JSONObject();
+            final JSONObject schema = new ComparableJSONObject();
             schema.put(minKey, value - 1);
             return schema;
         }
@@ -288,13 +289,13 @@ class Keys {
 
     public static List<JSONObject> getNot(final Set<Object> values) throws JSONSchemaException {
         Set<String> keysToKeep = keysToKeepInNot();
-        Map<String, Set<Object>> valuesByKey = new HashMap<>();
+        Map<String, Set<Object>> valuesByKey = new TreeMap<>();
         for (Object object : values) {
             JSONObject schema = (JSONObject)object;
             for (String key : schema.keySet()) {
                 if (keysToKeep.contains(key)) {
                     if (!valuesByKey.containsKey(key)) {
-                        valuesByKey.put(key, new HashSet<>());
+                        valuesByKey.put(key, new TreeSet<>());
                     }
                     valuesByKey.get(key).add(schema.get(key));
                 }
@@ -302,11 +303,11 @@ class Keys {
         }
 
         if (valuesByKey.isEmpty()) {
-            return Collections.singletonList(new JSONObject());
+            return Collections.singletonList(new ComparableJSONObject());
         }
         final List<JSONObject> disjunction = new ArrayList<>();
         for (final Map.Entry<String, Set<Object>> entry : valuesByKey.entrySet()) {
-            final JSONObject not = new JSONObject();
+            final JSONObject not = new ComparableJSONObject();
             final JSONObject object = applyNot(entry.getKey(), entry.getValue());
             if (entry.getKey().equals("not")) {
                 not.put("not", object);

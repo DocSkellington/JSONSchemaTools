@@ -27,7 +27,7 @@ public class DefaultArrayHandler implements Handler {
     }
 
     @Override
-    public Object generate(Generator generator, JSONSchema schema, int maxTreeSize,
+    public JSONArray generate(Generator generator, JSONSchema schema, int maxTreeSize,
             Random rand) throws JSONSchemaException, GeneratorException, JSONException {
         if (maxTreeSize == 0) {
             return new JSONArray();

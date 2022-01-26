@@ -7,7 +7,7 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.List;
 import java.util.Map;
 
@@ -21,8 +21,8 @@ public class JSONSchemaStore {
     private static int FALSE_IDENTIFIER = -2;
 
     private final List<JSONSchema> schemas = new ArrayList<>();
-    private final Map<Path, JSONSchema> pathToSchema = new HashMap<>();
-    private final Map<Integer, Path> idToPath = new HashMap<>();
+    private final Map<Path, JSONSchema> pathToSchema = new TreeMap<>();
+    private final Map<Integer, Path> idToPath = new TreeMap<>();
 
     public JSONSchemaStore() {
         Keys.prepareKeys();
@@ -40,7 +40,7 @@ public class JSONSchemaStore {
         }
         int schemaId = schemas.size();
         FileReader reader = new FileReader(new File(path));
-        JSONObject object = new JSONObject(new JSONTokener(reader));
+        JSONObject object = new ComparableJSONObject(new JSONTokener(reader));
         JSONSchema schema = new JSONSchema(object, this, schemaId);
         schemas.add(schema);
         pathToSchema.put(actualPath, schema);
@@ -49,7 +49,7 @@ public class JSONSchemaStore {
     }
 
     public static JSONObject trueDocument() {
-        return new JSONObject();
+        return new ComparableJSONObject();
     }
 
     public JSONSchema trueSchema() throws JSONSchemaException {
@@ -57,8 +57,8 @@ public class JSONSchemaStore {
     }
 
     public static JSONObject falseDocument() {
-        JSONObject falseDocument = new JSONObject();
-        falseDocument.put("not", new JSONObject());
+        JSONObject falseDocument = new ComparableJSONObject();
+        falseDocument.put("not", new ComparableJSONObject());
         return falseDocument;
     }
 

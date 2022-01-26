@@ -2,6 +2,8 @@ package be.ac.umons.jsonschematools;
 
 import java.io.FileNotFoundException;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Random;
 import java.util.Set;
 
 import org.json.JSONArray;
@@ -11,6 +13,8 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 public class TestGenerator {
+    private final int NUMBER_RUNS = 100;
+
     private JSONSchema loadSchema(String path) throws FileNotFoundException, JSONSchemaException, URISyntaxException {
         JSONSchemaStore store = new JSONSchemaStore();
         return store.load(TestGenerator.class.getResource("/" + path).toURI());
@@ -224,13 +228,57 @@ public class TestGenerator {
         generator.generate(schema, 5);
     }
 
-    @Test(invocationCount = 100, timeOut = 1000, successPercentage = 90)
+    @Test(invocationCount = 100, timeOut = 1000)
     public void testCodecov() throws FileNotFoundException, JSONSchemaException, URISyntaxException, JSONException, GeneratorException {
         JSONSchema schema = loadSchema("codecov.json");
         Validator validator = new DefaultValidator();
         Generator generator = new DefaultGenerator(5, 5);
         JSONObject document = generator.generate(schema, 5);
         Assert.assertTrue(validator.validate(schema, document));
+    }
+
+    @Test
+    public void testCodecovFixedSeedNewGenerator() throws FileNotFoundException, JSONSchemaException, URISyntaxException, JSONException, GeneratorException {
+        JSONSchema schema = loadSchema("codecov.json");
+        for (int maxItems = 0 ; maxItems <= 10 ; maxItems++) {
+            for (int maxProperties = 0 ; maxProperties <= 10 ; maxProperties++) {
+                ArrayList<String> documents = new ArrayList<>(NUMBER_RUNS);
+                // Generating the documents
+                for (int run = 0 ; run < NUMBER_RUNS ; run++) {
+                    Generator generator = new DefaultGenerator(maxProperties, maxItems);
+                    documents.add(generator.generate(schema, 5, new Random(1000)).toString());
+                }
+
+                // All documents must be strictly identical
+                for (int i = 0 ; i < documents.size() ; i++) {
+                    for (int j = i + 1 ; j < documents.size() ; j++) {
+                        Assert.assertEquals(documents.get(i), documents.get(j));
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    public void testCodecovFixedSeedSameGenerator() throws FileNotFoundException, JSONSchemaException, URISyntaxException, JSONException, GeneratorException {
+        JSONSchema schema = loadSchema("codecov.json");
+        for (int maxItems = 0 ; maxItems <= 10 ; maxItems++) {
+            for (int maxProperties = 0 ; maxProperties <= 10 ; maxProperties++) {
+                ArrayList<String> documents = new ArrayList<>(NUMBER_RUNS);
+                Generator generator = new DefaultGenerator(maxProperties, maxItems);
+                // Generating the documents
+                for (int run = 0 ; run < NUMBER_RUNS ; run++) {
+                    documents.add(generator.generate(schema, 5, new Random(1000)).toString());
+                }
+
+                // All documents must be strictly identical
+                for (int i = 0 ; i < documents.size() ; i++) {
+                    for (int j = i + 1 ; j < documents.size() ; j++) {
+                        Assert.assertEquals(documents.get(i), documents.get(j));
+                    }
+                }
+            }
+        }
     }
 
     @Test(invocationCount = 100, timeOut = 1000)
