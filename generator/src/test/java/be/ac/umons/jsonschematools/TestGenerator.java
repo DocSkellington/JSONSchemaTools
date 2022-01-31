@@ -297,18 +297,20 @@ public class TestGenerator {
         Assert.assertEquals(document.getString("negativeConstNumber"), AbstractConstants.numberConstant);
 
         Assert.assertEquals(document.getString("positiveConstString"), AbstractConstants.stringConstant);
-        Assert.assertEquals(document.getString("negativeConstString"), AbstractConstants.stringConstant);
+        // Since the schema does not impose any constraints on the type, we can not check anything, except that the key exists.
+        Assert.assertTrue(document.has("negativeConstString"));
 
         JSONObject testObject = new JSONObject();
         testObject.put("test", true);
         testObject.put("int", AbstractConstants.integerConstant);
         Assert.assertTrue(document.getJSONObject("positiveConstObject").similar(testObject));
-        Assert.assertFalse(document.getJSONObject("negativeConstObject").similar(testObject));
+        Assert.assertTrue(document.has("negativeConstObject"));
 
         JSONArray testArray = new JSONArray();
         testArray.put(AbstractConstants.integerConstant);
         testArray.put(AbstractConstants.integerConstant);
         testArray.put(AbstractConstants.integerConstant);
         Assert.assertTrue(document.getJSONArray("positiveConstArray").similar(testArray));
+        Assert.assertTrue(document.has("negativeConstArray"));
     }
 }
