@@ -48,6 +48,7 @@ public final class JSONSchema {
         if (object.has("const")) {
             constValue = object.get("const");
             atLeastOne = true;
+            types.clear();
             types.add(getConstType());
         }
         else {
@@ -70,9 +71,8 @@ public final class JSONSchema {
 
             if (not.has("const")) {
                 forbiddenValue = not.get("const");
-                if (!atLeastOne) {
-                    types.retainAll(Collections.singleton(getForbiddenType()));
-                }
+                // We do not add or remove possible types, in this case.
+                // Indeed, if the type of the forbidden value is not even considered, we do not want to consider it.
             }
             else {
                 forbiddenValue = null;
@@ -92,9 +92,6 @@ public final class JSONSchema {
 
                 if (not.has("const")) {
                     forbiddenValue = not.get("const");
-                    if (!atLeastOne) {
-                        types.retainAll(Collections.singleton(getForbiddenType()));
-                    }
                 }
                 else {
                     forbiddenValue = null;

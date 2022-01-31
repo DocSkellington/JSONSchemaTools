@@ -43,7 +43,7 @@ class Keys {
         String[] intersectionKeys = {"enum", "type"};
         String[] mergePropertiesKeys = {"properties", "$defs"};
         String[] mergeItemsKeys = {"items"};
-        String[] checkEqualityKeys = {"$ref"};
+        String[] checkEqualityKeys = {"$ref", "const"};
         String[] notKeys = {"not"};
         // TODO: "const", "dependentRequired"
         // TODO: say that "pattern" is ignored
