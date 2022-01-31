@@ -188,7 +188,7 @@ public class Generator {
                 handler = getObjectHandler();
                 break;
             default:
-                return null;
+                return JSONObject.NULL;
         }
 
         if ((type == Type.OBJECT || type == Type.ARRAY) && maxTreeSize == 0) {
