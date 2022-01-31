@@ -75,7 +75,7 @@ public class Validator {
     }
 
     private boolean validateAnyOf(final JSONSchema schema, final Object object) throws JSONSchemaException {
-        final List<JSONSchema> listAnyOf = schema.getAnyOf();
+        final List<JSONSchema> listAnyOf = schema.getRawAnyOf();
         return validateAnyOf(listAnyOf, object);
     }
 
@@ -118,10 +118,10 @@ public class Validator {
 
     private boolean validateNot(final JSONSchema schema, final Object object) throws JSONSchemaException {
         final JSONSchema not = schema.getRawNot();
-        return !validateValue(not, object);
+        return !validateValue(not, object, false);
     }
 
-    public boolean validateValue(final JSONSchema schema, final Object object) throws JSONSchemaException {
+    private boolean validateValue(final JSONSchema schema, final Object object, final boolean abstractConstValue) throws JSONSchemaException {
         if (schema == null || JSONSchemaStore.isTrueSchema(schema)) {
             return true;
         }
@@ -169,11 +169,16 @@ public class Validator {
             }
 
             if (handler == null) {
-                valid = (object == null);
+                valid = (Objects.equals(object, null));
             }
             else {
                 if (schema.getConstValue() != null && !(type == Type.ARRAY || type == Type.OBJECT)) {
-                    return Objects.equals(object, abstractConstValue(schema.getConstValue()));
+                    if (abstractConstValue) {
+                        return Objects.equals(object, abstractConstValue(schema.getConstValue()));
+                    }
+                    else {
+                        return Objects.equals(object, schema.getConstValue());
+                    }
                 }
                 valid = handler.validate(this, schema, object) && validateAllOf(schema, object) && validateAnyOf(schema, object) && validateOneOf(schema, object) && validateNot(schema, object);
             }
@@ -183,6 +188,10 @@ public class Validator {
             }
         }
         return false;
+    }
+
+    public boolean validateValue(final JSONSchema schema, final Object object) throws JSONSchemaException {
+        return validateValue(schema, object, true);
     }
 
     public static Object abstractConstValue(Object object) throws JSONSchemaException {

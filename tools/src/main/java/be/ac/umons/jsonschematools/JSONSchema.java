@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -153,10 +154,6 @@ public final class JSONSchema {
         else {
             return Type.NULL;
         }
-    }
-
-    private Type getForbiddenType() {
-        return getType(forbiddenValue);
     }
 
     private Type getConstType() {
@@ -370,7 +367,7 @@ public final class JSONSchema {
     }
 
     public Set<Object> getForbiddenValues() {
-        Set<Object> forbiddenValues = new TreeSet<>();
+        Set<Object> forbiddenValues = new LinkedHashSet<>();
         if (schema.has("anyOf")) {
             JSONArray anyOf = schema.getJSONArray("anyOf");
             for (int i = 0 ; i < anyOf.length() ; i++) {
@@ -615,6 +612,19 @@ public final class JSONSchema {
             addConstraintToSet(keyToValues, schema, Keys.getKeys());
         }
         return transformConstraintsInSchema(keyToValues);
+    }
+
+    public List<JSONSchema> getRawAnyOf() throws JSONSchemaException {
+        if (!schema.has("anyOf")) {
+            return Collections.singletonList(store.trueSchema());
+        }
+        final JSONArray anyOf = schema.getJSONArray("anyOf");
+        final List<JSONSchema> schemas = new ArrayList<>(anyOf.length());
+        for (int i = 0 ; i < anyOf.length() ; i++) {
+            JSONObject subSchema = anyOf.getJSONObject(i);
+            schemas.add(new JSONSchema(subSchema, store, fullSchemaId));
+        }
+        return schemas;
     }
 
     public List<JSONSchema> getAnyOf() throws JSONSchemaException {

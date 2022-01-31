@@ -13,6 +13,8 @@ This is a technical page listing the keywords that are not (yet) supported and i
     With the abstractions, we want to check whether the *type* is valid.
     This is problematic with `not` as a valid document then gets rejected.
 
+    Update: I implemented the possibility to decide whether we check the type or the exact values. I have to verify that it is enough for all cases.
+
 ## Unsupported keywords
   * `dependentSchemas`, `if`, `then`, and `else` for any type.
   * `dependentRequired`, `patternProperties`, `propertyNames`, for objects.
