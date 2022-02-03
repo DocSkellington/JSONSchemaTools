@@ -41,12 +41,11 @@ class Keys {
         String[] andKeys = {"uniqueItems"};
         String[] concatKeys = {"required", "allOf", "anyOf", "oneOf"};
         String[] intersectionKeys = {"enum", "type"};
-        String[] mergePropertiesKeys = {"properties", "$defs"};
+        String[] mergePropertiesKeys = {"properties", "patternProperties", "$defs", "definitions"};
         String[] mergeItemsKeys = {"items"};
-        String[] checkEqualityKeys = {"$ref", "const"};
+        String[] checkEqualityKeys = {"$ref", "const", "additionalProperties"};
         String[] notKeys = {"not"};
-        // TODO: "const", "dependentRequired"
-        // TODO: say that "pattern" is ignored
+        // TODO: "dependentRequired"
 
         for (int i = 0 ; i < maxi.length ; i++) {
             minToMax.put(mini[i], maxi[i]);

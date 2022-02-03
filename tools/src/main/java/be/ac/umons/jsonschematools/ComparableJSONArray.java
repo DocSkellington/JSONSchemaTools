@@ -7,7 +7,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class ComparableJSONArray extends JSONArray implements Comparable<ComparableJSONArray> {
+public class ComparableJSONArray extends JSONArray implements Comparable<Object> {
     public ComparableJSONArray() {
         super();
     }
@@ -47,10 +47,16 @@ public class ComparableJSONArray extends JSONArray implements Comparable<Compara
     }
 
     @Override
-    public int compareTo(ComparableJSONArray other) {
-        final int thisHash = Objects.hash(this.toString());
-        final int otherHash = Objects.hash(other.toString());
+    public int compareTo(Object other) {
+        if (other instanceof JSONArray) {
+            final int thisHash = Objects.hash(this.toString());
+            final int otherHash = Objects.hash(other.toString());
 
-        return Integer.compare(thisHash, otherHash);
+            return Integer.compare(thisHash, otherHash);
+        }
+        else if (other instanceof Number || other instanceof String || other instanceof Boolean) {
+            return -1;
+        }
+        throw new ClassCastException("Impossible to compare a JSON array and " + other.getClass());
     }
 }

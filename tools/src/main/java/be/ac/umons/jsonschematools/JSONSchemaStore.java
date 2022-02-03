@@ -20,12 +20,19 @@ public class JSONSchemaStore {
     private static int TRUE_IDENTIFIER = -1;
     private static int FALSE_IDENTIFIER = -2;
 
+    private final boolean ignoreTrueAdditionalProperties;
+
     private final List<JSONSchema> schemas = new ArrayList<>();
     private final Map<Path, JSONSchema> pathToSchema = new TreeMap<>();
     private final Map<Integer, Path> idToPath = new TreeMap<>();
 
     public JSONSchemaStore() {
+        this(false);
+    }
+
+    public JSONSchemaStore(final boolean ignoreTrueAdditionalProperties) {
         Keys.prepareKeys();
+        this.ignoreTrueAdditionalProperties = ignoreTrueAdditionalProperties;
     }
 
     public JSONSchema load(URI path) throws FileNotFoundException, JSONSchemaException {
@@ -88,6 +95,10 @@ public class JSONSchemaStore {
 
     public static boolean isFalseSchema(JSONSchema schema) {
         return schema.getSchemaId() == FALSE_IDENTIFIER || isFalseDocument(schema.getSchema());
+    }
+
+    boolean shouldIgnoreTrueAdditionalProperties() {
+        return this.ignoreTrueAdditionalProperties;
     }
 
     JSONSchema get(int schemaId) {

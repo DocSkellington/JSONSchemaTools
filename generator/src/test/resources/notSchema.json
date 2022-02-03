@@ -42,10 +42,14 @@
                     "not": {
                         "minItems": 4
                     }
+                },
+                {
+                    "additionalProperties": false
                 }
             ]
         }
     },
+    "additionalProperties": false,
     "required": [
         "subObject"
     ]

@@ -15,14 +15,14 @@ import org.testng.annotations.Test;
 public class TestGenerator {
     private final int NUMBER_RUNS = 100;
 
-    private JSONSchema loadSchema(String path) throws FileNotFoundException, JSONSchemaException, URISyntaxException {
-        JSONSchemaStore store = new JSONSchemaStore();
+    private JSONSchema loadSchema(String path, boolean ignoreTrueAdditionalProperties) throws FileNotFoundException, JSONSchemaException, URISyntaxException {
+        JSONSchemaStore store = new JSONSchemaStore(ignoreTrueAdditionalProperties);
         return store.load(TestGenerator.class.getResource("/" + path).toURI());
     }
 
     @Test(invocationCount = 100, timeOut = 1000)
     public void testGeneratorBasicTypes() throws URISyntaxException, FileNotFoundException, JSONSchemaException, JSONException, GeneratorException {
-        JSONSchema schema = loadSchema("basicTypes.json");
+        JSONSchema schema = loadSchema("basicTypes.json", true);
         DefaultGenerator generator = new DefaultGenerator(100, 5);
 
         JSONObject document = generator.generate(schema, 5);
@@ -61,7 +61,7 @@ public class TestGenerator {
 
     @Test(invocationCount = 100, timeOut = 1000)
     public void testGeneratorRecursiveList() throws FileNotFoundException, JSONSchemaException, URISyntaxException, JSONException, GeneratorException {
-        JSONSchema schema = loadSchema("recursiveList.json");
+        JSONSchema schema = loadSchema("recursiveList.json", true);
         DefaultGenerator generator = new DefaultGenerator();
 
         JSONObject document = generator.generate(schema, 5);
@@ -88,7 +88,7 @@ public class TestGenerator {
 
     @Test(invocationCount = 100, timeOut = 1000)
     public void testGeneratorDefinitionByRef() throws FileNotFoundException, JSONSchemaException, URISyntaxException, JSONException, GeneratorException {
-        JSONSchema schema = loadSchema("definitionByRef.json");
+        JSONSchema schema = loadSchema("definitionByRef.json", true);
         DefaultGenerator generator = new DefaultGenerator();
         JSONObject document = generator.generate(schema, 5);
         
@@ -121,7 +121,7 @@ public class TestGenerator {
 
     @Test(invocationCount = 100, timeOut = 1000)
     public void testGeneratorSchemaTwoFiles() throws FileNotFoundException, JSONSchemaException, URISyntaxException, JSONException, GeneratorException {
-        JSONSchema schema = loadSchema("firstPart.json");
+        JSONSchema schema = loadSchema("firstPart.json", true);
         DefaultGenerator generator = new DefaultGenerator();
         JSONObject document = generator.generate(schema, 5);
 
@@ -140,7 +140,7 @@ public class TestGenerator {
 
     @Test(invocationCount = 100, timeOut = 1000)
     public void testGeneratorBoundedNumberProperties() throws FileNotFoundException, JSONSchemaException, URISyntaxException, JSONException, GeneratorException {
-        JSONSchema schema = loadSchema("boundedProperties.json");
+        JSONSchema schema = loadSchema("boundedProperties.json", true);
         DefaultGenerator generator = new DefaultGenerator();
         JSONObject document = generator.generate(schema, 5);
 
@@ -149,7 +149,7 @@ public class TestGenerator {
 
     @Test(invocationCount = 100, timeOut = 1000)
     public void testGeneratorAllOf() throws FileNotFoundException, JSONSchemaException, URISyntaxException, JSONException, GeneratorException {
-        JSONSchema schema = loadSchema("allOf.json");
+        JSONSchema schema = loadSchema("allOf.json", true);
         Generator generator = new DefaultGenerator(5, 5);
         JSONObject document = generator.generate(schema, 5);
 
@@ -173,7 +173,7 @@ public class TestGenerator {
 
     @Test(invocationCount = 100, timeOut = 1000)
     public void testGeneratorAnyOf() throws FileNotFoundException, JSONSchemaException, URISyntaxException, JSONException, GeneratorException {
-        JSONSchema schema = loadSchema("anyOf.json");
+        JSONSchema schema = loadSchema("anyOf.json", true);
         Generator generator = new DefaultGenerator(5, 5);
         JSONObject document = generator.generate(schema, 5);
 
@@ -190,7 +190,7 @@ public class TestGenerator {
 
     @Test(invocationCount = 100, timeOut = 1000)
     public void testGeneratorOneOf() throws FileNotFoundException, JSONSchemaException, URISyntaxException, JSONException, GeneratorException {
-        JSONSchema schema = loadSchema("oneOf.json");
+        JSONSchema schema = loadSchema("oneOf.json", true);
         Generator generator = new DefaultGenerator(5, 5);
         JSONObject document = generator.generate(schema, 5);
 
@@ -207,7 +207,7 @@ public class TestGenerator {
 
     @Test(invocationCount = 100, timeOut = 1000)
     public void testNot() throws FileNotFoundException, JSONSchemaException, URISyntaxException, JSONException, GeneratorException {
-        JSONSchema schema = loadSchema("notSchema.json");
+        JSONSchema schema = loadSchema("notSchema.json", false);
         Generator generator = new DefaultGenerator(5, 5);
         JSONObject document = generator.generate(schema, 5);
 
@@ -223,14 +223,14 @@ public class TestGenerator {
 
     @Test(expectedExceptions = {GeneratorException.class}, invocationCount = 100, timeOut = 1000)
     public void testNotError() throws FileNotFoundException, JSONSchemaException, URISyntaxException, JSONException, GeneratorException {
-        JSONSchema schema = loadSchema("notSchemaError.json");
+        JSONSchema schema = loadSchema("notSchemaError.json", false);
         Generator generator = new DefaultGenerator();
         generator.generate(schema, 5);
     }
 
     @Test(invocationCount = 100, timeOut = 1000)
     public void testCodecov() throws FileNotFoundException, JSONSchemaException, URISyntaxException, JSONException, GeneratorException {
-        JSONSchema schema = loadSchema("codecov.json");
+        JSONSchema schema = loadSchema("codecov.json", true);
         Validator validator = new DefaultValidator();
         Generator generator = new DefaultGenerator(5, 5);
         JSONObject document = generator.generate(schema, 5);
@@ -239,7 +239,7 @@ public class TestGenerator {
 
     @Test
     public void testCodecovFixedSeedNewGenerator() throws FileNotFoundException, JSONSchemaException, URISyntaxException, JSONException, GeneratorException {
-        JSONSchema schema = loadSchema("codecov.json");
+        JSONSchema schema = loadSchema("codecov.json", true);
         for (int maxItems = 0 ; maxItems <= 10 ; maxItems++) {
             for (int maxProperties = 0 ; maxProperties <= 10 ; maxProperties++) {
                 ArrayList<String> documents = new ArrayList<>(NUMBER_RUNS);
@@ -261,7 +261,7 @@ public class TestGenerator {
 
     @Test
     public void testCodecovFixedSeedSameGenerator() throws FileNotFoundException, JSONSchemaException, URISyntaxException, JSONException, GeneratorException {
-        JSONSchema schema = loadSchema("codecov.json");
+        JSONSchema schema = loadSchema("codecov.json", true);
         for (int maxItems = 0 ; maxItems <= 10 ; maxItems++) {
             for (int maxProperties = 0 ; maxProperties <= 10 ; maxProperties++) {
                 ArrayList<String> documents = new ArrayList<>(NUMBER_RUNS);
@@ -283,7 +283,7 @@ public class TestGenerator {
 
     @Test(invocationCount = 100, timeOut = 1000)
     public void testConst() throws FileNotFoundException, JSONSchemaException, URISyntaxException, JSONException, GeneratorException {
-        JSONSchema schema = loadSchema("withConst.json");
+        JSONSchema schema = loadSchema("withConst.json", true);
         Generator generator = new DefaultGenerator(5, 5);
         JSONObject document = generator.generate(schema, 5);
 
@@ -312,5 +312,35 @@ public class TestGenerator {
         testArray.put(AbstractConstants.integerConstant);
         Assert.assertTrue(document.getJSONArray("positiveConstArray").similar(testArray));
         Assert.assertTrue(document.has("negativeConstArray"));
+    }
+
+    @Test(invocationCount = 100, timeOut = 1000)
+    public void testAdditionalAndPatternProperties() throws FileNotFoundException, JSONSchemaException, URISyntaxException, JSONException, GeneratorException {
+        JSONSchema schema = loadSchema("additionalAndPatternProperties.json", true);
+        Generator generator = new DefaultGenerator(5, 5);
+        JSONObject document = generator.generate(schema, 5);
+
+        Assert.assertEquals(document.length(), 4);
+
+        Assert.assertTrue(document.has("key1"));
+        String key1 = document.getString("key1");
+        Assert.assertEquals(key1, AbstractConstants.stringConstant);
+
+        Assert.assertTrue(document.has("key2"));
+        JSONArray key2 = document.getJSONArray("key2");
+        Assert.assertTrue(key2.length() <= 3);
+        for (int i = 0 ; i < key2.length() ; i++) {
+            JSONObject object = key2.getJSONObject(i);
+            Assert.assertTrue(object.has("^key*$"));
+            Assert.assertTrue(object.getBoolean("^key*$"));
+        }
+
+        Assert.assertTrue(document.has("^key3$"));
+        String key3 = document.getString("^key3$");
+        Assert.assertEquals(key3, AbstractConstants.enumConstant);
+
+        Assert.assertTrue(document.has(AbstractConstants.stringConstant));
+        String additional = document.getString(AbstractConstants.stringConstant);
+        Assert.assertEquals(additional, AbstractConstants.integerConstant);
     }
 }

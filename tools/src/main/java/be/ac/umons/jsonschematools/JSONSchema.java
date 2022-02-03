@@ -12,6 +12,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.function.BiConsumer;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -110,16 +111,18 @@ public final class JSONSchema {
             else {
                 this.properties = new ComparableJSONObject();
             }
-            JSONObject additionalProperties = getAdditionalProperties();
+            final JSONObject additionalProperties = getAdditionalProperties();
+            if (!JSONSchemaStore.isFalseDocument(additionalProperties)) {
+                if (!JSONSchemaStore.isTrueDocument(additionalProperties) || !store.shouldIgnoreTrueAdditionalProperties()) {
+                    this.properties.put(AbstractConstants.stringConstant, additionalProperties);
+                }
+            }
 
-            // TODO: is it allowed to have "additionalProperties" inside "additionalProperties"
-            if (!JSONSchemaStore.isTrueDocument(additionalProperties) && !JSONSchemaStore.isFalseDocument(additionalProperties)) {
-                if (additionalProperties.has("properties")) {
-                    JSONObject prop = additionalProperties.getJSONObject("properties");
-                    for (final String key : prop.keySet()) {
-                        if (!this.properties.has(key)) {
-                            this.properties.put(key, prop.get(key));
-                        }
+            final JSONObject patternProperties = getPatternProperties();
+            if (!JSONSchemaStore.isTrueDocument(patternProperties) && !JSONSchemaStore.isFalseDocument(patternProperties)) {
+                for (final String key : patternProperties.keySet()) {
+                    if (!this.properties.has(key)) {
+                        this.properties.put(key, patternProperties.get(key));
                     }
                 }
             }
@@ -192,6 +195,21 @@ public final class JSONSchema {
         return schemaForAdditionalProperties;
     }
 
+    private JSONObject getPatternProperties() throws JSONException, JSONSchemaException {
+        if (this.schema.has("patternProperties")) {
+            final JSONObject patternProperties = this.schema.getJSONObject("patternProperties");
+            if (patternProperties.has("$ref")) {
+                return handleRef(patternProperties.getString("$ref")).schema;
+            }
+            else {
+                return patternProperties;
+            }
+        }
+        else {
+            return JSONSchemaStore.trueDocument();
+        }
+    }
+
     private void addTypes(Object types) throws JSONSchemaException {
         if (types instanceof JSONArray) {
             JSONArray arrayType = (JSONArray)types;
@@ -257,6 +275,25 @@ public final class JSONSchema {
         queue.add(new InQueue("#", schema));
         seenPaths.add("#");
 
+        final BiConsumer<String, JSONObject> addObjectToQueueIfNotAlreadySeen = (path, prop) -> {
+            if (!seenPaths.contains(path)) {
+                seenPaths.add(path);
+                queue.add(new InQueue(path, prop));
+            }
+        };
+        final BiConsumer<String, JSONObject> addAllPropertiesInQueue = (path, properties) -> {
+            for (final String key : properties.keySet()) {
+                allKeys.add(key);
+                final JSONObject prop = properties.getJSONObject(key);
+                if (prop.has("$ref")) {
+                    queue.add(new InQueue(path, prop));
+                }
+                else {
+                    addObjectToQueueIfNotAlreadySeen.accept(path + "/" + key, prop);
+                }
+            }
+        };
+
         while (!queue.isEmpty()) {
             final InQueue current = queue.poll();
             JSONObject document = (JSONObject) current.object;
@@ -269,47 +306,19 @@ public final class JSONSchema {
                 seenPaths.add(ref);
             }
             if (document.has("properties")) {
-                final JSONObject properties = document.getJSONObject("properties");
-                for (final String key : properties.keySet()) {
-                    JSONObject prop = properties.getJSONObject(key);
-                    allKeys.add(key);
-                    if (prop.has("$ref")) {
-                        queue.add(new InQueue(current.path + "/properties", prop));
-                        continue;
-                    }
-                    else {
-                        final String path = current.path + "/properties/" + key;
-                        if (!seenPaths.contains(path)) {
-                            seenPaths.add(path);
-                            queue.add(new InQueue(path, prop));
-                        }
-                    }
-                }
+                addAllPropertiesInQueue.accept(current.path + "/properties", document.getJSONObject("properties"));
             }
             if (document.has("additionalProperties")) {
                 final Object additionalProperties = document.get("additionalProperties");
                 if (additionalProperties instanceof JSONObject) {
                     final JSONObject addProperties = (JSONObject)additionalProperties;
-                    if (addProperties.has("$ref")) {
-                        queue.add(new InQueue(current.path + "/additionalProperties", addProperties));
-                    }
-                    else {
-                        for (final String key : addProperties.keySet()) {
-                            JSONObject prop = addProperties.getJSONObject(key);
-                            allKeys.add(key);
-                            if (prop.has("$ref")) {
-                                queue.add(new InQueue(current.path + "/additionalProperties/" + key, prop));
-                            }
-                            else {
-                                final String path = current.path + "/additionalProperties/" + key;
-                                if (!seenPaths.contains(path)) {
-                                    seenPaths.add(path);
-                                    queue.add(new InQueue(path, prop));
-                                }
-                            }
-                        }
+                    if (addProperties.has("properties")) {
+                        addAllPropertiesInQueue.accept(current.path + "/additionalProperties/properties", addProperties.getJSONObject("properties"));
                     }
                 }
+            }
+            if (document.has("patternProperties")) {
+                addAllPropertiesInQueue.accept(current.path + "/patternProperties", document.getJSONObject("patternProperties"));
             }
             if (document.has("items")) {
                 final Object object = document.get("items");
@@ -322,11 +331,7 @@ public final class JSONSchema {
                     items.put((JSONObject)object);
                 }
                 for (int i = 0 ; i < items.length() ; i++) {
-                    final String path = current.path + "/items" + i;
-                    if (!seenPaths.contains(path)) {
-                        seenPaths.add(path);
-                        queue.add(new InQueue(path, items.getJSONObject(i)));
-                    }
+                    addObjectToQueueIfNotAlreadySeen.accept(current.path + "/items" + i, items.getJSONObject(i));
                 }
             }
             if (document.has("allOf")) {

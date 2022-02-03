@@ -238,4 +238,15 @@ public class TestGettingKeys {
         Assert.assertTrue(keys.contains("flags"));
         Assert.assertTrue(keys.contains("paths"));
     }
+
+    @Test
+    public void testAdditionalAndPatternProperties() throws FileNotFoundException, JSONSchemaException, URISyntaxException {
+        JSONSchema schema = loadSchema("additionalAndPatternProperties.json");
+        Set<String> keys = schema.getAllKeysDefinedInSchema();
+
+        Assert.assertTrue(keys.contains("^key*$"));
+        Assert.assertTrue(keys.contains("key1"));
+        Assert.assertTrue(keys.contains("key2"));
+        Assert.assertTrue(keys.contains("^key3$"));
+    }
 }

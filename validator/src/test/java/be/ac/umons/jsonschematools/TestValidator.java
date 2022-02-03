@@ -590,7 +590,7 @@ public class TestValidator {
         Assert.assertFalse(validator.validate(schema, new JSONObject(builder.toString())));
     }
 
-    // @Test
+    @Test
     public void testConst() throws FileNotFoundException, JSONSchemaException, URISyntaxException {
         JSONSchema schema = loadSchemaResource("withConst.json");
         Validator validator = new DefaultValidator();
@@ -740,5 +740,38 @@ public class TestValidator {
             append('}');
         // @formatter:on
         Assert.assertFalse(validator.validate(schema, new JSONObject(builder.toString())));
+    }
+
+    @Test
+    public void testAdditionalAndPatternProperties() throws FileNotFoundException, JSONSchemaException, URISyntaxException {
+        JSONSchema schema = loadSchemaResource("additionalAndPatternProperties.json");
+        Validator validator = new DefaultValidator();
+        StringBuilder builder = new StringBuilder();
+        // @formatter:off
+        builder.
+            append('{').
+                append("\"key1\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                append(',').
+                append("\"key2\": ").
+                    append("[").
+                        append("{").
+                            append("\"^key*$\": true").
+                        append("}").
+                        append(",").
+                        append("{").
+                            append("\"^key*$\": true").
+                        append("}").
+                        append(",").
+                        append("{").
+                            append("\"^key*$\": true").
+                        append("}").
+                    append("]").
+                append(',').
+                append("\"^key3$\":").append(escapeSymbol(AbstractConstants.enumConstant)).
+                append(",").
+                append(escapeSymbol(AbstractConstants.stringConstant)).append(":").append(escapeSymbol(AbstractConstants.integerConstant)).
+            append('}');
+        // @formatter:on
+        Assert.assertTrue(validator.validate(schema, new JSONObject(builder.toString())));
     }
 }
