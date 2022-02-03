@@ -6,18 +6,14 @@ title: List of unsupported keywords
 This is a technical page listing the keywords that are not (yet) supported and ideas for their implementations.
 
 ## Partially supported keywords
-  * `const`.
-    For the generator, the implementation is working as intended.
-    For the validator, a `const` inside a `not` can sometimes be considered as valid or invalid wrongly.
-    The problem comes from the abstracted values.
-    With the abstractions, we want to check whether the *type* is valid.
-    This is problematic with `not` as a valid document then gets rejected.
-
-    Update: I implemented the possibility to decide whether we check the type or the exact values. I have to verify that it is enough for all cases.
+  * `patternProperties`.
+    The regular expression used as a pattern is directly used as a key.
+    This approach only works under the assumption that the `patternProperties` adds *new* keys.
+    That is, if a pattern is supposed to add more constraints to an already defined key, the implementation will not merge the constraints but will keep the two keys as separate.
 
 ## Unsupported keywords
   * `dependentSchemas`, `if`, `then`, and `else` for any type.
-  * `dependentRequired`, `patternProperties`, `propertyNames`, for objects.
+  * `dependentRequired`, `propertyNames`, for objects.
   * `prefixItems`, `contains`, `minContains`, and `maxContains` for arrays.
   * `oneOf` inside a `not`. I must think about a clever way to merge the constraints.
 
