@@ -2,6 +2,7 @@ package be.ac.umons.jsonschematools;
 
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.LinkedHashSet;
@@ -311,10 +312,11 @@ public final class JSONSchema {
             if (document.has("additionalProperties")) {
                 final Object additionalProperties = document.get("additionalProperties");
                 if (additionalProperties instanceof JSONObject) {
-                    final JSONObject addProperties = (JSONObject)additionalProperties;
-                    if (addProperties.has("properties")) {
-                        addAllPropertiesInQueue.accept(current.path + "/additionalProperties/properties", addProperties.getJSONObject("properties"));
-                    }
+                    allKeys.add(AbstractConstants.stringConstant);
+                    queue.add(new InQueue(current.path + "/additionalProperties", (JSONObject)additionalProperties));
+                }
+                else if (additionalProperties instanceof Boolean && (boolean)additionalProperties) {
+                    allKeys.add(AbstractConstants.stringConstant);
                 }
             }
             if (document.has("patternProperties")) {
@@ -334,28 +336,14 @@ public final class JSONSchema {
                     addObjectToQueueIfNotAlreadySeen.accept(current.path + "/items" + i, items.getJSONObject(i));
                 }
             }
-            if (document.has("allOf")) {
-                final JSONArray allOf = document.getJSONArray("allOf");
-                final String path = current.path + "/allOf";
-                for (final Object object : allOf) {
-                    final JSONObject subSchema = (JSONObject)object;
-                    queue.add(new InQueue(path, subSchema));
-                }
-            }
-            if (document.has("anyOf")) {
-                final JSONArray anyOf = document.getJSONArray("anyOf");
-                final String path = current.path + "/anyOf";
-                for (final Object object : anyOf) {
-                    final JSONObject subSchema = (JSONObject)object;
-                    queue.add(new InQueue(path, subSchema));
-                }
-            }
-            if (document.has("oneOf")) {
-                final JSONArray oneOf = document.getJSONArray("oneOf");
-                final String path = current.path + "/oneOf";
-                for (final Object object : oneOf) {
-                    final JSONObject subSchema = (JSONObject)object;
-                    queue.add(new InQueue(path, subSchema));
+            for (final String key : Arrays.asList("allOf", "anyOf", "oneOf")) {
+                if (document.has(key)) {
+                    final JSONArray value = document.getJSONArray(key);
+                    final String path = current.path + "/" + key;
+                    for (final Object object : value) {
+                        final JSONObject subSchema = (JSONObject)object;
+                        queue.add(new InQueue(path, subSchema));
+                    }
                 }
             }
             if (document.has("not")) {
