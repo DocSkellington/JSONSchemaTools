@@ -169,7 +169,7 @@ public class Validator {
             }
 
             if (handler == null) {
-                valid = (Objects.equals(object, null));
+                valid = (Objects.equals(object, null) || Objects.equals(object, JSONObject.NULL));
             }
             else {
                 if (schema.getConstValue() != null && !(type == Type.ARRAY || type == Type.OBJECT)) {
