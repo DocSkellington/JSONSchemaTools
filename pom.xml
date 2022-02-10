@@ -51,6 +51,13 @@ limitations under the License.
         </developer>
     </developers>
 
+    <distributionManagement>
+        <site>
+            <id>apidoc</id>
+            <url>file:${project.basedir}/docs/api/</url>
+        </site>
+    </distributionManagement>
+
     <!--
     ================================= MODULES ===================================
     -->
@@ -94,9 +101,11 @@ limitations under the License.
         <puppycrawl-plugin.version>8.10</puppycrawl-plugin.version>
         <checkstyle-rules-plugin.version>1.1.0</checkstyle-rules-plugin.version>
         <jacoco-plugin.version>0.8.1</jacoco-plugin.version>
-        <javadoc-plugin.version>3.2.0</javadoc-plugin.version>
+        <javadoc-plugin.version>3.3.1</javadoc-plugin.version>
         <source-plugin.version>3.2.1</source-plugin.version>
         <surefire-plugin.version>3.0.0-M5</surefire-plugin.version>
+        <project-reports.version>3.2.1</project-reports.version>
+        <site-plugin.version>3.9.1</site-plugin.version>
 
         <!-- Javadoc links -->
         <java.apidocs>http://docs.oracle.com/javase/8/docs/api/</java.apidocs>
@@ -146,65 +155,65 @@ limitations under the License.
     ================================= BUILD PLUGINS =============================
     -->
     <build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-checkstyle-plugin</artifactId>
-                    <version>${checkstyle-plugin.version}</version>
-                    <dependencies>
-                        <dependency>
-                            <groupId>com.puppycrawl.tools</groupId>
-                            <artifactId>checkstyle</artifactId>
-                            <version>${puppycrawl-plugin.version}</version>
-                        </dependency>
-                        <dependency>
-                            <groupId>com.github.ngeor</groupId>
-                            <artifactId>checkstyle-rules</artifactId>
-                            <version>${checkstyle-rules-plugin.version}</version>
-                        </dependency>
-                    </dependencies>
-                    <configuration>
-                        <configLocation>com/github/ngeor/checkstyle.xml</configLocation>
-                        <includeTestSourceDirectory>true</includeTestSourceDirectory>
-                    </configuration>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-source-plugin</artifactId>
-                    <version>${source-plugin.version}</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-javadoc-plugin</artifactId>
-                    <version>${javadoc-plugin.version}</version>
-                    <configuration>
-                        <quiet>true</quiet>
-                        <source>${maven.compiler.source}</source>
-                        <detectLinks>true</detectLinks>
-                        <linksource>false</linksource>
-                        <links>
-                            <link>${java.apidocs}</link>
-                            <link>${automatalib.apidocs}</link>
-                            <link>${learnlib.apidocs}</link>
-                        </links>
-                    </configuration>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-surefire-plugin</artifactId>
-                    <version>${surefire-plugin.version}</version>
-                    <configuration>
-                        <trimStackTrace>false</trimStackTrace>
-                    </configuration>
-                </plugin>
-                <plugin>
-                    <groupId>org.jacoco</groupId>
-                    <artifactId>jacoco-maven-plugin</artifactId>
-                    <version>${jacoco-plugin.version}</version>
-                </plugin>
-            </plugins>
-        </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>${checkstyle-plugin.version}</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.puppycrawl.tools</groupId>
+                        <artifactId>checkstyle</artifactId>
+                        <version>${puppycrawl-plugin.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>com.github.ngeor</groupId>
+                        <artifactId>checkstyle-rules</artifactId>
+                        <version>${checkstyle-rules-plugin.version}</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <configLocation>com/github/ngeor/checkstyle.xml</configLocation>
+                    <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>${source-plugin.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+                <version>${site-plugin.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>${javadoc-plugin.version}</version>
+                <configuration>
+                    <source>${maven.compiler.source}</source>
+                    <detectLinks>true</detectLinks>
+                    <linksource>false</linksource>
+                    <links>
+                        <link>${java.apidocs}</link>
+                    </links>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${surefire-plugin.version}</version>
+                <configuration>
+                    <trimStackTrace>false</trimStackTrace>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco-plugin.version}</version>
+            </plugin>
+        </plugins>
     </build>
 
     <!--
@@ -215,6 +224,7 @@ limitations under the License.
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>${project-reports.version}</version>
                 <reportSets>
                     <reportSet>
                         <reports>

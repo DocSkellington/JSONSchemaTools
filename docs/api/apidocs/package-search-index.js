@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","url":"allpackages-index.html"},{"l":"be.ac.umons.jsonschematools"},{"l":"be.ac.umons.jsonschematools.generatorhandlers"},{"l":"be.ac.umons.jsonschematools.validatorhandlers"}]
