@@ -4,6 +4,11 @@ import be.ac.umons.jsonschematools.AbstractConstants;
 import be.ac.umons.jsonschematools.JSONSchema;
 import be.ac.umons.jsonschematools.Validator;
 
+/**
+ * A handler to validate abstracted enumeration values.
+ * 
+ * @author Gaëtan Staquet
+ */
 public class DefaultEnumHandler implements Handler {
 
     @Override

@@ -10,6 +10,13 @@ import be.ac.umons.jsonschematools.GeneratorException;
 import be.ac.umons.jsonschematools.JSONSchema;
 import be.ac.umons.jsonschematools.JSONSchemaException;
 
+/**
+ * A boolean handler that returns true or false, according to the given schema.
+ * 
+ * If the schema does not force one value, the produced boolean is selected at random.
+ * 
+ * @author Gaëtan Staquet
+ */
 public class DefaultBooleanHandler implements Handler {
 
     @Override

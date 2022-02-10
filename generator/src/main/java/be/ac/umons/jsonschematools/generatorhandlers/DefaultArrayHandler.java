@@ -8,12 +8,20 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import be.ac.umons.jsonschematools.AbstractConstants;
 import be.ac.umons.jsonschematools.Generator;
 import be.ac.umons.jsonschematools.GeneratorException;
 import be.ac.umons.jsonschematools.JSONSchema;
 import be.ac.umons.jsonschematools.JSONSchemaException;
 import be.ac.umons.jsonschematools.Type;
 
+/**
+ * An array handler that returns an array in which elements are abstracted.
+ * 
+ * It does not support every keyword that can be used in a schema.
+ * 
+ * @author Gaëtan Staquet
+ */
 public class DefaultArrayHandler implements Handler {
 
     private final int maxItems;
@@ -53,7 +61,7 @@ public class DefaultArrayHandler implements Handler {
         throw new GeneratorException("Impossible to generate an array in 1000 tries " + schema);
     }
 
-    public JSONArray generateArray(Generator generator, JSONSchema schema, int maxTreeSize,
+    private JSONArray generateArray(Generator generator, JSONSchema schema, int maxTreeSize,
             Random rand) throws JSONSchemaException, GeneratorException, JSONException {
         JSONArray array = new JSONArray();
 
@@ -68,7 +76,7 @@ public class DefaultArrayHandler implements Handler {
             if (!(minItems <= constValue.length() && constValue.length() <= maxItems)) {
                 throw new GeneratorException("Impossible to generate an array for schema " + schema + " since the const value is incorrect, with regards to minItems, or maxItems");
             }
-            return (JSONArray)Generator.abstractConstValue(constValue);
+            return (JSONArray)AbstractConstants.abstractConstValue(constValue);
         }
 
         List<JSONSchema> itemsSchemaList = null;

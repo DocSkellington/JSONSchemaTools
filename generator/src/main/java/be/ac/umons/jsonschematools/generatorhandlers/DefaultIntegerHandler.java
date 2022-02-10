@@ -10,6 +10,13 @@ import be.ac.umons.jsonschematools.GeneratorException;
 import be.ac.umons.jsonschematools.JSONSchema;
 import be.ac.umons.jsonschematools.JSONSchemaException;
 
+/**
+ * An integer handler that returns an abstracted integer, i.e., "\I".
+ * 
+ * This means that constraints on integers are ignored by this generator.
+ * 
+ * @author Gaëtan Staquet
+ */
 public class DefaultIntegerHandler implements Handler {
 
     @Override

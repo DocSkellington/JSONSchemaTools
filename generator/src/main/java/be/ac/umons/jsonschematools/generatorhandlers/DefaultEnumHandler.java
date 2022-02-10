@@ -10,6 +10,13 @@ import be.ac.umons.jsonschematools.GeneratorException;
 import be.ac.umons.jsonschematools.JSONSchema;
 import be.ac.umons.jsonschematools.JSONSchemaException;
 
+/**
+ * An enumeration handler that returns an abstracted enum value, i.e., "\E".
+ * 
+ * This means that constraints on enumerations are ignored by this generator.
+ * 
+ * @author Gaëtan Staquet
+ */
 public class DefaultEnumHandler implements Handler {
 
     @Override

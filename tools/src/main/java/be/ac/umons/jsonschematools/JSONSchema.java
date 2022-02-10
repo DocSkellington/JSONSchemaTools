@@ -20,7 +20,18 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * A wrapper around a JSON document storing a schema.
+ * A JSON schema describes constraints JSON documents must satisfy.
+ * 
+ * This class implements tools to manipulate a JSON schema:
+ * <ul>
+ * <li>Get the types allowed for the current schema. See {@link Type}.</li>
+ * <li>Get the value associated to a key.</li>
+ * <li>Get a sub-schema.</li>
+ * <li>Merge multiple sub-schemas into a single schema, with all the
+ * constraints. See the non-API documentation for more information on merging
+ * the constraints given by multiples instances of a key.</li>
+ * <li>Follow <code>$ref</code>.
+ * </ul>
  * 
  * @author Gaëtan Staquet
  */
@@ -53,11 +64,10 @@ public final class JSONSchema {
             atLeastOne = true;
             types.clear();
             types.add(getConstType());
-        }
-        else {
+        } else {
             constValue = null;
         }
-        
+
         if (!atLeastOne) {
             types.addAll(EnumSet.allOf(Type.class));
         }
@@ -75,15 +85,16 @@ public final class JSONSchema {
             if (not.has("const")) {
                 forbiddenValue = not.get("const");
                 // We do not add or remove possible types, in this case.
-                // Indeed, if the type of the forbidden value is not even considered, we do not want to consider it.
-            }
-            else {
+                // Indeed, if the type of the forbidden value is not even considered, we do not
+                // want to consider it.
+            } else {
                 forbiddenValue = null;
             }
-        }
-        else {
-            // By transformation, we will not always obtain a meaningful "not" directly. It can be hidden inside an "anyOf"
-            if (object.has("anyOf") && object.getJSONArray("anyOf").length() == 1 && object.getJSONArray("anyOf").getJSONObject(0).has("not")) {
+        } else {
+            // By transformation, we will not always obtain a meaningful "not" directly. It
+            // can be hidden inside an "anyOf"
+            if (object.has("anyOf") && object.getJSONArray("anyOf").length() == 1
+                    && object.getJSONArray("anyOf").getJSONObject(0).has("not")) {
                 JSONObject not = object.getJSONArray("anyOf").getJSONObject(0).getJSONObject("not");
                 if (not.has("type")) {
                     removeTypes(not.get("type"));
@@ -95,12 +106,10 @@ public final class JSONSchema {
 
                 if (not.has("const")) {
                     forbiddenValue = not.get("const");
-                }
-                else {
+                } else {
                     forbiddenValue = null;
                 }
-            }
-            else {
+            } else {
                 forbiddenValue = null;
             }
         }
@@ -108,19 +117,20 @@ public final class JSONSchema {
         if (isObject()) {
             if (object.has("properties")) {
                 this.properties = object.getJSONObject("properties");
-            }
-            else {
+            } else {
                 this.properties = new ComparableJSONObject();
             }
             final JSONObject additionalProperties = getAdditionalProperties();
             if (!JSONSchemaStore.isFalseDocument(additionalProperties)) {
-                if (!JSONSchemaStore.isTrueDocument(additionalProperties) || !store.shouldIgnoreTrueAdditionalProperties()) {
+                if (!JSONSchemaStore.isTrueDocument(additionalProperties)
+                        || !store.shouldIgnoreTrueAdditionalProperties()) {
                     this.properties.put(AbstractConstants.stringConstant, additionalProperties);
                 }
             }
 
             final JSONObject patternProperties = getPatternProperties();
-            if (!JSONSchemaStore.isTrueDocument(patternProperties) && !JSONSchemaStore.isFalseDocument(patternProperties)) {
+            if (!JSONSchemaStore.isTrueDocument(patternProperties)
+                    && !JSONSchemaStore.isFalseDocument(patternProperties)) {
                 for (final String key : patternProperties.keySet()) {
                     if (!this.properties.has(key)) {
                         this.properties.put(key, patternProperties.get(key));
@@ -132,30 +142,24 @@ public final class JSONSchema {
         }
     }
 
-    public JSONObject getSchema() {
+    JSONObject getSchema() {
         return schema;
     }
 
     private Type getType(Object object) {
         if (object instanceof Integer) {
             return Type.INTEGER;
-        }
-        else if (object instanceof Number) {
+        } else if (object instanceof Number) {
             return Type.NUMBER;
-        }
-        else if (object instanceof Boolean) {
+        } else if (object instanceof Boolean) {
             return Type.BOOLEAN;
-        }
-        else if (object instanceof String) {
+        } else if (object instanceof String) {
             return Type.STRING;
-        }
-        else if (object instanceof JSONArray) {
+        } else if (object instanceof JSONArray) {
             return Type.ARRAY;
-        }
-        else if (object instanceof JSONObject) {
+        } else if (object instanceof JSONObject) {
             return Type.OBJECT;
-        }
-        else {
+        } else {
             return Type.NULL;
         }
     }
@@ -169,28 +173,25 @@ public final class JSONSchema {
         if (this.schema.has("additionalProperties")) {
             Object additionalProperties = schema.get("additionalProperties");
             if (additionalProperties instanceof Boolean) {
-                boolean value = (Boolean)additionalProperties;
+                boolean value = (Boolean) additionalProperties;
                 if (value) {
                     schemaForAdditionalProperties = JSONSchemaStore.trueDocument();
-                }
-                else {
+                } else {
                     schemaForAdditionalProperties = JSONSchemaStore.falseDocument();
                 }
-            }
-            else if (additionalProperties instanceof JSONObject) {
-                JSONObject value = (JSONObject)additionalProperties;
+            } else if (additionalProperties instanceof JSONObject) {
+                JSONObject value = (JSONObject) additionalProperties;
                 if (value.has("$ref")) {
                     schemaForAdditionalProperties = handleRef(value.getString("$ref")).schema;
-                }
-                else {
+                } else {
                     schemaForAdditionalProperties = value;
                 }
+            } else {
+                throw new JSONSchemaException(
+                        "Invalid schema: the value for \"additionalProperties\" must be a valid JSON Schema. Received: "
+                                + additionalProperties);
             }
-            else {
-                throw new JSONSchemaException("Invalid schema: the value for \"additionalProperties\" must be a valid JSON Schema. Received: "+ additionalProperties);
-            }
-        }
-        else {
+        } else {
             schemaForAdditionalProperties = JSONSchemaStore.trueDocument();
         }
         return schemaForAdditionalProperties;
@@ -201,30 +202,26 @@ public final class JSONSchema {
             final JSONObject patternProperties = this.schema.getJSONObject("patternProperties");
             if (patternProperties.has("$ref")) {
                 return handleRef(patternProperties.getString("$ref")).schema;
-            }
-            else {
+            } else {
                 return patternProperties;
             }
-        }
-        else {
+        } else {
             return JSONSchemaStore.trueDocument();
         }
     }
 
     private void addTypes(Object types) throws JSONSchemaException {
         if (types instanceof JSONArray) {
-            JSONArray arrayType = (JSONArray)types;
+            JSONArray arrayType = (JSONArray) types;
             for (Object t : arrayType) {
                 if (t.getClass() != String.class) {
                     throw new JSONSchemaException("Elements in an array for key \"type\" must be strings");
                 }
                 addType((String) t);
             }
-        }
-        else if (types instanceof String) {
-            addType((String)types);
-        }
-        else {
+        } else if (types instanceof String) {
+            addType((String) types);
+        } else {
             throw new JSONSchemaException("The value for the key \"type\" must be an array or a string");
         }
     }
@@ -235,18 +232,16 @@ public final class JSONSchema {
 
     private void removeTypes(Object types) throws JSONSchemaException {
         if (types instanceof JSONArray) {
-            JSONArray arrayType = (JSONArray)types;
+            JSONArray arrayType = (JSONArray) types;
             for (Object t : arrayType) {
                 if (t.getClass() != String.class) {
                     throw new JSONSchemaException("Elements in an array for key \"type\" must be strings");
                 }
                 removeType((String) t);
             }
-        }
-        else if (types instanceof String) {
-            removeType((String)types);
-        }
-        else {
+        } else if (types instanceof String) {
+            removeType((String) types);
+        } else {
             throw new JSONSchemaException("The value for the key \"type\" must be an array or a string");
         }
     }
@@ -255,6 +250,15 @@ public final class JSONSchema {
         types.remove(Type.valueOf(type.toUpperCase()));
     }
 
+    /**
+     * Retrieves all the keys present in this schema.
+     * 
+     * If the schema contains a sub-schema (due to <code>properties</code>, for
+     * instance), the answer will contain the keys from the sub-schema.
+     * 
+     * @return A set containing all the keys defined in this schema.
+     * @throws JSONSchemaException
+     */
     public Set<String> getAllKeysDefinedInSchema() throws JSONSchemaException {
         class InQueue {
             public final String path;
@@ -288,8 +292,7 @@ public final class JSONSchema {
                 final JSONObject prop = properties.getJSONObject(key);
                 if (prop.has("$ref")) {
                     queue.add(new InQueue(path, prop));
-                }
-                else {
+                } else {
                     addObjectToQueueIfNotAlreadySeen.accept(path + "/" + key, prop);
                 }
             }
@@ -313,26 +316,25 @@ public final class JSONSchema {
                 final Object additionalProperties = document.get("additionalProperties");
                 if (additionalProperties instanceof JSONObject) {
                     allKeys.add(AbstractConstants.stringConstant);
-                    queue.add(new InQueue(current.path + "/additionalProperties", (JSONObject)additionalProperties));
-                }
-                else if (additionalProperties instanceof Boolean && (boolean)additionalProperties) {
+                    queue.add(new InQueue(current.path + "/additionalProperties", (JSONObject) additionalProperties));
+                } else if (additionalProperties instanceof Boolean && (boolean) additionalProperties) {
                     allKeys.add(AbstractConstants.stringConstant);
                 }
             }
             if (document.has("patternProperties")) {
-                addAllPropertiesInQueue.accept(current.path + "/patternProperties", document.getJSONObject("patternProperties"));
+                addAllPropertiesInQueue.accept(current.path + "/patternProperties",
+                        document.getJSONObject("patternProperties"));
             }
             if (document.has("items")) {
                 final Object object = document.get("items");
                 final JSONArray items;
                 if (object instanceof JSONArray) {
-                    items = (JSONArray)object;
-                }
-                else {
+                    items = (JSONArray) object;
+                } else {
                     items = new ComparableJSONArray();
-                    items.put((JSONObject)object);
+                    items.put((JSONObject) object);
                 }
-                for (int i = 0 ; i < items.length() ; i++) {
+                for (int i = 0; i < items.length(); i++) {
                     addObjectToQueueIfNotAlreadySeen.accept(current.path + "/items" + i, items.getJSONObject(i));
                 }
             }
@@ -341,7 +343,7 @@ public final class JSONSchema {
                     final JSONArray value = document.getJSONArray(key);
                     final String path = current.path + "/" + key;
                     for (final Object object : value) {
-                        final JSONObject subSchema = (JSONObject)object;
+                        final JSONObject subSchema = (JSONObject) object;
                         queue.add(new InQueue(path, subSchema));
                     }
                 }
@@ -355,21 +357,34 @@ public final class JSONSchema {
         return allKeys;
     }
 
+    /**
+     * Gets all the types that are allowed in this schema.
+     * 
+     * @return A set containing all allowed types.
+     */
     public Set<Type> getAllowedTypes() {
         return types;
     }
 
+    /**
+     * Gets all the values that are forbidden by this schema.
+     * 
+     * For instance, the constraint <code>"not": {"const": 5}</code> imposes that 5
+     * is a forbidden value.
+     * 
+     * @return A set with the forbidden values.
+     */
     public Set<Object> getForbiddenValues() {
         Set<Object> forbiddenValues = new LinkedHashSet<>();
         if (schema.has("anyOf")) {
             JSONArray anyOf = schema.getJSONArray("anyOf");
-            for (int i = 0 ; i < anyOf.length() ; i++) {
+            for (int i = 0; i < anyOf.length(); i++) {
                 JSONObject subSchema = anyOf.getJSONObject(i);
                 if (subSchema.has("not")) {
                     JSONObject not = subSchema.getJSONObject("not");
                     if (not.has("enum")) {
                         JSONArray enumArray = not.getJSONArray("enum");
-                        for (int j = 0 ; j < enumArray.length() ; j++) {
+                        for (int j = 0; j < enumArray.length(); j++) {
                             forbiddenValues.add(enumArray.get(j));
                         }
                     }
@@ -387,54 +402,84 @@ public final class JSONSchema {
         return constValue;
     }
 
-    public List<Type> getListTypes() {
-        return new ArrayList<>(types);
-    }
-
+    /**
+     * Returns true if this schema allows the type ENUM.
+     * 
+     * @return True if this schema allows the type ENUM.
+     */
     public boolean isEnum() {
         return getAllowedTypes().contains(Type.ENUM);
     }
 
+    /**
+     * Returns true if this schema allows the type OBJECT.
+     * 
+     * @return True if this schema allows the type OBJECT.
+     */
     public boolean isObject() {
         return getAllowedTypes().contains(Type.OBJECT);
     }
 
+    /**
+     * Returns true if this schema allows the type ARRAY.
+     * 
+     * @return True if this schema allows the type ARRAY.
+     */
     public boolean isArray() {
         return getAllowedTypes().contains(Type.ARRAY);
     }
 
+    /**
+     * Returns true if this schema allows the type INTEGER.
+     * 
+     * @return True if this schema allows the type INTEGER.
+     */
     public boolean isInteger() {
         return getAllowedTypes().contains(Type.INTEGER);
     }
 
+    /**
+     * Returns true if this schema allows the type NUMBER.
+     * 
+     * @return True if this schema allows the type NUMBER.
+     */
     public boolean isNumber() {
         return getAllowedTypes().contains(Type.NUMBER);
     }
 
+    /**
+     * Returns true if this schema allows the type BOOLEAN.
+     * 
+     * @return True if this schema allows the type BOOLEAN.
+     */
     public boolean isBoolean() {
         return getAllowedTypes().contains(Type.BOOLEAN);
     }
 
+    /**
+     * Returns true if this schema allows the type STRING.
+     * 
+     * @return True if this schema allows the type STRING.
+     */
     public boolean isString() {
         return getAllowedTypes().contains(Type.STRING);
     }
 
+    /**
+     * Returns true if this schema allows the type NULL.
+     * 
+     * @return True if this schema allows the type NULL.
+     */
     public boolean isNull() {
         return getAllowedTypes().contains(Type.NULL);
-    }
-
-    public boolean hasKey(String key) {
-        return schema.has(key);
     }
 
     private boolean needsFurtherUnfoldingNot(JSONObject not) {
         if (not.has("enum") && not.has("const") && not.length() == 2) {
             return false;
-        }
-        else if (not.length() == 1 && not.has("const")) {
+        } else if (not.length() == 1 && not.has("const")) {
             return false;
-        }
-        else if (not.length() == 1 && not.has("enum")) {
+        } else if (not.length() == 1 && not.has("enum")) {
             return false;
         }
         return true;
@@ -451,17 +496,32 @@ public final class JSONSchema {
                 if (needsFurtherUnfoldingNot(not)) {
                     return true;
                 }
-            }
-            else {
+            } else {
                 return true;
             }
-        }
-        catch (JSONException e) {
+        } catch (JSONException e) {
             return true;
         }
         return false;
     }
 
+    /**
+     * Checks whether there are still some constraints in some sub-schemas that must
+     * be merged with the whole schema.
+     * 
+     * When merging constraints from sub-schema defined in <code>not</code>,
+     * <code>allOf</code>, <code>anyOf</code>, or <code>oneOf</code>, it may happen
+     * that we end up with these keys again. In this case, we have to repeat the
+     * merging process to remove these keys.
+     * 
+     * Note that the function may return <code>false</code> even if one of the above
+     * keys is still present, if the constraints inside the sub-schema can not be
+     * simplified by merging. These occurences must be handled explicitly by the
+     * generator or validator.
+     * 
+     * @return <code>true</code> if there are constraints in sub-schemas that can be
+     *         merged with this schema.
+     */
     public boolean needsFurtherUnfolding() {
         if (schema.has("not")) {
             JSONObject not = schema.getJSONObject("not");
@@ -483,6 +543,12 @@ public final class JSONSchema {
         return false;
     }
 
+    /**
+     * Gets the keys that are required in this schema's properties.
+     * 
+     * @return A set with the keys that are required
+     * @throws JSONSchemaException If this schema does not allow the type OBJECT.
+     */
     public Set<String> getRequiredPropertiesKeys() throws JSONSchemaException {
         if (!isObject()) {
             throw new JSONSchemaException("Required properties are only defined for objects");
@@ -491,16 +557,21 @@ public final class JSONSchema {
         if (schema.has("required")) {
             Set<String> keys = new TreeSet<>();
             JSONArray required = schema.getJSONArray("required");
-            for (int i = 0 ; i < required.length() ; i++) {
+            for (int i = 0; i < required.length(); i++) {
                 keys.add(required.getString(i));
             }
             return keys;
-        }
-        else {
+        } else {
             return Collections.emptySet();
         }
     }
 
+    /**
+     * Gets the pairs key-value that are required by this schema.
+     * 
+     * @return A map with the required keys, and their corresponding sub-schema.
+     * @throws JSONSchemaException If this schema does not allow the type OBJECT.
+     */
     public Map<String, JSONSchema> getRequiredProperties() throws JSONSchemaException {
         if (!isObject()) {
             throw new JSONSchemaException("Required properties are only defined for objects");
@@ -509,11 +580,8 @@ public final class JSONSchema {
         if (schema.has("required")) {
             Map<String, JSONSchema> requiredProperties = new TreeMap<>();
             JSONArray required = schema.getJSONArray("required");
-            for (Object value : required) {
-                if (!(value instanceof String)) {
-                    throw new JSONSchemaException("Values in the \"required\" field must be strings");
-                }
-                String key = (String) value;
+            for (int i = 0; i < required.length(); i++) {
+                String key = required.getString(i);
                 requiredProperties.put(key, getSubSchemaProperties(key));
             }
             return requiredProperties;
@@ -522,22 +590,21 @@ public final class JSONSchema {
         }
     }
 
+    /**
+     * Gets the pairs key-value that are not required by this schema.
+     * 
+     * The map contains the keys for <code>additionalProperties</code> and
+     * <code>patternProperties</code>, if they are allowed.
+     * 
+     * @return A map with the non-required keys, and their corresponding sub-schema.
+     * @throws JSONSchemaException If this schema does not allow the type OBJECT.
+     */
     public Map<String, JSONSchema> getNonRequiredProperties() throws JSONSchemaException {
         if (!isObject()) {
             throw new JSONSchemaException("Required properties are only defined for objects");
         }
 
-        Set<String> requiredKeys = new TreeSet<>();
-        if (schema.has("required")) {
-            for (Object value : schema.getJSONArray("required")) {
-                if (value.getClass() != String.class) {
-                    throw new JSONSchemaException("Values in the \"required\" field must be strings");
-                }
-                String key = (String) value;
-                requiredKeys.add(key);
-            }
-        }
-
+        Set<String> requiredKeys = getRequiredPropertiesKeys();
         Map<String, JSONSchema> nonRequired = new TreeMap<>();
         for (String key : properties.keySet()) {
             if (!requiredKeys.contains(key)) {
@@ -568,7 +635,7 @@ public final class JSONSchema {
         for (final Map.Entry<String, Set<Object>> entry : keyToValues.entrySet()) {
             final String key = entry.getKey();
             if (!key.equals("not")) {
-                Object valueAfterOperation = Keys.applyOperation(key, entry.getValue());
+                Object valueAfterOperation = MergeKeys.applyOperation(key, entry.getValue());
                 constraints.put(key, valueAfterOperation);
             }
         }
@@ -577,6 +644,14 @@ public final class JSONSchema {
         return new JSONSchema(constraints, store, fullSchemaId);
     }
 
+    /**
+     * Returns a copy of this schema without the sub-schemas for <code>allOf</code>,
+     * <code>anyOf</code>, <code>oneOf</code>, and <code>not</code>.
+     * 
+     * @return A partial copy of this schema
+     * @throws JSONSchemaException If it is not possible to construct a copy of this
+     *                             schema.
+     */
     public JSONSchema dropAllOfAnyOfOneOfAndNot() throws JSONSchemaException {
         JSONObject newSchema = new ComparableJSONObject();
         for (String key : schema.keySet()) {
@@ -588,6 +663,16 @@ public final class JSONSchema {
         return new JSONSchema(newSchema, store, fullSchemaId);
     }
 
+    /**
+     * Gets a single schema obtained by merging together all the sub-schemas in the
+     * <code>allOf</code> array.
+     * 
+     * If there is no <code>allOf</code> key, the true schema is returned.
+     * 
+     * @return A single schema containing all the constraints given in
+     *         <code>allOf</code>.
+     * @throws JSONSchemaException
+     */
     public JSONSchema getAllOf() throws JSONSchemaException {
         if (!schema.has("allOf")) {
             return store.trueSchema();
@@ -602,24 +687,20 @@ public final class JSONSchema {
             if (JSONSchemaStore.isFalseDocument(schema)) {
                 return store.falseSchema();
             }
-            addConstraintToSet(keyToValues, schema, Keys.getKeys());
+            addConstraintToSet(keyToValues, schema, MergeKeys.getKeys());
         }
         return transformConstraintsInSchema(keyToValues);
     }
 
-    public List<JSONSchema> getRawAnyOf() throws JSONSchemaException {
-        if (!schema.has("anyOf")) {
-            return Collections.singletonList(store.trueSchema());
-        }
-        final JSONArray anyOf = schema.getJSONArray("anyOf");
-        final List<JSONSchema> schemas = new ArrayList<>(anyOf.length());
-        for (int i = 0 ; i < anyOf.length() ; i++) {
-            JSONObject subSchema = anyOf.getJSONObject(i);
-            schemas.add(new JSONSchema(subSchema, store, fullSchemaId));
-        }
-        return schemas;
-    }
-
+    /**
+     * Gets a list containing one schema by element in the <code>anyOf</code> array.
+     * 
+     * If there is no <code>anyOf</code> key, a singleton list containing the true
+     * schema is returned.
+     * 
+     * @return A list of schemas, one by element in the <code>allOf</code> array.
+     * @throws JSONSchemaException
+     */
     public List<JSONSchema> getAnyOf() throws JSONSchemaException {
         if (!schema.has("anyOf")) {
             return Collections.singletonList(store.trueSchema());
@@ -628,13 +709,31 @@ public final class JSONSchema {
         final List<JSONSchema> schemas = new ArrayList<>(anyOf.length());
         for (int i = 0; i < anyOf.length(); i++) {
             final JSONObject subSchema = anyOf.getJSONObject(i);
-            final Map<String, Set<Object>> keyToValues = new TreeMap<>();
-            addConstraintToSet(keyToValues, subSchema, Keys.getKeys());
-            schemas.add(transformConstraintsInSchema(keyToValues));
+            schemas.add(new JSONSchema(subSchema, store, fullSchemaId));
         }
         return schemas;
     }
 
+    /**
+     * Gets a list containing one possible combination of the elements in the
+     * <code>oneOf</code> array, by applying the XOR operation.
+     * 
+     * If <code>oneOf</code> contains the elements <code>A, B, C</code>, then this
+     * function produces three schemas:
+     * <ul>
+     * <li><code>{A, "not": B, "not": C}</code></li>
+     * <li><code>{"not": A, B, "not": C}</code></li>
+     * <li><code>{"not": A, "not": B, C}</code></li>
+     * </ul>
+     * 
+     * That is, the function applies the definition of XOR on the elements.
+     * 
+     * If there is no <code>oneOf</code> key, returns a singleton list containing
+     * the true schema.
+     * 
+     * @return A list of all possible combinations.
+     * @throws JSONSchemaException
+     */
     public List<JSONSchema> getOneOf() throws JSONSchemaException {
         if (!schema.has("oneOf")) {
             return Collections.singletonList(store.trueSchema());
@@ -643,9 +742,7 @@ public final class JSONSchema {
         final List<JSONSchema> schemas = new ArrayList<>(oneOf.length());
         for (int i = 0; i < oneOf.length(); i++) {
             final JSONObject subSchema = oneOf.getJSONObject(i);
-            final Map<String, Set<Object>> keyToValues = new TreeMap<>();
-            addConstraintToSet(keyToValues, subSchema, Keys.getKeys());
-            schemas.add(transformConstraintsInSchema(keyToValues));
+            schemas.add(new JSONSchema(subSchema, store, fullSchemaId));
         }
 
         final List<JSONSchema> combinations = new ArrayList<>(schemas.size());
@@ -669,9 +766,10 @@ public final class JSONSchema {
         return combinations;
     }
 
-    private void handleNotInMerge(JSONObject constraints, Map<String, Set<Object>> keyToValues) throws JSONSchemaException {
+    private void handleNotInMerge(JSONObject constraints, Map<String, Set<Object>> keyToValues)
+            throws JSONSchemaException {
         if (keyToValues.containsKey("not")) {
-            List<?> valueAfterOperation = (List<?>) Keys.applyOperation("not", keyToValues.get("not"));
+            List<?> valueAfterOperation = (List<?>) MergeKeys.applyOperation("not", keyToValues.get("not"));
             JSONArray notArray = new ComparableJSONArray(valueAfterOperation);
             if (constraints.has("anyOf")) {
                 JSONObject alreadyAnyOf = new ComparableJSONObject();
@@ -681,23 +779,32 @@ public final class JSONSchema {
                 JSONArray allOf = new ComparableJSONArray();
                 allOf.put(alreadyAnyOf);
                 allOf.put(fromNot);
-                
+
                 if (constraints.has("allOf")) {
                     constraints.append("allOf", alreadyAnyOf);
                     constraints.append("allOf", fromNot);
-                }
-                else {
+                } else {
                     constraints.put("allOf", allOf);
                 }
-                
+
                 constraints.remove("anyOf");
-            }
-            else {
+            } else {
                 constraints.put("anyOf", notArray);
             }
         }
     }
 
+    /**
+     * Merge this schema with an other schema.
+     * 
+     * The keys of the final schema is the union of the keys from both schemas.
+     * Keys that are defined in both schemas are merged (see the non-API
+     * documentation to more information).
+     * 
+     * @param other The other schema
+     * @return A single schema obtained by merging the two schemas
+     * @throws JSONSchemaException If it is not possible to merge the schemas.
+     */
     public JSONSchema merge(JSONSchema other) throws JSONSchemaException {
         if (other == null || other.schema.isEmpty()) {
             return this;
@@ -722,7 +829,7 @@ public final class JSONSchema {
         for (Map.Entry<String, Set<Object>> entry : keyToValues.entrySet()) {
             final String key = entry.getKey();
             if (!key.equals("not")) {
-                Object valueAfterOperation = Keys.applyOperation(key, entry.getValue());
+                Object valueAfterOperation = MergeKeys.applyOperation(key, entry.getValue());
                 constraints.put(key, valueAfterOperation);
             }
         }
@@ -731,30 +838,51 @@ public final class JSONSchema {
         return new JSONSchema(constraints, store, fullSchemaId);
     }
 
+    /**
+     * Get the contents of the key <code>not</code>, without any modifications.
+     * 
+     * @return The sub-schema contained in the key <code>not</code>.
+     * @throws JSONSchemaException If it is not possible to construct the
+     *                             sub-schema.
+     */
     public JSONSchema getRawNot() throws JSONSchemaException {
         if (schema.has("not")) {
             return getSubSchema("not");
-        }
-        else {
+        } else {
             return store.falseSchema();
         }
     }
 
+    /**
+     * Gets a list of sub-schemas, after propagating the <code>not</code> inside
+     * each sub-schema.
+     * 
+     * That is, if this schema contains <code>"not": {A, B, C}</code>, this function
+     * returns a list with three elements. Each element is obtained by applying the
+     * <code>not</code> inside A, B, and C, respectively.
+     * 
+     * That is, it transforms a <code>NOT AND</code> into an <code>OR NOT</code>.
+     * 
+     * If there is no <code>not</code> key, returns a singleton list with the true
+     * schema.
+     * 
+     * @return
+     * @throws JSONSchemaException
+     */
     public List<JSONSchema> getNot() throws JSONSchemaException {
         if (schema.has("not")) {
             final JSONObject not = schema.getJSONObject("not");
-            JSONSchema actualSchema;
+            final JSONSchema actualSchema;
             if (not.has("$ref")) {
                 actualSchema = handleRef(not.getString("$ref"));
-            }
-            else {
+            } else {
                 actualSchema = new JSONSchema(not, store, fullSchemaId);
             }
             final List<JSONSchema> schemas = new ArrayList<>(actualSchema.schema.length());
 
             for (final String key : actualSchema.schema.keySet()) {
                 final Object value = actualSchema.schema.get(key);
-                final JSONObject notValue = Keys.applyNot(key, Collections.singleton(value));
+                final JSONObject notValue = MergeKeys.applyNot(key, Collections.singleton(value));
                 schemas.add(new JSONSchema(notValue, store, fullSchemaId));
             }
             return schemas;
@@ -783,10 +911,29 @@ public final class JSONSchema {
         }
     }
 
+    /**
+     * Gets the sub-schema for the property <code>key</code>.
+     * 
+     * @param key The key inside the properties.
+     * @return The sub-schema.
+     * @throws JSONException       If the <code>properties</code> sub-schema does
+     *                             not contain <code>key</code>.
+     * @throws JSONSchemaException If it is not possible to construct the
+     *                             sub-schema.
+     */
     public JSONSchema getSubSchemaProperties(String key) throws JSONException, JSONSchemaException {
         return getSubSchema(key, properties);
     }
 
+    /**
+     * Gets the sub-schema for the key <code>key</code>.
+     * 
+     * @param key The key.
+     * @return The sub-schema.
+     * @throws JSONException       If this schema does not contain <code>key</code>.
+     * @throws JSONSchemaException If it is not possible to construct the
+     *                             sub-schema.
+     */
     public JSONSchema getSubSchema(String key) throws JSONException, JSONSchemaException {
         return getSubSchema(key, schema);
     }
@@ -800,7 +947,14 @@ public final class JSONSchema {
         }
     }
 
-    public List<JSONSchema> getItemsArray() throws JSONException, JSONSchemaException {
+    /**
+     * Gets the sub-schemas for the items in an array.
+     * 
+     * @return A list with the sub-schemas defining the items in an array.
+     * @throws JSONSchemaException If it is not possible to construct one of the
+     *                             sub-schemas.
+     */
+    public List<JSONSchema> getItemsArray() throws JSONSchemaException {
         if (!schema.has("items")) {
             return Collections.singletonList(store.trueSchema());
         }
@@ -808,17 +962,15 @@ public final class JSONSchema {
         Object items = schema.get("items");
         JSONArray array;
         if (items instanceof JSONArray) {
-            array = (JSONArray)items;
-        }
-        else if (items instanceof JSONObject) {
+            array = (JSONArray) items;
+        } else if (items instanceof JSONObject) {
             array = new ComparableJSONArray();
-            array.put((JSONObject)items);
-        }
-        else {
+            array.put((JSONObject) items);
+        } else {
             throw new JSONSchemaException("Invalid type for \"items\" in schema " + this);
         }
 
-        for (int i = 0 ; i < array.length() ; i++) {
+        for (int i = 0; i < array.length(); i++) {
             JSONObject subObject = array.getJSONObject(i);
             JSONSchema subSchema;
             if (subObject.has("$ref")) {
@@ -874,7 +1026,7 @@ public final class JSONSchema {
         return schema.optBoolean(key, defaultValue);
     }
 
-    public int getSchemaId() {
+    int getSchemaId() {
         return fullSchemaId;
     }
 

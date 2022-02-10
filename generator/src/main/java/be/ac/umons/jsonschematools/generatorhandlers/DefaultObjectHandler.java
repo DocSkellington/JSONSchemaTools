@@ -11,12 +11,20 @@ import java.util.Set;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import be.ac.umons.jsonschematools.AbstractConstants;
 import be.ac.umons.jsonschematools.Generator;
 import be.ac.umons.jsonschematools.GeneratorException;
 import be.ac.umons.jsonschematools.JSONSchema;
 import be.ac.umons.jsonschematools.JSONSchemaException;
 import be.ac.umons.jsonschematools.Type;
 
+/**
+ * An object handler that returns an object in which elements are abstracted.
+ * 
+ * It does not support every keyword that can be used in a schema.
+ * 
+ * @author Gaëtan Staquet
+ */
 public class DefaultObjectHandler implements Handler {
 
     private final int maxProperties;
@@ -29,7 +37,6 @@ public class DefaultObjectHandler implements Handler {
         this.maxProperties = maxProperties;
     }
 
-    // TODO: handle dependentRequired
     @Override
     public Object generate(Generator generator, JSONSchema schema, int maxTreeSize,
             Random rand) throws JSONSchemaException, GeneratorException, JSONException {
@@ -70,7 +77,7 @@ public class DefaultObjectHandler implements Handler {
             if (!(minProperties <= constValue.length() && constValue.length() <= maxProperties && constValue.keySet().containsAll(schema.getRequiredPropertiesKeys()))) {
                 throw new GeneratorException("Impossible to generate an object for schema " + schema + " since the const value is incorrect, with regards to minProperties, maxProperties, or required");
             }
-            return (JSONObject)Generator.abstractConstValue(constValue);
+            return (JSONObject)AbstractConstants.abstractConstValue(constValue);
         }
 
         for (Map.Entry<String, JSONSchema> entry : schema.getRequiredProperties().entrySet()) {

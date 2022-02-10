@@ -6,12 +6,20 @@ import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import be.ac.umons.jsonschematools.generatorhandlers.Handler;
 
+/**
+ * A generator for JSON documents, given a JSON schema.
+ * 
+ * This implementation relies on external classes to handle each type allowed in
+ * a JSON schema. See the {@link be.ac.umons.jsonschematools.generatorhandlers
+ * handlers package} for implemented handlers.
+ * 
+ * @author Gaëtan Staquet
+ */
 public class Generator {
 
     private final Handler stringHandler;
@@ -34,7 +42,7 @@ public class Generator {
         this.arrayHandler = arrayHandler;
     }
 
-    public static JSONSchema getMergedSchema(final JSONSchema baseSchema, final JSONSchema allOf,
+    private static JSONSchema getMergedSchema(final JSONSchema baseSchema, final JSONSchema allOf,
             final JSONSchema anyOf, final JSONSchema oneOf, final JSONSchema not)
             throws JSONSchemaException, GeneratorException {
         if (JSONSchemaStore.isFalseSchema(baseSchema) || JSONSchemaStore.isFalseSchema(allOf)
@@ -75,7 +83,7 @@ public class Generator {
                     final JSONSchema not = notList.get(indexNot);
                     try {
                         final JSONSchema fullSchema = getMergedSchema(schema, allOf, anyOf, oneOf, not);
-                        List<Type> types = fullSchema.getListTypes();
+                        Set<Type> types = fullSchema.getAllowedTypes();
                         if (!types.contains(Type.OBJECT)) {
                             continue;
                         }
@@ -118,6 +126,17 @@ public class Generator {
         return enumHandler;
     }
 
+    /**
+     * Generates a value according to the constraints given by <code>schema</code>.
+     * 
+     * @param schema      The JSON schema
+     * @param maxTreeSize The maximal tree depth that can be generated
+     * @param rand        The random generator
+     * @return A JSON document that satisfies the schema.
+     * @throws JSONException
+     * @throws JSONSchemaException
+     * @throws GeneratorException
+     */
     public Object generateAccordingToConstraints(JSONSchema schema, int maxTreeSize, Random rand)
             throws JSONException, JSONSchemaException, GeneratorException {
         final JSONSchema allOf = schema.getAllOf();
@@ -162,7 +181,7 @@ public class Generator {
         throw new GeneratorException("Impossible to generate a document: all tries failed for the schema " + schema);
     }
 
-    public Object generateValue(Type type, JSONSchema schema, int maxTreeSize, Random rand)
+    private Object generateValue(Type type, JSONSchema schema, int maxTreeSize, Random rand)
             throws JSONSchemaException, JSONException, GeneratorException {
         Handler handler;
         switch (type) {
@@ -195,36 +214,6 @@ public class Generator {
             return Type.NULL;
         }
         return handler.generate(this, schema, maxTreeSize, rand);
-    }
-
-    public static Object abstractConstValue(Object object) throws GeneratorException {
-        if (object instanceof String) {
-            return AbstractConstants.stringConstant;
-        } else if (object instanceof Integer) {
-            return AbstractConstants.integerConstant;
-        } else if (object instanceof Number) {
-            return AbstractConstants.numberConstant;
-        } else if (object instanceof Boolean) {
-            return object;
-        } else if (object instanceof JSONArray) {
-            final JSONArray array = (JSONArray) object;
-            final JSONArray newArray = new JSONArray(array.length());
-            for (Object inArray : array) {
-                newArray.put(abstractConstValue(inArray));
-            }
-            return newArray;
-        } else if (object instanceof JSONObject) {
-            final JSONObject original = (JSONObject) object;
-            final JSONObject newObject = new JSONObject();
-            for (String key : original.keySet()) {
-                newObject.put(key, abstractConstValue(original.get(key)));
-            }
-            return newObject;
-        } else if (object == null) {
-            return null;
-        }
-
-        throw new GeneratorException("Impossible to abstract value " + object);
     }
 
     private static List<Integer> generateIndicesRandomOrder(final List<?> list, Random rand) {

@@ -5,6 +5,11 @@ import java.util.Objects;
 import be.ac.umons.jsonschematools.JSONSchema;
 import be.ac.umons.jsonschematools.Validator;
 
+/**
+ * A handler to validate boolean values.
+ * 
+ * @author Gaëtan Staquet
+ */
 public class DefaultBooleanHandler implements Handler {
 
     @Override

@@ -8,6 +8,11 @@ import be.ac.umons.jsonschematools.generatorhandlers.DefaultNumberHandler;
 import be.ac.umons.jsonschematools.generatorhandlers.DefaultObjectHandler;
 import be.ac.umons.jsonschematools.generatorhandlers.DefaultStringHandler;
 
+/**
+ * Constructs a {@link Generator} with the default handlers.
+ * 
+ * @author Gaëtan Staquet
+ */
 public class DefaultGenerator extends Generator {
     public DefaultGenerator(int maxPropertiesObject, int maxItemsArray) {
         super(new DefaultStringHandler(), new DefaultIntegerHandler(), new DefaultNumberHandler(),

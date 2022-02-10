@@ -4,11 +4,19 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import be.ac.umons.jsonschematools.validatorhandlers.Handler;
 
+/**
+ * Decides whether a JSON document satisfies a JSON schema.
+ * 
+ * This implementation relies on external classes to handle each type allowed in
+ * a JSON schema. See the {@link be.ac.umons.jsonschematools.validatorhandlers
+ * handlers package} for implemented handlers.
+ * 
+ * @author Gaëtan Staquet
+ */
 public class Validator {
 
     private final Handler stringHandler;
@@ -67,15 +75,14 @@ public class Validator {
         final JSONSchema allOf = schema.getAllOf();
         if (JSONSchemaStore.isTrueSchema(allOf)) {
             return true;
-        }
-        else if (JSONSchemaStore.isFalseSchema(allOf)) {
+        } else if (JSONSchemaStore.isFalseSchema(allOf)) {
             return false;
         }
         return validateValue(allOf, object);
     }
 
     private boolean validateAnyOf(final JSONSchema schema, final Object object) throws JSONSchemaException {
-        final List<JSONSchema> listAnyOf = schema.getRawAnyOf();
+        final List<JSONSchema> listAnyOf = schema.getAnyOf();
         return validateAnyOf(listAnyOf, object);
     }
 
@@ -83,11 +90,9 @@ public class Validator {
         for (final JSONSchema anyOf : listAnyOf) {
             if (JSONSchemaStore.isTrueSchema(anyOf)) {
                 return true;
-            }
-            else if (JSONSchemaStore.isFalseSchema(anyOf)) {
+            } else if (JSONSchemaStore.isFalseSchema(anyOf)) {
                 continue;
-            }
-            else if (validateValue(anyOf, object)) {
+            } else if (validateValue(anyOf, object)) {
                 return true;
             }
         }
@@ -101,11 +106,9 @@ public class Validator {
             final boolean thisOne;
             if (JSONSchemaStore.isTrueSchema(oneOf)) {
                 thisOne = true;
-            }
-            else if (JSONSchemaStore.isFalseSchema(oneOf)) {
+            } else if (JSONSchemaStore.isFalseSchema(oneOf)) {
                 thisOne = false;
-            }
-            else {
+            } else {
                 thisOne = validateAllOf(oneOf, object);
             }
             if (alreadyOne && thisOne) {
@@ -121,11 +124,11 @@ public class Validator {
         return !validateValue(not, object, false);
     }
 
-    private boolean validateValue(final JSONSchema schema, final Object object, final boolean abstractConstValue) throws JSONSchemaException {
+    private boolean validateValue(final JSONSchema schema, final Object object, final boolean abstractConstValue)
+            throws JSONSchemaException {
         if (schema == null || JSONSchemaStore.isTrueSchema(schema)) {
             return true;
-        }
-        else if (JSONSchemaStore.isFalseSchema(schema)) {
+        } else if (JSONSchemaStore.isFalseSchema(schema)) {
             return false;
         }
 
@@ -141,46 +144,46 @@ public class Validator {
             final boolean valid;
             final Handler handler;
             switch (type) {
-            case BOOLEAN:
-                handler = getBooleanHandler();
-                break;
-            case ENUM:
-                handler = getEnumHandler();
-                break;
-            case INTEGER:
-                handler = getIntegerHandler();
-                break;
-            case NUMBER:
-                handler = getNumberHandler();
-                break;
-            case STRING:
-                handler = getStringHandler();
-                break;
-            case OBJECT:
-                handler = getObjectHandler();
-                break;
-            case ARRAY:
-                handler = getArrayHandler();
-                break;
-            case NULL:
-            default:
-                handler = null;
-                break;
+                case BOOLEAN:
+                    handler = getBooleanHandler();
+                    break;
+                case ENUM:
+                    handler = getEnumHandler();
+                    break;
+                case INTEGER:
+                    handler = getIntegerHandler();
+                    break;
+                case NUMBER:
+                    handler = getNumberHandler();
+                    break;
+                case STRING:
+                    handler = getStringHandler();
+                    break;
+                case OBJECT:
+                    handler = getObjectHandler();
+                    break;
+                case ARRAY:
+                    handler = getArrayHandler();
+                    break;
+                case NULL:
+                default:
+                    handler = null;
+                    break;
             }
 
             if (handler == null) {
                 valid = (Objects.equals(object, null) || Objects.equals(object, JSONObject.NULL));
-            }
-            else {
+            } else {
                 if (schema.getConstValue() != null && !(type == Type.ARRAY || type == Type.OBJECT)) {
                     if (abstractConstValue) {
-                        return Objects.equals(object, abstractConstValue(schema.getConstValue()));
-                    }
-                    else {
+                        return Objects.equals(object, AbstractConstants.abstractConstValue(schema.getConstValue()));
+                    } else {
                         return Objects.equals(object, schema.getConstValue());
                     }
                 }
-                valid = handler.validate(this, schema, object) && validateAllOf(schema, object) && validateAnyOf(schema, object) && validateOneOf(schema, object) && validateNot(schema, object);
+                valid = handler.validate(this, schema, object) && validateAllOf(schema, object)
+                        && validateAnyOf(schema, object) && validateOneOf(schema, object)
+                        && validateNot(schema, object);
             }
 
             if (valid) {
@@ -192,41 +195,5 @@ public class Validator {
 
     public boolean validateValue(final JSONSchema schema, final Object object) throws JSONSchemaException {
         return validateValue(schema, object, true);
-    }
-
-    public static Object abstractConstValue(Object object) throws JSONSchemaException {
-        if (object instanceof String) {
-            return AbstractConstants.stringConstant;
-        }
-        else if (object instanceof Integer) {
-            return AbstractConstants.integerConstant;
-        }
-        else if (object instanceof Number) {
-            return AbstractConstants.numberConstant;
-        }
-        else if (object instanceof Boolean) {
-            return object;
-        }
-        else if (object instanceof JSONArray) {
-            final JSONArray array = (JSONArray)object;
-            final JSONArray newArray = new JSONArray(array.length());
-            for (Object inArray : array) {
-                newArray.put(abstractConstValue(inArray));
-            }
-            return newArray;
-        }
-        else if (object instanceof JSONObject) {
-            final JSONObject original = (JSONObject)object;
-            final JSONObject newObject = new JSONObject();
-            for (String key : original.keySet()) {
-                newObject.put(key, abstractConstValue(original.get(key)));
-            }
-            return newObject;
-        }
-        else if (object == null) {
-            return null;
-        }
-
-        throw new JSONSchemaException("Impossible to abstract value " + object);
     }
 }

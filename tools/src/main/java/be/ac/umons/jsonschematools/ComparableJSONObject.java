@@ -7,6 +7,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
+/**
+ * A <code>JSONObject</code> that implements the {@Comparable} interface.
+ * 
+ * The comparison of two objects is based on their hash values.
+ * 
+ * @author Gaëtan Staquet
+ */
 public class ComparableJSONObject extends JSONObject implements Comparable<JSONObject> {
 
     public ComparableJSONObject() {
@@ -25,7 +32,7 @@ public class ComparableJSONObject extends JSONObject implements Comparable<JSONO
     public int compareTo(JSONObject other) {
         int thisKeys = Objects.hash(this.toMap());
         int otherKeys = Objects.hash(other.toMap());
-        
+
         return Integer.compare(thisKeys, otherKeys);
     }
 
@@ -44,12 +51,11 @@ public class ComparableJSONObject extends JSONObject implements Comparable<JSONO
     public Object get(String key) throws JSONException {
         Object value = super.get(key);
         if (value instanceof JSONObject) {
-            return new ComparableJSONObject((JSONObject)value);
-        }
-        else if (value instanceof JSONArray) {
-            return new ComparableJSONArray((JSONArray)value);
+            return new ComparableJSONObject((JSONObject) value);
+        } else if (value instanceof JSONArray) {
+            return new ComparableJSONArray((JSONArray) value);
         }
         return value;
     }
-    
+
 }

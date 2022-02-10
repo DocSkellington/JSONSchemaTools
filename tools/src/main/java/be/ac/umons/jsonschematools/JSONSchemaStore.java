@@ -15,6 +15,14 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
+/**
+ * Stores the schemas used so far.
+ * 
+ * This implementation does not support downloading schemas from the Internet.
+ * Every schema must be present locally.
+ * 
+ * @author Gaëtan Staquet
+ */
 public class JSONSchemaStore {
 
     private static int TRUE_IDENTIFIER = -1;
@@ -31,7 +39,7 @@ public class JSONSchemaStore {
     }
 
     public JSONSchemaStore(final boolean ignoreTrueAdditionalProperties) {
-        Keys.prepareKeys();
+        MergeKeys.prepareKeys();
         this.ignoreTrueAdditionalProperties = ignoreTrueAdditionalProperties;
     }
 
@@ -72,7 +80,7 @@ public class JSONSchemaStore {
     public JSONSchema falseSchema() throws JSONSchemaException {
         return new JSONSchema(falseDocument(), this, FALSE_IDENTIFIER);
     }
-    
+
     public static boolean isTrueDocument(JSONObject document) {
         return document.length() == 0;
     }
@@ -85,8 +93,7 @@ public class JSONSchemaStore {
         if (document.length() == 1 && document.has("not")) {
             try {
                 return isTrueDocument(document.getJSONObject("not"));
-            }
-            catch (JSONException e) {
+            } catch (JSONException e) {
                 return false;
             }
         }
@@ -105,14 +112,15 @@ public class JSONSchemaStore {
         return schemas.get(schemaId);
     }
 
-    JSONSchema loadRelative(final int schemaId, final String relativePath) throws FileNotFoundException, JSONSchemaException {
+    JSONSchema loadRelative(final int schemaId, final String relativePath)
+            throws FileNotFoundException, JSONSchemaException {
         final Path basePath = idToPath.get(schemaId).getParent();
         final Path pathOfTargetSchema;
         if (relativePath.charAt(0) == '/') {
             pathOfTargetSchema = basePath.resolve(relativePath.substring(1) + ".json");
         } else {
             pathOfTargetSchema = basePath.resolve(relativePath + ".json");
-        } 
+        }
         return load(pathOfTargetSchema.toUri());
     }
 }

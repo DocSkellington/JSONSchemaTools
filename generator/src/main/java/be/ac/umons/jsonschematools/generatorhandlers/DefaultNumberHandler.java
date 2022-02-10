@@ -10,6 +10,13 @@ import be.ac.umons.jsonschematools.GeneratorException;
 import be.ac.umons.jsonschematools.JSONSchema;
 import be.ac.umons.jsonschematools.JSONSchemaException;
 
+/**
+ * A number handler that returns an abstracted number, i.e., "\D".
+ * 
+ * This means that constraints on numbers are ignored by this generator.
+ * 
+ * @author Gaëtan Staquet
+ */
 public class DefaultNumberHandler implements Handler {
 
     @Override

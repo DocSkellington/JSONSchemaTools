@@ -3,10 +3,16 @@ package be.ac.umons.jsonschematools.validatorhandlers;
 import org.json.JSONArray;
 import org.json.JSONException;
 
+import be.ac.umons.jsonschematools.AbstractConstants;
 import be.ac.umons.jsonschematools.JSONSchema;
 import be.ac.umons.jsonschematools.JSONSchemaException;
 import be.ac.umons.jsonschematools.Validator;
 
+/**
+ * A handler to validate abstract arrays.
+ * 
+ * @author Gaëtan Staquet
+ */
 public class DefaultArrayHandler implements Handler {
 
     @Override
@@ -47,7 +53,7 @@ public class DefaultArrayHandler implements Handler {
         }
 
         if (schema.getConstValue() != null) {
-            JSONArray abstracted = (JSONArray)Validator.abstractConstValue(schema.getConstValue());
+            JSONArray abstracted = (JSONArray) AbstractConstants.abstractConstValue(schema.getConstValue());
             if (!array.similar(abstracted)) {
                 return false;
             }

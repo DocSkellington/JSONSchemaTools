@@ -5,10 +5,16 @@ import java.util.Set;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import be.ac.umons.jsonschematools.AbstractConstants;
 import be.ac.umons.jsonschematools.JSONSchema;
 import be.ac.umons.jsonschematools.JSONSchemaException;
 import be.ac.umons.jsonschematools.Validator;
 
+/**
+ * A handler to validate abstract objects.
+ * 
+ * @author Gaëtan Staquet
+ */
 public class DefaultObjectHandler implements Handler {
 
     @Override
@@ -52,7 +58,7 @@ public class DefaultObjectHandler implements Handler {
         }
 
         if (schema.getConstValue() != null) {
-            JSONObject abstracted = (JSONObject)Validator.abstractConstValue(schema.getConstValue());
+            JSONObject abstracted = (JSONObject)AbstractConstants.abstractConstValue(schema.getConstValue());
             if (!document.similar(abstracted)) {
                 return false;
             }

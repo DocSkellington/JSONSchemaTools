@@ -10,6 +10,13 @@ import be.ac.umons.jsonschematools.GeneratorException;
 import be.ac.umons.jsonschematools.JSONSchema;
 import be.ac.umons.jsonschematools.JSONSchemaException;
 
+/**
+ * A string handler that returns an abstracted string, i.e., "\S".
+ * 
+ * This means that constraints on strings are ignored by this generator.
+ * 
+ * @author Gaëtan Staquet
+ */
 public class DefaultStringHandler implements Handler {
 
     @Override
