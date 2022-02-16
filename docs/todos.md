@@ -26,5 +26,4 @@ This is a technical page listing the keywords that are not (yet) supported and i
     * `enum` values inside a `not` are not considered when processing the enumeration. This is due to the fact that we abstract enumeration values.
 
 ## Other remaining tasks
-  * Write API documentation.
   * Configure continuous integration (for my own experience).

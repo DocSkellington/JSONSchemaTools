@@ -8,8 +8,9 @@ title: Generator and validator for JSON schemas, with abstract values
 
 ## Important pages
   1. [Structure of the project and abstraction of the documents](structure.html)
-  2. [List of unsupported keywords and remaining tasks](todos.html)
-  3. [API documentation](api/apidocs/index.html)
+  2. [Generating invalid documents](invalidGenerator.html)
+  3. [List of unsupported keywords and remaining tasks](todos.html)
+  4. [API documentation](api/apidocs/index.html)
 
 This documentation assumes the reader is familiar with JSON documents and JSON schemas.
 See [json.org] and [json-schema.org] for more information.
