@@ -10,12 +10,12 @@ However, it is not useful with regards to our goal (which is learning an automat
 ## Almost invalid generator
 
 For learning purposes, we want to generate documents that are "almost valid", i.e., they are invalid but follow the same global structure as a valid document.
+In other words, we want documents that can be used for mutant testing.
+
 Here are the main ideas behind the generator, when asked to produce an invalid document:
   * Sometimes, it selects the wrong type when generating a value (for instance, generate a boolean instead of a string).
   * If `const` is set, it sometimes generates something else.
   * If we have `"not": {"const": A}`, it sometimes return `A`.
-  * For concrete values:
-    * It sometimes generates something invalid but still within the alphabet.
   * For objects:
     * It sometimes does not generate one of the required properties.
     * If `additionalProperties` is false, it sometimes generates an additional property anyway.

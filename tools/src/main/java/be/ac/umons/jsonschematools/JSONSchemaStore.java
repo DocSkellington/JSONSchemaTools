@@ -38,6 +38,9 @@ public class JSONSchemaStore {
         this(false);
     }
 
+    /**
+     * @param ignoreTrueAdditionalProperties If true, schemas will discard "additionalProperties" if the value is true.
+     */
     public JSONSchemaStore(final boolean ignoreTrueAdditionalProperties) {
         MergeKeys.prepareKeys();
         this.ignoreTrueAdditionalProperties = ignoreTrueAdditionalProperties;

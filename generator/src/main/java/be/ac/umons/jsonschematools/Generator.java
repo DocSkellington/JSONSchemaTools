@@ -1,6 +1,8 @@
 package be.ac.umons.jsonschematools;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -29,10 +31,12 @@ public class Generator {
     private final Handler enumHandler;
     private final Handler objectHandler;
     private final Handler arrayHandler;
+    private final boolean generateInvalid;
+    private final Set<Type> allTypes = EnumSet.allOf(Type.class);
 
     public Generator(final Handler stringHandler, final Handler integerHandler, final Handler numberHandler,
             final Handler booleanHandler, final Handler enumHandler, final Handler objectHandler,
-            final Handler arrayHandler) {
+            final Handler arrayHandler, final boolean generateInvalid) {
         this.stringHandler = stringHandler;
         this.integerHandler = integerHandler;
         this.numberHandler = numberHandler;
@@ -40,6 +44,7 @@ public class Generator {
         this.enumHandler = enumHandler;
         this.objectHandler = objectHandler;
         this.arrayHandler = arrayHandler;
+        this.generateInvalid = generateInvalid;
     }
 
     private static JSONSchema getMergedSchema(final JSONSchema baseSchema, final JSONSchema allOf,
@@ -169,7 +174,7 @@ public class Generator {
                                     + " as the set of allowed types is empty");
                         }
 
-                        Type type = new ArrayList<>(allowedTypes).get(rand.nextInt(allowedTypes.size()));
+                        Type type = selectType(allowedTypes, rand);
                         return generateValue(type, fullSchema, maxTreeSize, rand);
                     } catch (GeneratorException e) {
                         // The choice we made lead to an invalid schema. We retry with a different
@@ -179,6 +184,19 @@ public class Generator {
             }
         }
         throw new GeneratorException("Impossible to generate a document: all tries failed for the schema " + schema);
+    }
+
+    private Type selectType(final Set<Type> allowedTypes, final Random rand) {
+        final Set<Type> typesToConsider;
+        if (generateInvalid && allTypes.size() != Type.values().length && rand.nextBoolean()) {
+            typesToConsider = new HashSet<>(allTypes);
+            typesToConsider.removeAll(allowedTypes);
+        }
+        else {
+            typesToConsider = allowedTypes;
+        }
+
+        return new ArrayList<>(typesToConsider).get(rand.nextInt(typesToConsider.size()));
     }
 
     private Object generateValue(Type type, JSONSchema schema, int maxTreeSize, Random rand)

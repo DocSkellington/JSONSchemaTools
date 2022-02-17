@@ -1,5 +1,7 @@
 package be.ac.umons.jsonschematools.validatorhandlers;
 
+import java.util.Set;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 
@@ -48,7 +50,8 @@ public class DefaultArrayHandler implements Handler {
             return false;
         }
 
-        if (schema.getForbiddenValues().stream().filter(v -> array.similar(v)).count() != 0) {
+        Set<JSONArray> forbiddenValues = schema.getForbiddenValuesFilteredByType(JSONArray.class);
+        if (forbiddenValues.stream().filter(v -> array.similar(v)).count() != 0) {
             return false;
         }
 

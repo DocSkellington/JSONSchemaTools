@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -396,6 +397,23 @@ public final class JSONSchema {
             forbiddenValues.add(forbiddenValue);
         }
         return forbiddenValues;
+    }
+
+    /**
+     * Gets all the values of the given type that are forbidden by this schema.
+     * 
+     * This is equivalent to calling {@link getForbiddenValues} and only keeping the
+     * values with the correct type.
+     * 
+     * @param <T>  The type
+     * @param type A class instance for T
+     * @return A set with the filtered forbidden values.
+     */
+    public <T> Set<T> getForbiddenValuesFilteredByType(Class<T> type) {
+        return getForbiddenValues().stream()
+                .filter(v -> type.isInstance(v))
+                .map(v -> type.cast(v))
+                .collect(Collectors.toSet());
     }
 
     public Object getConstValue() {

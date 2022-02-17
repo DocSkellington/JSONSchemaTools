@@ -1,8 +1,10 @@
 package be.ac.umons.jsonschematools.generatorhandlers;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
+import java.util.Set;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -22,15 +24,16 @@ import be.ac.umons.jsonschematools.Type;
  * 
  * @author Gaëtan Staquet
  */
-public class DefaultArrayHandler implements Handler {
+public class DefaultArrayHandler extends AHandler {
 
     private final int maxItems;
 
-    public DefaultArrayHandler() {
-        maxItems = Integer.MAX_VALUE - 1;
+    public DefaultArrayHandler(boolean generateInvalid) {
+        this(generateInvalid, Integer.MAX_VALUE - 1);
     }
 
-    public DefaultArrayHandler(int maxItems) {
+    public DefaultArrayHandler(boolean generateInvalid, int maxItems) {
+        super(generateInvalid);
         this.maxItems = maxItems;
     }
 
@@ -40,21 +43,29 @@ public class DefaultArrayHandler implements Handler {
         if (maxTreeSize == 0) {
             return new JSONArray();
         }
-        JSONArray array = generateArray(generator, schema, maxTreeSize, rand);
+        final Set<JSONArray> forbiddenValues = schema.getForbiddenValuesFilteredByType(JSONArray.class);
+        final boolean generateInvalid = generateInvalid(rand);
 
-        for (int i = 0 ; i < 1000 ; i++) {
+        if (generateInvalid && !forbiddenValues.isEmpty()) {
+            return (JSONArray) new ArrayList<>(forbiddenValues).get(rand.nextInt(forbiddenValues.size()));
+        }
+
+        JSONArray array = generateArray(generator, schema, maxTreeSize, rand, generateInvalid);
+
+        for (int i = 0; i < 1000; i++) {
             boolean correct = true;
-            for (Object forbidden : schema.getForbiddenValues()) {
-                if (array.similar(forbidden)) {
-                    correct = false;
-                    break;
+            if (!generateInvalid) {
+                for (Object forbidden : forbiddenValues) {
+                    if (array.similar(forbidden)) {
+                        correct = false;
+                        break;
+                    }
                 }
             }
             if (correct) {
                 return array;
-            }
-            else {
-                array = generateArray(generator, schema, maxTreeSize, rand);
+            } else {
+                array = generateArray(generator, schema, maxTreeSize, rand, generateInvalid);
             }
         }
 
@@ -62,21 +73,36 @@ public class DefaultArrayHandler implements Handler {
     }
 
     private JSONArray generateArray(Generator generator, JSONSchema schema, int maxTreeSize,
-            Random rand) throws JSONSchemaException, GeneratorException, JSONException {
-        JSONArray array = new JSONArray();
+            Random rand, boolean generateInvalid) throws JSONSchemaException, GeneratorException, JSONException {
+        final JSONArray array = new JSONArray();
 
-        int minItems = schema.getIntOr("minItems", 0);
-        int maxItems = schema.getIntOr("maxItems", this.maxItems);
-        if (minItems > maxItems) {
+        final int minItems, maxItems;
+        if (generateInvalid && rand.nextBoolean()) {
+            minItems = 0;
+        } else {
+            minItems = schema.getIntOr("minItems", 0);
+        }
+        if (generateInvalid && rand.nextBoolean()) {
+            maxItems = this.maxItems;
+        } else {
+            maxItems = schema.getIntOr("maxItems", this.maxItems);
+        }
+
+        if (!generateInvalid && minItems > maxItems) {
             throw new GeneratorException("Array: minItems can not be strictly greater than maxItems");
         }
 
         if (schema.getConstValue() != null) {
-            JSONArray constValue = (JSONArray)schema.getConstValue();
+            JSONArray constValue = (JSONArray) schema.getConstValue();
             if (!(minItems <= constValue.length() && constValue.length() <= maxItems)) {
-                throw new GeneratorException("Impossible to generate an array for schema " + schema + " since the const value is incorrect, with regards to minItems, or maxItems");
+                if (generateInvalid) {
+                    return constValue;
+                } else {
+                    throw new GeneratorException("Impossible to generate an array for schema " + schema
+                            + " since the const value is incorrect, with regards to minItems, or maxItems");
+                }
             }
-            return (JSONArray)AbstractConstants.abstractConstValue(constValue);
+            return (JSONArray) AbstractConstants.abstractConstValue(constValue);
         }
 
         List<JSONSchema> itemsSchemaList = null;
@@ -85,11 +111,10 @@ public class DefaultArrayHandler implements Handler {
 
         int size = rand.nextInt(maxItems - minItems + 1) + minItems;
         if (itemsSchema == null) {
-            for (int i = 0 ; i < size ; i++) {
+            for (int i = 0; i < size; i++) {
                 array.put(new JSONObject());
             }
-        }
-        else {
+        } else {
             for (int i = 0; i < size; i++) {
                 Object value = generator.generateAccordingToConstraints(itemsSchema, maxTreeSize - 1, rand);
                 if (!Objects.equals(value, Type.NULL)) {

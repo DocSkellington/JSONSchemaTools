@@ -53,7 +53,8 @@ public class DefaultObjectHandler implements Handler {
             }
         }
 
-        if (schema.getForbiddenValues().stream().filter(v -> document.similar(v)).count() != 0) {
+        Set<JSONObject> forbiddenValues = schema.getForbiddenValuesFilteredByType(JSONObject.class);
+        if (forbiddenValues.stream().filter(v -> document.similar(v)).count() != 0) {
             return false;
         }
 
