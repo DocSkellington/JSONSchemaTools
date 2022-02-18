@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
+import java.util.function.BiConsumer;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -77,6 +78,13 @@ public class DefaultObjectHandler extends AHandler {
     private JSONObject generateObject(Generator generator, JSONSchema schema, int maxTreeSize,
             Random rand, boolean generateInvalid) throws JSONSchemaException, GeneratorException, JSONException {
         final JSONObject jsonObject = new JSONObject();
+
+        final BiConsumer<String, Object> addToDocumentIfNotNullType = (key, value) -> {
+            if (!Objects.equals(value, Type.NULL)) {
+                jsonObject.put(key, value);
+            }
+        };
+
         final int newMaxTreeSize = maxTreeSize - 1;
         final int minProperties, maxProperties;
         if (generateInvalid && rand.nextBoolean()) {
@@ -116,9 +124,7 @@ public class DefaultObjectHandler extends AHandler {
             JSONSchema subSchema = entry.getValue();
             String key = entry.getKey();
             Object value = generator.generateAccordingToConstraints(subSchema, newMaxTreeSize, rand);
-            if (!Objects.equals(value, Type.NULL)) {
-                jsonObject.put(key, value);
-            }
+            addToDocumentIfNotNullType.accept(key, value);
         }
 
         int missingProperties = Math.max(0, minProperties - jsonObject.length());
@@ -137,7 +143,7 @@ public class DefaultObjectHandler extends AHandler {
         if (generateInvalid && !allNonRequiredKeys.contains(AbstractConstants.stringConstant) && rand.nextBoolean()) {
             JSONSchema trueSchema = schema.getStore().trueSchema();
             Object value = generator.generateAccordingToConstraints(trueSchema, newMaxTreeSize, rand);
-            jsonObject.put(AbstractConstants.stringConstant, value);
+            addToDocumentIfNotNullType.accept(AbstractConstants.stringConstant, value);
         }
 
         // First, we randomly select enough properties to satisfy minProperties
@@ -158,9 +164,7 @@ public class DefaultObjectHandler extends AHandler {
             }
             JSONSchema subSchema = schema.getSubSchemaProperties(key);
             Object value = generator.generateAccordingToConstraints(subSchema, newMaxTreeSize, rand);
-            if (!Objects.equals(value, Type.NULL)) {
-                jsonObject.put(key, value);
-            }
+            addToDocumentIfNotNullType.accept(key, value);
             nonRequiredProperties.remove(key);
         }
 
@@ -172,9 +176,7 @@ public class DefaultObjectHandler extends AHandler {
             JSONSchema subSchema = nonRequiredProperties.get(key);
             if (rand.nextBoolean()) {
                 Object value = generator.generateAccordingToConstraints(subSchema, newMaxTreeSize, rand);
-                if (!Objects.equals(value, Type.NULL)) {
-                    jsonObject.put(key, value);
-                }
+                addToDocumentIfNotNullType.accept(key, value);
 
                 if (jsonObject.length() >= maxProperties) {
                     break;
