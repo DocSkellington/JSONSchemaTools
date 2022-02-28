@@ -292,7 +292,7 @@ public final class JSONSchema {
                 allKeys.add(key);
                 final JSONObject prop = properties.getJSONObject(key);
                 if (prop.has("$ref")) {
-                    queue.add(new InQueue(path, prop));
+                    queue.add(new InQueue(path + "/" + key, prop));
                 } else {
                     addObjectToQueueIfNotAlreadySeen.accept(path + "/" + key, prop);
                 }
@@ -301,7 +301,7 @@ public final class JSONSchema {
 
         while (!queue.isEmpty()) {
             final InQueue current = queue.poll();
-            JSONObject document = (JSONObject) current.object;
+            JSONObject document = current.object;
             if (document.has("$ref")) {
                 final String ref = document.getString("$ref");
                 if (seenPaths.contains(ref)) {
