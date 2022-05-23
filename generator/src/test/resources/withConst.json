@@ -46,7 +46,8 @@
         "negativeConstString": {
             "not": {
                 "const": "hello"
-            }
+            },
+            "type": ["string"]
         },
         "positiveConstObject": {
             "const": {
@@ -60,15 +61,32 @@
                     "test": true,
                     "int": 3
                 }
-            }
+            },
+            "type": ["object"],
+            "properties": {
+                "test": {
+                    "type": "boolean"
+                },
+                "int": {
+                    "type": "integer"
+                }
+            },
+            "required": ["test", "int"],
+            "additionalProperties": false
         },
         "positiveConstArray": {
-            "const": [1, 2, 3]
+            "const": [true, true, false]
         },
         "negativeConstArray": {
             "not": {
-                "const": [false, "hello"]
-            }
+                "const": [false, true]
+            },
+            "type": ["array"],
+            "items": {
+                "type": ["boolean"]
+            },
+            "minItems": 2,
+            "maxItems": 2
         }
     },
     "required": [

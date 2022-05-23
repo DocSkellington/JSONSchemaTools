@@ -18,7 +18,7 @@
                         "type": "boolean"
                     },
                     "minItems": 1,
-                    "maxItems": 5
+                    "maxItems": 2
                 }
             },
             "required": ["values"]

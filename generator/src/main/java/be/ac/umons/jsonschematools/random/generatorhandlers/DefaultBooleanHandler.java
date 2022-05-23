@@ -1,14 +1,14 @@
-package be.ac.umons.jsonschematools.generatorhandlers;
+package be.ac.umons.jsonschematools.random.generatorhandlers;
 
 import java.util.Random;
 import java.util.Set;
 
 import org.json.JSONException;
 
-import be.ac.umons.jsonschematools.Generator;
-import be.ac.umons.jsonschematools.GeneratorException;
 import be.ac.umons.jsonschematools.JSONSchema;
 import be.ac.umons.jsonschematools.JSONSchemaException;
+import be.ac.umons.jsonschematools.random.GeneratorException;
+import be.ac.umons.jsonschematools.random.RandomGenerator;
 
 /**
  * A boolean handler that returns true or false, according to the given schema.
@@ -25,7 +25,7 @@ public class DefaultBooleanHandler extends AHandler {
     }
 
     @Override
-    public Object generate(Generator generator, JSONSchema schema, int maxTreeSize,
+    public Object generate(RandomGenerator generator, JSONSchema schema, int maxTreeSize,
             Random rand) throws JSONSchemaException, GeneratorException, JSONException {
         Set<Boolean> forbiddenValues = schema.getForbiddenValuesFilteredByType(Boolean.class);
         Object constValue = schema.getConstValue();

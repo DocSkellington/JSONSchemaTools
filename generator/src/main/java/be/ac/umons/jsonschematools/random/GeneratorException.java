@@ -1,4 +1,4 @@
-package be.ac.umons.jsonschematools;
+package be.ac.umons.jsonschematools.random;
 
 /**
  * The exception thrown if the generator can not generate a value.

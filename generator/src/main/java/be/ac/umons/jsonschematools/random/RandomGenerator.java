@@ -1,6 +1,7 @@
-package be.ac.umons.jsonschematools;
+package be.ac.umons.jsonschematools.random;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
@@ -11,7 +12,11 @@ import java.util.stream.Collectors;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import be.ac.umons.jsonschematools.generatorhandlers.Handler;
+import be.ac.umons.jsonschematools.JSONSchema;
+import be.ac.umons.jsonschematools.JSONSchemaException;
+import be.ac.umons.jsonschematools.JSONSchemaStore;
+import be.ac.umons.jsonschematools.Type;
+import be.ac.umons.jsonschematools.random.generatorhandlers.IHandler;
 
 /**
  * A generator for JSON documents, given a JSON schema.
@@ -22,21 +27,21 @@ import be.ac.umons.jsonschematools.generatorhandlers.Handler;
  * 
  * @author Gaëtan Staquet
  */
-public class Generator {
+public class RandomGenerator {
 
-    private final Handler stringHandler;
-    private final Handler integerHandler;
-    private final Handler numberHandler;
-    private final Handler booleanHandler;
-    private final Handler enumHandler;
-    private final Handler objectHandler;
-    private final Handler arrayHandler;
+    private final IHandler stringHandler;
+    private final IHandler integerHandler;
+    private final IHandler numberHandler;
+    private final IHandler booleanHandler;
+    private final IHandler enumHandler;
+    private final IHandler objectHandler;
+    private final IHandler arrayHandler;
     private final boolean generateInvalid;
     private final Set<Type> allTypes = EnumSet.allOf(Type.class);
 
-    public Generator(final Handler stringHandler, final Handler integerHandler, final Handler numberHandler,
-            final Handler booleanHandler, final Handler enumHandler, final Handler objectHandler,
-            final Handler arrayHandler, final boolean generateInvalid) {
+    public RandomGenerator(final IHandler stringHandler, final IHandler integerHandler, final IHandler numberHandler,
+            final IHandler booleanHandler, final IHandler enumHandler, final IHandler objectHandler,
+            final IHandler arrayHandler, final boolean generateInvalid) {
         this.stringHandler = stringHandler;
         this.integerHandler = integerHandler;
         this.numberHandler = numberHandler;
@@ -61,7 +66,7 @@ public class Generator {
 
     public JSONObject generate(final JSONSchema schema, final int maxTreeSize)
             throws JSONSchemaException, JSONException, GeneratorException {
-        return generate(schema, maxTreeSize, new Random());
+        return generateRoot(schema, maxTreeSize, new Random());
     }
 
     public JSONObject generate(final JSONSchema schema, final int maxTreeSize, final Random rand)
@@ -88,7 +93,7 @@ public class Generator {
                     final JSONSchema not = notList.get(indexNot);
                     try {
                         final JSONSchema fullSchema = getMergedSchema(schema, allOf, anyOf, oneOf, not);
-                        Set<Type> types = fullSchema.getAllowedTypes();
+                        List<Type> types = fullSchema.getAllowedTypes();
                         if (!types.contains(Type.OBJECT)) {
                             continue;
                         }
@@ -103,31 +108,31 @@ public class Generator {
         throw new GeneratorException("Impossible to generate a document: all tries failed for the schema " + schema);
     }
 
-    public Handler getStringHandler() {
+    public IHandler getStringHandler() {
         return stringHandler;
     }
 
-    public Handler getIntegerHandler() {
+    public IHandler getIntegerHandler() {
         return integerHandler;
     }
 
-    public Handler getNumberHandler() {
+    public IHandler getNumberHandler() {
         return numberHandler;
     }
 
-    public Handler getObjectHandler() {
+    public IHandler getObjectHandler() {
         return objectHandler;
     }
 
-    public Handler getArrayHandler() {
+    public IHandler getArrayHandler() {
         return arrayHandler;
     }
 
-    public Handler getBooleanHandler() {
+    public IHandler getBooleanHandler() {
         return booleanHandler;
     }
 
-    public Handler getEnumHandler() {
+    public IHandler getEnumHandler() {
         return enumHandler;
     }
 
@@ -167,7 +172,7 @@ public class Generator {
                             return generateAccordingToConstraints(fullSchema, maxTreeSize, rand);
                         }
 
-                        Set<Type> allowedTypes = fullSchema.getAllowedTypes();
+                        List<Type> allowedTypes = fullSchema.getAllowedTypes();
 
                         if (allowedTypes.isEmpty()) {
                             throw new GeneratorException("Impossible to generate a value for the schema " + fullSchema
@@ -186,8 +191,8 @@ public class Generator {
         throw new GeneratorException("Impossible to generate a document: all tries failed for the schema " + schema);
     }
 
-    private Type selectType(final Set<Type> allowedTypes, final Random rand) {
-        final Set<Type> typesToConsider;
+    private Type selectType(final Collection<Type> allowedTypes, final Random rand) {
+        final Collection<Type> typesToConsider;
         if (generateInvalid && allTypes.size() != Type.values().length && rand.nextBoolean()) {
             typesToConsider = new HashSet<>(allTypes);
             typesToConsider.removeAll(allowedTypes);
@@ -201,7 +206,7 @@ public class Generator {
 
     private Object generateValue(Type type, JSONSchema schema, int maxTreeSize, Random rand)
             throws JSONSchemaException, JSONException, GeneratorException {
-        Handler handler;
+        IHandler handler;
         switch (type) {
             case BOOLEAN:
                 handler = getBooleanHandler();

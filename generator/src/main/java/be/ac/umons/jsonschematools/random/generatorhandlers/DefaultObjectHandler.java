@@ -1,4 +1,4 @@
-package be.ac.umons.jsonschematools.generatorhandlers;
+package be.ac.umons.jsonschematools.random.generatorhandlers;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -13,11 +13,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import be.ac.umons.jsonschematools.AbstractConstants;
-import be.ac.umons.jsonschematools.Generator;
-import be.ac.umons.jsonschematools.GeneratorException;
 import be.ac.umons.jsonschematools.JSONSchema;
 import be.ac.umons.jsonschematools.JSONSchemaException;
 import be.ac.umons.jsonschematools.Type;
+import be.ac.umons.jsonschematools.random.GeneratorException;
+import be.ac.umons.jsonschematools.random.RandomGenerator;
 
 /**
  * An object handler that returns an object in which elements are abstracted.
@@ -41,7 +41,7 @@ public class DefaultObjectHandler extends AHandler {
     }
 
     @Override
-    public Object generate(Generator generator, JSONSchema schema, int maxTreeSize,
+    public Object generate(RandomGenerator generator, JSONSchema schema, int maxTreeSize,
             Random rand) throws JSONSchemaException, GeneratorException, JSONException {
         if (maxTreeSize == 0) {
             return new JSONObject();
@@ -75,7 +75,7 @@ public class DefaultObjectHandler extends AHandler {
         throw new GeneratorException("Impossible to generate a valid object with 1000 tries " + schema);
     }
 
-    private JSONObject generateObject(Generator generator, JSONSchema schema, int maxTreeSize,
+    private JSONObject generateObject(RandomGenerator generator, JSONSchema schema, int maxTreeSize,
             Random rand, boolean generateInvalid) throws JSONSchemaException, GeneratorException, JSONException {
         final JSONObject jsonObject = new JSONObject();
 

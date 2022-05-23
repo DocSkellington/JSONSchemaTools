@@ -1,0 +1,23 @@
+{
+    "Title": "Fast",
+    "type": "object",
+    "required": ["string", "double", "integer", "boolean", "enumVar"],
+    "additionalProperties": false,
+    "properties": {
+        "string": {
+            "type": "string"
+        },
+        "double": {
+            "type": "number"
+        },
+        "integer": {
+            "type": "integer"
+        },
+        "boolean": {
+            "type": "boolean"
+        },
+        "enumVar": {
+            "enum": ["Val1", "Val2", 3, null]
+        }
+    }
+}

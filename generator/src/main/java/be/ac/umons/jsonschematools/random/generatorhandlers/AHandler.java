@@ -1,4 +1,4 @@
-package be.ac.umons.jsonschematools.generatorhandlers;
+package be.ac.umons.jsonschematools.random.generatorhandlers;
 
 import java.util.Random;
 
@@ -9,7 +9,7 @@ import java.util.Random;
  * 
  * @author Gaëtan Staquet
  */
-public abstract class AHandler implements Handler {
+public abstract class AHandler implements IHandler {
     private final boolean generateInvalid;
 
     protected AHandler(final boolean generateInvalid) {

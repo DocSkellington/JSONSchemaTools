@@ -138,7 +138,7 @@ public class Validator {
             }
         }
 
-        Set<Type> allowedTypes = schema.getAllowedTypes();
+        List<Type> allowedTypes = schema.getAllowedTypes();
 
         for (Type type : allowedTypes) {
             final boolean valid;

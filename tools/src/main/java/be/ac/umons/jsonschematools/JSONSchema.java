@@ -363,8 +363,8 @@ public final class JSONSchema {
      * 
      * @return A set containing all allowed types.
      */
-    public Set<Type> getAllowedTypes() {
-        return types;
+    public List<Type> getAllowedTypes() {
+        return new ArrayList<>(types);
     }
 
     /**

@@ -3,4 +3,4 @@
  * 
  * These handlers generate abstracted documents. See the non-API documentation for more information.
  */
-package be.ac.umons.jsonschematools.generatorhandlers;
+package be.ac.umons.jsonschematools.random.generatorhandlers;

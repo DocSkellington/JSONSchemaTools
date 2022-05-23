@@ -1,4 +1,4 @@
-package be.ac.umons.jsonschematools.generatorhandlers;
+package be.ac.umons.jsonschematools.random.generatorhandlers;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,11 +11,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import be.ac.umons.jsonschematools.AbstractConstants;
-import be.ac.umons.jsonschematools.Generator;
-import be.ac.umons.jsonschematools.GeneratorException;
 import be.ac.umons.jsonschematools.JSONSchema;
 import be.ac.umons.jsonschematools.JSONSchemaException;
 import be.ac.umons.jsonschematools.Type;
+import be.ac.umons.jsonschematools.random.GeneratorException;
+import be.ac.umons.jsonschematools.random.RandomGenerator;
 
 /**
  * An array handler that returns an array in which elements are abstracted.
@@ -38,7 +38,7 @@ public class DefaultArrayHandler extends AHandler {
     }
 
     @Override
-    public JSONArray generate(Generator generator, JSONSchema schema, int maxTreeSize,
+    public JSONArray generate(RandomGenerator generator, JSONSchema schema, int maxTreeSize,
             Random rand) throws JSONSchemaException, GeneratorException, JSONException {
         if (maxTreeSize == 0) {
             return new JSONArray();
@@ -72,7 +72,7 @@ public class DefaultArrayHandler extends AHandler {
         throw new GeneratorException("Impossible to generate an array in 1000 tries " + schema);
     }
 
-    private JSONArray generateArray(Generator generator, JSONSchema schema, int maxTreeSize,
+    private JSONArray generateArray(RandomGenerator generator, JSONSchema schema, int maxTreeSize,
             Random rand, boolean generateInvalid) throws JSONSchemaException, GeneratorException, JSONException {
         final JSONArray array = new JSONArray();
 

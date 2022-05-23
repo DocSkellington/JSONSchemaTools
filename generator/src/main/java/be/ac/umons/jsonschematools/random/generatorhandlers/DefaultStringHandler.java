@@ -1,14 +1,14 @@
-package be.ac.umons.jsonschematools.generatorhandlers;
+package be.ac.umons.jsonschematools.random.generatorhandlers;
 
 import java.util.Random;
 
 import org.json.JSONException;
 
 import be.ac.umons.jsonschematools.AbstractConstants;
-import be.ac.umons.jsonschematools.Generator;
-import be.ac.umons.jsonschematools.GeneratorException;
 import be.ac.umons.jsonschematools.JSONSchema;
 import be.ac.umons.jsonschematools.JSONSchemaException;
+import be.ac.umons.jsonschematools.random.GeneratorException;
+import be.ac.umons.jsonschematools.random.RandomGenerator;
 
 /**
  * A string handler that returns an abstracted string, i.e., "\S".
@@ -17,10 +17,10 @@ import be.ac.umons.jsonschematools.JSONSchemaException;
  * 
  * @author Gaëtan Staquet
  */
-public class DefaultStringHandler implements Handler {
+public class DefaultStringHandler implements IHandler {
 
     @Override
-    public Object generate(Generator generator, JSONSchema schema, int maxTreeSize,
+    public Object generate(RandomGenerator generator, JSONSchema schema, int maxTreeSize,
             Random rand) throws JSONSchemaException, GeneratorException, JSONException {
         return AbstractConstants.stringConstant;
     }
