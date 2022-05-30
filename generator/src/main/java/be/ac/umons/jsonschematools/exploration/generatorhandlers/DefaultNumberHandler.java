@@ -19,7 +19,8 @@ public class DefaultNumberHandler extends AHandler {
 
     @Override
     public Optional<Object> generate(final JSONSchema schema, final ExplorationGenerator generator,
-            int maxDocumentDepth, final ChoicesSequence choices) throws JSONSchemaException, JSONException {
+            int maxDocumentDepth, boolean canGenerateInvalid, final ChoicesSequence choices)
+            throws JSONSchemaException, JSONException {
         return Optional.of(AbstractConstants.numberConstant);
     }
 

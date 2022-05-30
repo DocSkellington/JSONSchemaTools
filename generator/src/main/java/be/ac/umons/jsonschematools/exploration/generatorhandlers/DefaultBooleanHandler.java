@@ -8,7 +8,6 @@ import org.json.JSONException;
 
 import be.ac.umons.jsonschematools.JSONSchema;
 import be.ac.umons.jsonschematools.JSONSchemaException;
-import be.ac.umons.jsonschematools.exploration.Choice;
 import be.ac.umons.jsonschematools.exploration.ChoicesSequence;
 import be.ac.umons.jsonschematools.exploration.ExplorationGenerator;
 
@@ -23,45 +22,54 @@ public class DefaultBooleanHandler extends AHandler {
 
     @Override
     public Optional<Object> generate(final JSONSchema schema, final ExplorationGenerator generator,
-            int maxDocumentDepth, final ChoicesSequence choices) throws JSONSchemaException, JSONException {
+            int maxDocumentDepth, boolean generateInvalid, final ChoicesSequence choices)
+            throws JSONSchemaException, JSONException {
         final List<Boolean> forbiddenValues = new ArrayList<>(schema.getForbiddenValuesFilteredByType(Boolean.class));
 
         if (forbiddenValues.contains(true) && forbiddenValues.contains(false)) {
+            if (generateInvalid) {
+                return generateBoolean(choices);
+            }
             return Optional.empty();
         }
 
-        final Object constValue = schema.getConstValue();
+        final Boolean constValue = schema.getConstValueIfType(Boolean.class);
         if (constValue != null) {
             if (forbiddenValues.contains(constValue)) {
+                if (generateInvalid) {
+                    return Optional.of(constValue);
+                }
                 return Optional.empty();
+            }
+
+            if (generateInvalid) {
+                return Optional.of(!constValue);
             }
             return Optional.of(constValue);
         }
 
         if (forbiddenValues.contains(true)) {
+            if (generateInvalid) {
+                return Optional.of(true);
+            }
             return Optional.of(false);
         } else if (forbiddenValues.contains(false)) {
+            if (generateInvalid) {
+                return Optional.of(false);
+            }
             return Optional.of(true);
         }
 
-        if (choices.hasNextChoiceInExploration()) {
-            Choice lastChoice = choices.getNextChoiceInExploration();
-            if (choices.hasUnseenValueFurtherInExploration()) {
-                return Optional.of(booleanValues.get(lastChoice.currentValue()));
-            }
-            choices.removeAllChoicesAfterCurrentChoiceInExploration();
-
-            if (lastChoice.hasNextValue()) {
-                return Optional.of(booleanValues.get(lastChoice.nextValue()));
-            } else {
-                choices.popLastChoice();
-                return Optional.empty();
-            }
-        } else {
-            // It is the first time we see this choice in this run
-            Choice choice = choices.createNewChoice(2, true);
-            return Optional.of(booleanValues.get(choice.nextValue()));
+        if (generateInvalid) {
+            return Optional.empty();
         }
+
+        return generateBoolean(choices);
+    }
+
+    private Optional<Object> generateBoolean(final ChoicesSequence choices) {
+        int index = choices.getIndexNextExclusiveSelectionInList(booleanValues.size());
+        return Optional.of(booleanValues.get(index));
     }
 
 }

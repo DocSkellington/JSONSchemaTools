@@ -22,11 +22,14 @@ public interface IHandler {
      * @param generator        The generator
      * @param maxDocumentDepth The maximal depth (number of nested objects and
      *                         arrays) of the document
+     * @param canGenerateInvalid  Whether the generator can produce invalid values
+     *                         for the schema
      * @param choices          The sequence of choices
      * @return The generated value
      * @throws JSONSchemaException
      * @throws JSONException
      */
     Optional<Object> generate(final JSONSchema schema, final ExplorationGenerator generator, int maxDocumentDepth,
+            boolean canGenerateInvalid,
             final ChoicesSequence choices) throws JSONSchemaException, JSONException;
 }

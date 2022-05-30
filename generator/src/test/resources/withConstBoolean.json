@@ -1,0 +1,23 @@
+{
+    "type": "object",
+    "properties": {
+        "positiveConstBoolean": {
+            "type": [
+                "boolean"
+            ],
+            "const": true
+        },
+        "negativeConstBoolean": {
+            "type": [
+                "boolean"
+            ],
+            "not": {
+                "const": true
+            }
+        }
+    },
+    "required": [
+        "positiveConstBoolean",
+        "negativeConstBoolean"
+    ]
+}

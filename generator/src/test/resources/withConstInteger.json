@@ -1,0 +1,20 @@
+{
+    "type": "object",
+    "properties": {
+        "positiveConstInteger": {
+            "const": 53
+        },
+        "negativeConstInteger": {
+            "type": [
+                "integer"
+            ],
+            "not": {
+                "const": 654
+            }
+        }
+    },
+    "required": [
+        "positiveConstInteger",
+        "negativeConstInteger"
+    ]
+}

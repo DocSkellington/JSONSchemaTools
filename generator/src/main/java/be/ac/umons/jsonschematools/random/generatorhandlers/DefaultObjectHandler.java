@@ -103,8 +103,8 @@ public class DefaultObjectHandler extends AHandler {
                     + " as minProperties = " + minProperties + " > maxProperties = " + maxProperties);
         }
 
-        if (schema.getConstValue() != null) {
-            JSONObject constValue = (JSONObject) schema.getConstValue();
+        final JSONObject constValue = schema.getConstValueIfType(JSONObject.class);
+        if (constValue != null) {
             if (!(minProperties <= constValue.length() && constValue.length() <= maxProperties
                     && constValue.keySet().containsAll(schema.getRequiredPropertiesKeys()))) {
                 if (generateInvalid) {

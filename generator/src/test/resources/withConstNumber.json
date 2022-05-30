@@ -1,0 +1,23 @@
+{
+    "type": "object",
+    "properties": {
+        "positiveConstNumber": {
+            "type": [
+                "number"
+            ],
+            "const": 53.6
+        },
+        "negativeConstNumber": {
+            "type": [
+                "number"
+            ],
+            "not": {
+                "const": 654.2
+            }
+        }
+    },
+    "required": [
+        "positiveConstNumber",
+        "negativeConstNumber"
+    ]
+}

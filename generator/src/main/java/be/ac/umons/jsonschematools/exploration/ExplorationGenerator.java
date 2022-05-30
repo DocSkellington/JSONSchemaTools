@@ -1,6 +1,8 @@
 package be.ac.umons.jsonschematools.exploration;
 
+import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
@@ -25,6 +27,8 @@ import be.ac.umons.jsonschematools.exploration.generatorhandlers.IHandler;
  * @author Gaëtan Staquet
  */
 public class ExplorationGenerator {
+
+    private static final List<Type> allTypes = new ArrayList<>(EnumSet.allOf(Type.class));
 
     private final IHandler stringHandler;
     private final IHandler integerHandler;
@@ -54,6 +58,8 @@ public class ExplorationGenerator {
      * The depth of the documents is not bounded, i.e., they can be an infinite
      * number of documents if the schema is recursive.
      * 
+     * Only valid documents are generated.
+     * 
      * @param schema The schema
      * @return An iterator
      */
@@ -73,30 +79,83 @@ public class ExplorationGenerator {
      * generated as the deepest objects or arrays may not be correct.
      * In particular, no documents will be generated with a depth of zero.
      * 
-     * @param schema The schema
+     * Only valid documents are generated.
+     * 
+     * @param schema           The schema
+     * @param maxDocumentDepth The maximal depth of the documents
      * @return An iterator
      */
     public Iterator<JSONObject> createIterator(JSONSchema schema, int maxDocumentDepth) {
-        return new ExplorationIterator(schema, maxDocumentDepth, this);
+        return createIterator(schema, maxDocumentDepth, false);
     }
 
-    JSONObject generateDocument(JSONSchema schema, int maxDocumentDepth, ChoicesSequence choices)
+    /**
+     * Creates an iterator over the documents this generator can produce.
+     * 
+     * Documents are created when calling {@code next()}.
+     * 
+     * The depth of the documents is not bounded, i.e., they can be an infinite
+     * number of documents if the schema is recursive.
+     * 
+     * Invalid documents can be generated if {@code canGenerateInvalid} is
+     * {@code true}.
+     * Note that valid documents are still generated, no matter the value of
+     * {@code canGenerateInvalid}.
+     * 
+     * @param schema             The schema
+     * @param canGenerateInvalid Whether invalid documents can be generated
+     * @return An iterator
+     */
+    public Iterator<JSONObject> createIterator(JSONSchema schema, boolean canGenerateInvalid) {
+        return createIterator(schema, -1, canGenerateInvalid);
+    }
+
+    /**
+     * Creates an iterator over the documents this generator can produce up to the
+     * given document depth.
+     * 
+     * Documents are created when calling {@code next()}.
+     * 
+     * The depth of the documents is bounded, i.e., in any document, there can only
+     * be {@code maxDocumentDepth} nested objects and arrays.
+     * Note that if the bound is set too low, only invalid documents may be
+     * generated as the deepest objects or arrays may not be correct.
+     * In particular, no documents will be generated with a depth of zero.
+     * 
+     * Invalid documents can be generated if {@code canGenerateInvalid} is
+     * {@code true}.
+     * Note that valid documents are still generated, no matter the value of
+     * {@code canGenerateInvalid}.
+     * 
+     * @param schema             The schema
+     * @param maxDocumentDepth   The maximal depth of the documents
+     * @param canGenerateInvalid Whether invalid documents can be generated
+     * @return An iterator
+     */
+    public Iterator<JSONObject> createIterator(JSONSchema schema, int maxDocumentDepth, boolean canGenerateInvalid) {
+        return new ExplorationIterator(schema, maxDocumentDepth, canGenerateInvalid, this);
+    }
+
+    JSONObject generateDocument(JSONSchema schema, int maxDocumentDepth, boolean canGenerateInvalid,
+            ChoicesSequence choices)
             throws JSONException, JSONSchemaException {
         choices.prepareForNewExploration();
-        Optional<Object> object = generateValueAccordingToConstraints(schema, maxDocumentDepth, choices);
+        Optional<Object> object = generateValueAccordingToConstraints(schema, maxDocumentDepth, canGenerateInvalid,
+                choices, true);
         // If it was not possible to generate the object with the previous choices, we
         // start again if it is possible.
         while (object.isEmpty() && choices.containsChoiceWithNextValue()) {
             choices.prepareForNewExploration();
-            object = generateValueAccordingToConstraints(schema, maxDocumentDepth, choices);
+            object = generateValueAccordingToConstraints(schema, maxDocumentDepth, canGenerateInvalid, choices, true);
         }
-        if (object.isEmpty()) {
+        if (object.isEmpty() || object.get() == Type.NULL) {
             return null;
         }
         return (JSONObject) object.get();
     }
 
-    private Optional<Object> generateValue(JSONSchema schema, Type type, int maxDocumentDepth, ChoicesSequence choices)
+    private Optional<Object> generateValue(JSONSchema schema, Type type, int maxDocumentDepth,
+            boolean canGenerateInvalid, ChoicesSequence choices)
             throws JSONException, JSONSchemaException {
         IHandler handler;
         switch (type) {
@@ -127,7 +186,10 @@ public class ExplorationGenerator {
                 return Optional.empty();
         }
 
-        return handler.generate(schema, this, maxDocumentDepth, choices);
+        if ((type == Type.OBJECT || type == Type.ARRAY) && maxDocumentDepth == 0) {
+            return Optional.of(Type.NULL);
+        }
+        return handler.generate(schema, this, maxDocumentDepth, canGenerateInvalid, choices);
     }
 
     /**
@@ -142,38 +204,89 @@ public class ExplorationGenerator {
      * @throws JSONSchemaException
      */
     public Optional<Object> generateValueAccordingToConstraints(JSONSchema schema, int maxDocumentDepth,
-            ChoicesSequence choices)
+            boolean canGenerateInvalid, ChoicesSequence choices) throws JSONException, JSONSchemaException {
+        return generateValueAccordingToConstraints(schema, maxDocumentDepth, canGenerateInvalid, choices, false);
+    }
+
+    public Optional<Object> generateValueAccordingToConstraints(JSONSchema schema, int maxDocumentDepth,
+            boolean canGenerateInvalid, ChoicesSequence choices, boolean mustBeObject)
             throws JSONException, JSONSchemaException {
         final JSONSchema allOf = schema.getAllOf();
-        // @formatter:off
-        final List<JSONSchema> anyOfList = schema.getAnyOf().stream()
-            .filter(s -> !JSONSchemaStore.isFalseSchema(s))
-            .collect(Collectors.toList())
-        ;
-        final List<JSONSchema> oneOfList = schema.getOneOf().stream()
-            .filter(s -> !JSONSchemaStore.isFalseSchema(s))
-            .collect(Collectors.toList())
-        ;
-        final List<JSONSchema> notList = schema.getNot().stream()
-            .filter(s -> !JSONSchemaStore.isFalseSchema(s))
-            .collect(Collectors.toList())
-        ;
-        // @formatter:on
+        final List<JSONSchema> anyOfList, oneOfList, notList;
+        final boolean exclusiveChoiceAnyOf, exclusiveChoiceOneOf, exclusiveChoiceNot;
+        final boolean skipFirstAnyOf, skipFirstOneOf, skipFirstNot;
+        final boolean generateInvalid = invalidGenerationChoice(canGenerateInvalid, choices);
+        if (generateInvalid) {
+            anyOfList = schema.getAnyOf();
+            oneOfList = schema.getOneOf();
+            notList = schema.getNot();
+
+            // We want to reduce the number of useless generations. So, if the list only
+            // contains the true schema, we revert to the classical behavior even if we want
+            // to generate an invalid document.
+            if (anyOfList.size() == 1 && JSONSchemaStore.isTrueSchema(anyOfList.get(0))) {
+                exclusiveChoiceAnyOf = false;
+                skipFirstAnyOf = true;
+            } else {
+                exclusiveChoiceAnyOf = false;
+                skipFirstAnyOf = false;
+            }
+
+            if (oneOfList.size() == 1 && JSONSchemaStore.isTrueSchema(oneOfList.get(0))) {
+                exclusiveChoiceOneOf = false;
+                skipFirstOneOf = true;
+            } else {
+                exclusiveChoiceOneOf = false;
+                skipFirstOneOf = false;
+            }
+
+            if (notList.size() == 1 && JSONSchemaStore.isTrueSchema(notList.get(0))) {
+                exclusiveChoiceNot = false;
+                skipFirstNot = true;
+            } else {
+                exclusiveChoiceNot = false;
+                skipFirstNot = false;
+            }
+        } else {
+            // @formatter:off
+            anyOfList = schema.getAnyOf().stream()
+                .filter(s -> !JSONSchemaStore.isFalseSchema(s))
+                .collect(Collectors.toList())
+            ;
+            oneOfList = schema.getOneOf().stream()
+                .filter(s -> !JSONSchemaStore.isFalseSchema(s))
+                .collect(Collectors.toList())
+            ;
+            notList = schema.getNot().stream()
+                .filter(s -> !JSONSchemaStore.isFalseSchema(s))
+                .collect(Collectors.toList())
+            ;
+            // @formatter:on
+
+            exclusiveChoiceAnyOf = false;
+            exclusiveChoiceOneOf = true;
+            exclusiveChoiceNot = false;
+            skipFirstAnyOf = true;
+            skipFirstOneOf = false;
+            skipFirstNot = true;
+        }
 
         Optional<Object> value = null;
-        Choice choiceAnyOf = getChoiceForSelectionOfSchema(anyOfList, choices, false);
+        Choice choiceAnyOf = choices.getChoiceForSelectionInList(anyOfList.size(), exclusiveChoiceAnyOf,
+                skipFirstAnyOf);
         // If we have to change the value of choiceAnyOf, we also remove all the choices
         // that came after
         if (!choices.hasUnseenValueFurtherInExploration() && choiceAnyOf.hasNextValue()) {
             choices.removeAllChoicesAfterCurrentChoiceInExploration();
             choiceAnyOf.nextValue();
         }
-        Choice choiceOneOf = getChoiceForSelectionOfSchema(oneOfList, choices, true);
+        Choice choiceOneOf = choices.getChoiceForSelectionInList(oneOfList.size(), exclusiveChoiceOneOf,
+                skipFirstOneOf);
         if (!choices.hasUnseenValueFurtherInExploration() && choiceOneOf.hasNextValue()) {
             choices.removeAllChoicesAfterCurrentChoiceInExploration();
             choiceOneOf.nextValue();
         }
-        Choice choiceNot = getChoiceForSelectionOfSchema(notList, choices, false);
+        Choice choiceNot = choices.getChoiceForSelectionInList(notList.size(), exclusiveChoiceNot, skipFirstNot);
         if (!choices.hasUnseenValueFurtherInExploration() && choiceNot.hasNextValue()) {
             choices.removeAllChoicesAfterCurrentChoiceInExploration();
             choiceNot.nextValue();
@@ -199,12 +312,13 @@ public class ExplorationGenerator {
 
             final JSONSchema anyOf = selectSchema(anyOfList, choices, choiceAnyOf, samePossibilityAnyOf);
             if (!samePossibilityAnyOf) {
-                choiceOneOf = getChoiceForSelectionOfSchema(oneOfList, choices, true);
+                choiceOneOf = choices.getChoiceForSelectionInList(oneOfList.size(), exclusiveChoiceOneOf,
+                        skipFirstOneOf);
                 choiceOneOf.nextValue();
             }
             final JSONSchema oneOf = selectSchema(oneOfList, choices, choiceOneOf, samePossibilityOneOf);
             if (!samePossibilityAnyOf || !samePossibilityOneOf) {
-                choiceNot = getChoiceForSelectionOfSchema(notList, choices, false);
+                choiceNot = choices.getChoiceForSelectionInList(notList.size(), exclusiveChoiceNot, skipFirstNot);
                 choiceNot.nextValue();
             }
             final JSONSchema not = selectSchema(notList, choices, choiceNot, samePossibilityNot);
@@ -218,16 +332,17 @@ public class ExplorationGenerator {
             ;
             // @formatter:on
 
-            value = generateValueForMergedSchema(mergedSchema, maxDocumentDepth, choices);
+            value = generateValueForMergedSchema(mergedSchema, maxDocumentDepth, generateInvalid, choices,
+                    mustBeObject);
         } while (value.isEmpty());
         return value;
     }
 
     private Optional<Object> generateValueForMergedSchema(final JSONSchema mergedSchema, int maxDocumentDepth,
-            final ChoicesSequence choices)
+            boolean generateInvalid, final ChoicesSequence choices, boolean mustBeObject)
             throws JSONException, JSONSchemaException {
         if (mergedSchema.needsFurtherUnfolding()) {
-            return generateValueAccordingToConstraints(mergedSchema, maxDocumentDepth, choices);
+            return generateValueAccordingToConstraints(mergedSchema, maxDocumentDepth, generateInvalid, choices);
         }
 
         List<Type> allowedTypes = mergedSchema.getAllowedTypes();
@@ -235,46 +350,34 @@ public class ExplorationGenerator {
             return Optional.empty();
         }
 
-        final Type selectedType = selectType(allowedTypes, choices);
+        final Type selectedType = selectType(allowedTypes, generateInvalid, choices, mustBeObject);
         if (selectedType == null) {
             return Optional.empty();
         }
-        return generateValue(mergedSchema, selectedType, maxDocumentDepth, choices);
+        return generateValue(mergedSchema, selectedType, maxDocumentDepth, generateInvalid, choices);
     }
 
-    private Type selectType(List<Type> allowedTypes, ChoicesSequence choices) {
-        if (choices.hasNextChoiceInExploration()) {
-            Choice choiceInRun = choices.getNextChoiceInExploration();
-            if (choices.hasUnseenValueFurtherInExploration()) {
-                return allowedTypes.get(choiceInRun.currentValue());
+    private Type selectType(List<Type> allowedTypes, boolean generateInvalid, ChoicesSequence choices,
+            boolean mustBeObject) {
+        if (mustBeObject) {
+            if (allowedTypes.contains(Type.OBJECT)) {
+                return Type.OBJECT;
             }
-            choices.removeAllChoicesAfterCurrentChoiceInExploration();
-
-            if (choiceInRun.hasNextValue()) {
-                return allowedTypes.get(choiceInRun.nextValue());
-            } else {
-                choices.popLastChoice();
+            else {
                 return null;
             }
-        } else {
-            Choice choice = choices.createNewChoice(allowedTypes.size(), true);
-            return allowedTypes.get(choice.nextValue());
         }
-    }
-
-    private Choice getChoiceForSelectionOfSchema(List<JSONSchema> schemas, ChoicesSequence choices,
-            boolean exclusiveChoice) {
-        if (choices.hasNextChoiceInExploration()) {
-            return choices.getNextChoiceInExploration();
+        if (!generateInvalid || choices.getNextBooleanValue()) {
+            int index = choices.getIndexNextExclusiveSelectionInList(allowedTypes.size());
+            return allowedTypes.get(index);
         } else {
-            Choice choice = choices.createNewChoice(schemas.size(), exclusiveChoice);
-            if (!exclusiveChoice) {
-                // If the choice is for an anyOf (or a not), we explicitly ignore the first
-                // value in the choice, which is zero. That is, we always take at least one
-                // schema.
-                choice.nextValue();
+            final List<Type> typesNotAllowed = new ArrayList<>(allTypes);
+            typesNotAllowed.removeAll(allowedTypes);
+            if (typesNotAllowed.isEmpty()) {
+                return null;
             }
-            return choice;
+            int index = choices.getIndexNextExclusiveSelectionInList(typesNotAllowed.size());
+            return typesNotAllowed.get(index);
         }
     }
 
@@ -285,7 +388,6 @@ public class ExplorationGenerator {
             if (exclusiveChoice) {
                 return schemas.get(choice.currentValue());
             } else {
-                assert choice.currentValue() != 0;
                 return getMergedSchemaForSelectedSchemasForNonExclusive(schemas, choice);
             }
         }
@@ -312,6 +414,9 @@ public class ExplorationGenerator {
             throws JSONSchemaException {
         BitSet bitset = choice.getBitSet();
         int bit = bitset.nextSetBit(0);
+        if (bit == -1) {
+            return schemas.get(0).getStore().trueSchema();
+        }
         JSONSchema merged = schemas.get(bit);
 
         for (bit = bitset.nextSetBit(0); bit != -1; bit = bitset.nextSetBit(bit + 1)) {
@@ -319,5 +424,13 @@ public class ExplorationGenerator {
         }
 
         return merged;
+    }
+
+    private boolean invalidGenerationChoice(final boolean canGenerateInvalid, final ChoicesSequence choices) {
+        if (!canGenerateInvalid) {
+            return false;
+        }
+
+        return choices.getNextBooleanValue();
     }
 }

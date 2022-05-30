@@ -131,10 +131,13 @@ public class Choice {
 
     @Override
     public String toString() {
-        if (exclusive) {
-            return "" + (currentValue() + 1) + "/" + numberOfValues() + " (exclusive)";
-        } else {
-            return "" + (currentValue() + 1) + "/" + numberOfValues() + " (not exclusive)";
+        final int value;
+        if (firstValue) {
+            value = 0;
         }
+        else {
+            value = currentValue() + 1;
+        }
+        return "" + value + "/" + numberOfValues() + " (" + (exclusive ? "" : "not ") + "exclusive)";
     }
 }

@@ -14,9 +14,11 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import be.ac.umons.jsonschematools.AbstractConstants;
+import be.ac.umons.jsonschematools.DefaultValidator;
 import be.ac.umons.jsonschematools.JSONSchema;
 import be.ac.umons.jsonschematools.JSONSchemaException;
 import be.ac.umons.jsonschematools.JSONSchemaStore;
+import be.ac.umons.jsonschematools.Validator;
 import be.ac.umons.jsonschematools.random.GeneratorException;
 import be.ac.umons.jsonschematools.random.TestRandomGenerator;
 
@@ -473,14 +475,16 @@ public class TestExplorationGenerator {
     public void testGeneratorRecursiveListBoundedDepth() throws FileNotFoundException, JSONSchemaException, URISyntaxException {
         JSONSchema schema = loadSchema("recursiveList.json", false);
         ExplorationGenerator generator = new DefaultExplorationGenerator(4, 4);
-        Iterator<JSONObject> iterator = generator.createIterator(schema, 40);
+        Iterator<JSONObject> iterator = generator.createIterator(schema, 39);
 
         for (int nRecursion = 0 ; nRecursion < 20 ; nRecursion++) {
             Assert.assertTrue(iterator.hasNext());
             JSONObject document = iterator.next();
-            System.out.println(document);
             checkRecursiveList(document, nRecursion);
         }
+
+        Assert.assertTrue(iterator.hasNext());
+        checkRecursiveList(iterator.next(), 19);
 
         // There is a finite number of documents thanks to maximal depth
         Assert.assertFalse(iterator.hasNext());
@@ -557,5 +561,42 @@ public class TestExplorationGenerator {
         }
 
         Assert.assertFalse(iterator.hasNext());
+    }
+
+    @Test
+    public void testInvalidGeneratorConstPrimitives() throws FileNotFoundException, JSONSchemaException, URISyntaxException {
+        runInvalidGenerator(loadSchema("withConstInteger.json", true), 1, 1);
+        runInvalidGenerator(loadSchema("withConstNumber.json", true), 1, 1);
+        runInvalidGenerator(loadSchema("withConstString.json", true), 1, 1);
+        runInvalidGenerator(loadSchema("withConstBoolean.json", true), 1, 1);
+    }
+
+    private void runInvalidGenerator(JSONSchema schema, int maxProperties, int maxItems) throws JSONSchemaException {
+        ExplorationGenerator generator = new DefaultExplorationGenerator(maxProperties, maxItems);
+        Iterator<JSONObject> iterator = generator.createIterator(schema, 2, true);
+        Validator validator = new DefaultValidator();
+
+        boolean atLeastOneValid = false;
+        boolean atLeastOneInvalid = false;
+
+        while (iterator.hasNext()) {
+            JSONObject document = iterator.next();
+            boolean valid = validator.validate(schema, document);
+            atLeastOneValid = atLeastOneValid || valid;
+            atLeastOneInvalid = atLeastOneInvalid || !valid;
+        }
+
+        Assert.assertTrue(atLeastOneValid);
+        Assert.assertTrue(atLeastOneInvalid);
+    }
+
+    @Test
+    public void testInvalidGeneratorConstObject() throws FileNotFoundException, JSONSchemaException, URISyntaxException {
+        runInvalidGenerator(loadSchema("withConstObject.json", true), 3, 1);
+    }
+
+    @Test
+    public void testInvalidGeneratorConstArray() throws FileNotFoundException, JSONSchemaException, URISyntaxException {
+        runInvalidGenerator(loadSchema("withConstArray.json", true), 1, 3);
     }
 }

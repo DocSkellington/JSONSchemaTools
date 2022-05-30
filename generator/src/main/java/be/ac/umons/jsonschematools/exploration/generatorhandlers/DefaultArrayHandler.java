@@ -33,7 +33,8 @@ public class DefaultArrayHandler extends AHandler {
 
     @Override
     public Optional<Object> generate(final JSONSchema schema, final ExplorationGenerator generator,
-            int maxDocumentDepth, final ChoicesSequence choices) throws JSONSchemaException, JSONException {
+            int maxDocumentDepth, boolean canGenerateInvalid, final ChoicesSequence choices)
+            throws JSONSchemaException, JSONException {
         if (maxDocumentDepth == 0) {
             return Optional.empty();
         }
@@ -41,30 +42,64 @@ public class DefaultArrayHandler extends AHandler {
         final List<JSONArray> forbiddenValues = new ArrayList<>(
                 schema.getForbiddenValuesFilteredByType(JSONArray.class));
 
-        Optional<Object> value = generateArray(schema, generator, maxDocumentDepth - 1, choices);
+        final int newMaxDocumentDepth;
+        if (maxDocumentDepth == -1) {
+            newMaxDocumentDepth = -1;
+        } else {
+            newMaxDocumentDepth = maxDocumentDepth - 1;
+        }
+        Optional<Object> value = generateArray(schema, generator, newMaxDocumentDepth, canGenerateInvalid, choices);
         if (value.isEmpty()) {
             return value;
         }
         JSONArray array = (JSONArray) value.get();
-        for (Object forbidden : forbiddenValues) {
-            if (array.similar(forbidden)) {
-                return Optional.empty();
+        if (!canGenerateInvalid) {
+            for (Object forbidden : forbiddenValues) {
+                if (array.similar(forbidden)) {
+                    return Optional.empty();
+                }
             }
         }
         return value;
     }
 
-    private Optional<Object> generateArray(final JSONSchema schema, final ExplorationGenerator generator, int maxDocumentDepth,
-            final ChoicesSequence choices) throws JSONSchemaException, JSONException {
+    private Optional<Object> generateArray(final JSONSchema schema, final ExplorationGenerator generator,
+            int maxDocumentDepth, boolean canGenerateInvalid, final ChoicesSequence choices)
+            throws JSONSchemaException, JSONException {
         final JSONArray array = new JSONArray();
 
         final int minItems, maxItems;
-        minItems = schema.getIntOr("minItems", 0);
-        maxItems = schema.getIntOr("maxItems", this.maxItems);
+        final boolean ignoreMinItems, ignoreMaxItems;
 
-        if (schema.getConstValue() != null) {
-            JSONArray constValue = (JSONArray) schema.getConstValue();
-            if (!(minItems <= constValue.length() && constValue.length() <= maxItems)) {
+        if (canGenerateInvalid) {
+            ignoreMinItems = choices.getNextBooleanValue();
+            ignoreMaxItems = choices.getNextBooleanValue();
+        }
+        else {
+            ignoreMinItems = ignoreMaxItems = false;
+        }
+
+        if (ignoreMinItems) {
+            minItems = 0;
+        }
+        else {
+            minItems = schema.getIntOr("minItems", 0);
+        }
+
+        if (ignoreMaxItems) {
+            maxItems = this.maxItems;
+        }
+        else {
+            maxItems = schema.getIntOr("maxItems", this.maxItems);
+        }
+
+        if (!canGenerateInvalid && minItems > maxItems) {
+            return Optional.empty();
+        }
+
+        final JSONArray constValue = schema.getConstValueIfType(JSONArray.class);
+        if (constValue != null) {
+            if (!canGenerateInvalid && !(minItems <= constValue.length() && constValue.length() <= maxItems)) {
                 return Optional.empty();
             }
             return Optional.of(AbstractConstants.abstractConstValue(constValue));
@@ -82,7 +117,9 @@ public class DefaultArrayHandler extends AHandler {
             }
         } else {
             for (int i = 0; i < length; i++) {
-                Optional<Object> value = generator.generateValueAccordingToConstraints(itemsSchema, maxDocumentDepth, choices);
+                Optional<Object> value = generator.generateValueAccordingToConstraints(itemsSchema, maxDocumentDepth,
+                        canGenerateInvalid,
+                        choices);
                 if (value.isEmpty()) {
                     return Optional.empty();
                 }

@@ -92,8 +92,8 @@ public class DefaultArrayHandler extends AHandler {
             throw new GeneratorException("Array: minItems can not be strictly greater than maxItems");
         }
 
-        if (schema.getConstValue() != null) {
-            JSONArray constValue = (JSONArray) schema.getConstValue();
+        final JSONArray constValue = schema.getConstValueIfType(JSONArray.class);
+        if (constValue != null) {
             if (!(minItems <= constValue.length() && constValue.length() <= maxItems)) {
                 if (generateInvalid) {
                     return constValue;

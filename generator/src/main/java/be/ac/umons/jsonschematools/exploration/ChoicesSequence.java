@@ -1,6 +1,7 @@
 package be.ac.umons.jsonschematools.exploration;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
 
@@ -160,5 +161,135 @@ public class ChoicesSequence implements Iterable<Choice> {
             }
         }
         return builder.toString();
+    }
+
+    /**
+     * Using a {@link Choice}, gets the next possible value between {@code minValue}
+     * and {@code maxValue} (both bounds are included).
+     * 
+     * If there are no other possibilities, throws a {@code RuntimeException}.
+     * 
+     * @param minValue The minimal value
+     * @param maxValue The maximal value
+     * @return The next possible value
+     */
+    public int getNextValueBetween(int minValue, int maxValue) {
+        if (hasNextChoiceInExploration()) {
+            Choice choiceInRun = getNextChoiceInExploration();
+            if (hasUnseenValueFurtherInExploration()) {
+                return minValue + choiceInRun.currentValue();
+            }
+            removeAllChoicesAfterCurrentChoiceInExploration();
+
+            if (choiceInRun.hasNextValue()) {
+                return minValue + choiceInRun.nextValue();
+            } else {
+                throw new RuntimeException("Invalid state for next value between two bounds");
+            }
+        } else {
+            Choice choice = createNewChoice(maxValue - minValue + 1, true);
+            return minValue + choice.nextValue();
+        }
+    }
+
+    /**
+     * Gets the next possible index of a list, i.e., a number between 0 and
+     * {@code listSize - 1}.
+     * 
+     * @param listSize The size of the list
+     * @return The next possible index
+     */
+    public int getIndexNextExclusiveSelectionInList(int listSize) {
+        return getNextValueBetween(0, listSize - 1);
+    }
+
+    /**
+     * Gets the next possible {@link BitSet} that represents a selection of
+     * {@code lengthSelection} elements in a list.
+     * 
+     * @param listSize        The size of the whole list
+     * @param lengthSelection The number of elements to select
+     * @return A {@link BitSet} representing the selection
+     */
+    public BitSet getBitSetNextInclusiveSelectionInList(int listSize, int lengthSelection) {
+        if (hasNextChoiceInExploration()) {
+            Choice choiceInRun = getNextChoiceInExploration();
+            if (hasUnseenValueFurtherInExploration()) {
+                return choiceInRun.getBitSet();
+            } else {
+                removeAllChoicesAfterCurrentChoiceInExploration();
+
+                BitSet selection = getNextValidBitSetForOptionalKeys(lengthSelection, choiceInRun);
+                if (selection == null) {
+                    popLastChoice();
+                }
+                return selection;
+            }
+        } else {
+            Choice choice = createNewChoice(listSize, false);
+            BitSet selection = getNextValidBitSetForOptionalKeys(lengthSelection, choice);
+            if (selection == null) {
+                popLastChoice();
+            }
+            return selection;
+        }
+    }
+
+    private BitSet getNextValidBitSetForOptionalKeys(final int lengthSelection, final Choice choice) {
+        BitSet selection = null;
+        while (selection == null || selection.cardinality() != lengthSelection) {
+            if (choice.hasNextValue()) {
+                choice.nextValue();
+                selection = choice.getBitSet();
+            } else {
+                return null;
+            }
+        }
+        return selection;
+    }
+
+    /**
+     * Gets the next possible {@link Choice} for selecting one or multiple elements
+     * in a list.
+     * 
+     * @param listSize        The size of the list
+     * @param exclusiveChoice Whether one element or multiple elements can be
+     *                        selected at any time
+     * @param skipFirst       If true, skips the first possible value (i.e., zero)
+     * @return The {@link Choice}
+     */
+    public Choice getChoiceForSelectionInList(int listSize, boolean exclusiveChoice, boolean skipFirst) {
+        if (hasNextChoiceInExploration()) {
+            return getNextChoiceInExploration();
+        } else {
+            Choice choice = createNewChoice(listSize, exclusiveChoice);
+            if (skipFirst) {
+                choice.nextValue();
+            }
+            return choice;
+        }
+    }
+
+    /**
+     * Gets the next Boolean value.
+     * 
+     * @return The next Boolean
+     */
+    public boolean getNextBooleanValue() {
+        if (hasNextChoiceInExploration()) {
+            Choice choiceInExploration = getNextChoiceInExploration();
+            if (hasUnseenValueFurtherInExploration()) {
+                return choiceInExploration.currentValue() == 1;
+            }
+            removeAllChoicesAfterCurrentChoiceInExploration();
+
+            if (choiceInExploration.hasNextValue()) {
+                return choiceInExploration.nextValue() == 1;
+            }
+            throw new RuntimeException("Invalid state for a boolean choice");
+        } else {
+            Choice choice = createNewChoice(1, false);
+            return choice.nextValue() == 1;
+        }
     }
 }

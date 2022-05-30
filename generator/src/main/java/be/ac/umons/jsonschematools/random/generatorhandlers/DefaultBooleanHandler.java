@@ -28,7 +28,8 @@ public class DefaultBooleanHandler extends AHandler {
     public Object generate(RandomGenerator generator, JSONSchema schema, int maxTreeSize,
             Random rand) throws JSONSchemaException, GeneratorException, JSONException {
         Set<Boolean> forbiddenValues = schema.getForbiddenValuesFilteredByType(Boolean.class);
-        Object constValue = schema.getConstValue();
+
+        final Object constValue = schema.getConstValueIfType(Boolean.class);
         boolean generateInvalid = generateInvalid(rand);
         if (constValue != null) {
             if (forbiddenValues.contains(constValue)) {

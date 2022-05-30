@@ -15,7 +15,6 @@ import be.ac.umons.jsonschematools.AbstractConstants;
 import be.ac.umons.jsonschematools.JSONSchema;
 import be.ac.umons.jsonschematools.JSONSchemaException;
 import be.ac.umons.jsonschematools.Type;
-import be.ac.umons.jsonschematools.exploration.Choice;
 import be.ac.umons.jsonschematools.exploration.ChoicesSequence;
 import be.ac.umons.jsonschematools.exploration.ExplorationGenerator;
 
@@ -39,7 +38,8 @@ public class DefaultObjectHandler extends AHandler {
 
     @Override
     public Optional<Object> generate(final JSONSchema schema, final ExplorationGenerator generator,
-            int maxDocumentDepth, final ChoicesSequence choices) throws JSONSchemaException, JSONException {
+            int maxDocumentDepth, boolean canGenerateInvalid, final ChoicesSequence choices)
+            throws JSONSchemaException, JSONException {
         if (maxDocumentDepth == 0) {
             return Optional.empty();
         }
@@ -47,21 +47,30 @@ public class DefaultObjectHandler extends AHandler {
         final List<JSONObject> forbiddenValues = new ArrayList<>(
                 schema.getForbiddenValuesFilteredByType(JSONObject.class));
 
-        Optional<Object> value = generateObject(schema, generator, maxDocumentDepth - 1, choices);
+        final int newMaxDocumentDepth;
+        if (maxDocumentDepth == -1) {
+            newMaxDocumentDepth = -1;
+        } else {
+            newMaxDocumentDepth = maxDocumentDepth - 1;
+        }
+        Optional<Object> value = generateObject(schema, generator, newMaxDocumentDepth, canGenerateInvalid, choices);
         if (value.isEmpty()) {
             return value;
         }
         JSONObject object = (JSONObject) value.get();
-        for (Object forbidden : forbiddenValues) {
-            if (object.similar(forbidden)) {
-                return Optional.empty();
+        if (!canGenerateInvalid) {
+            for (Object forbidden : forbiddenValues) {
+                if (object.similar(forbidden)) {
+                    return Optional.empty();
+                }
             }
         }
         return value;
     }
 
     private Optional<Object> generateObject(final JSONSchema schema, final ExplorationGenerator generator,
-            int maxDocumentDepth, final ChoicesSequence choices) throws JSONSchemaException, JSONException {
+            int maxDocumentDepth, boolean canGenerateInvalid, final ChoicesSequence choices)
+            throws JSONSchemaException, JSONException {
         final JSONObject jsonObject = new JSONObject();
 
         final BiConsumer<String, Optional<Object>> addToDocumentIfNotNullType = (key, value) -> {
@@ -71,16 +80,34 @@ public class DefaultObjectHandler extends AHandler {
         };
 
         final int minProperties, maxProperties;
-        minProperties = schema.getIntOr("minProperties", 0);
-        maxProperties = schema.getIntOr("maxProperties", this.maxProperties);
+        final boolean ignoreMinProperties, ignoreMaxProperties;
 
-        if (maxProperties < minProperties) {
+        if (canGenerateInvalid) {
+            ignoreMinProperties = choices.getNextBooleanValue();
+            ignoreMaxProperties = choices.getNextBooleanValue();
+        } else {
+            ignoreMinProperties = ignoreMaxProperties = false;
+        }
+
+        if (ignoreMinProperties) {
+            minProperties = 0;
+        } else {
+            minProperties = schema.getIntOr("minProperties", 0);
+        }
+
+        if (ignoreMaxProperties) {
+            maxProperties = this.maxProperties;
+        } else {
+            maxProperties = schema.getIntOr("maxProperties", this.maxProperties);
+        }
+
+        if (!canGenerateInvalid && maxProperties < minProperties) {
             return Optional.empty();
         }
 
-        if (schema.getConstValue() != null) {
-            JSONObject constValue = (JSONObject) schema.getConstValue();
-            if (!(minProperties <= constValue.length() && constValue.length() <= maxProperties
+        final JSONObject constValue = schema.getConstValueIfType(JSONObject.class);
+        if (constValue != null) {
+            if (!canGenerateInvalid && !(minProperties <= constValue.length() && constValue.length() <= maxProperties
                     && constValue.keySet().containsAll(schema.getRequiredPropertiesKeys()))) {
                 return Optional.empty();
             }
@@ -88,9 +115,14 @@ public class DefaultObjectHandler extends AHandler {
         }
 
         for (Map.Entry<String, JSONSchema> entry : schema.getRequiredProperties().entrySet()) {
+            if (canGenerateInvalid && choices.getNextBooleanValue()) {
+                // We skip the required property
+                continue;
+            }
             JSONSchema subSchema = entry.getValue();
             String key = entry.getKey();
-            Optional<Object> value = generator.generateValueAccordingToConstraints(subSchema, maxDocumentDepth, choices);
+            Optional<Object> value = generator.generateValueAccordingToConstraints(subSchema, maxDocumentDepth,
+                    canGenerateInvalid, choices);
             if (value.isEmpty()) {
                 return Optional.empty();
             }
@@ -100,7 +132,7 @@ public class DefaultObjectHandler extends AHandler {
         final int missingProperties = Math.max(0, minProperties - jsonObject.length());
 
         final Map<String, JSONSchema> nonRequiredProperties = schema.getNonRequiredProperties();
-        if (missingProperties > nonRequiredProperties.size()) {
+        if (!canGenerateInvalid && missingProperties > nonRequiredProperties.size()) {
             return Optional.empty();
         }
 
@@ -119,7 +151,8 @@ public class DefaultObjectHandler extends AHandler {
 
         for (final String key : selectedKeys) {
             final JSONSchema subSchema = schema.getSubSchemaProperties(key);
-            final Optional<Object> value = generator.generateValueAccordingToConstraints(subSchema, maxDocumentDepth, choices);
+            final Optional<Object> value = generator.generateValueAccordingToConstraints(subSchema, maxDocumentDepth,
+                    canGenerateInvalid, choices);
             if (value.isEmpty()) {
                 return Optional.empty();
             }
@@ -132,27 +165,9 @@ public class DefaultObjectHandler extends AHandler {
 
     private List<String> selectOptionalKeys(final List<String> nonRequiredKeys, final int length,
             final ChoicesSequence choices) {
-        final BitSet selection;
-        if (choices.hasNextChoiceInExploration()) {
-            Choice choiceInRun = choices.getNextChoiceInExploration();
-            if (choices.hasUnseenValueFurtherInExploration()) {
-                selection = choiceInRun.getBitSet();
-            } else {
-                choices.removeAllChoicesAfterCurrentChoiceInExploration();
-
-                selection = getNextValidBitSetForOptionalKeys(length, choiceInRun);
-                if (selection == null) {
-                    choices.popLastChoice();
-                    return null;
-                }
-            }
-        } else {
-            Choice choice = choices.createNewChoice(nonRequiredKeys.size(), false);
-            selection = getNextValidBitSetForOptionalKeys(length, choice);
-            if (selection == null) {
-                choices.popLastChoice();
-                return null;
-            }
+        BitSet selection = choices.getBitSetNextInclusiveSelectionInList(nonRequiredKeys.size(), length);
+        if (selection == null) {
+            return null;
         }
 
         return listOfSelectedKeys(nonRequiredKeys, length, selection);
@@ -167,18 +182,5 @@ public class DefaultObjectHandler extends AHandler {
         }
         assert selectedKeys.size() == length;
         return selectedKeys;
-    }
-
-    private BitSet getNextValidBitSetForOptionalKeys(final int length, final Choice choice) {
-        BitSet selection = null;
-        while (selection == null || selection.cardinality() != length) {
-            if (choice.hasNextValue()) {
-                choice.nextValue();
-                selection = choice.getBitSet();
-            } else {
-                return null;
-            }
-        }
-        return selection;
     }
 }

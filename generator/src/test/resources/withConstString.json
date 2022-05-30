@@ -1,0 +1,18 @@
+{
+    "type": "object",
+    "properties": {
+        "positiveConstString": {
+            "const": "hello"
+        },
+        "negativeConstString": {
+            "not": {
+                "const": "hello"
+            },
+            "type": ["string"]
+        }
+    },
+    "required": [
+        "positiveConstString",
+        "negativeConstString"
+    ]
+}

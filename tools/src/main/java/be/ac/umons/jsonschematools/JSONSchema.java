@@ -420,6 +420,13 @@ public final class JSONSchema {
         return constValue;
     }
 
+    public <T> T getConstValueIfType(Class<T> type) {
+        if (type.isInstance(constValue)) {
+            return type.cast(constValue);
+        }
+        return null;
+    }
+
     /**
      * Returns true if this schema allows the type ENUM.
      * 
@@ -569,7 +576,7 @@ public final class JSONSchema {
      */
     public Set<String> getRequiredPropertiesKeys() throws JSONSchemaException {
         if (!isObject()) {
-            throw new JSONSchemaException("Required properties are only defined for objects");
+            return Collections.emptySet();
         }
 
         if (schema.has("required")) {
@@ -592,7 +599,7 @@ public final class JSONSchema {
      */
     public Map<String, JSONSchema> getRequiredProperties() throws JSONSchemaException {
         if (!isObject()) {
-            throw new JSONSchemaException("Required properties are only defined for objects");
+            return Collections.emptyMap();
         }
 
         if (schema.has("required")) {
@@ -619,7 +626,7 @@ public final class JSONSchema {
      */
     public Map<String, JSONSchema> getNonRequiredProperties() throws JSONSchemaException {
         if (!isObject()) {
-            throw new JSONSchemaException("Required properties are only defined for objects");
+            return Collections.emptyMap();
         }
 
         Set<String> requiredKeys = getRequiredPropertiesKeys();

@@ -1,0 +1,34 @@
+{
+    "type": "object",
+    "properties": {
+        "positiveConstObject": {
+            "const": {
+                "test": true,
+                "int": 3
+            }
+        },
+        "negativeConstObject": {
+            "not": {
+                "const": {
+                    "test": true,
+                    "int": 3
+                }
+            },
+            "type": ["object"],
+            "properties": {
+                "test": {
+                    "type": "boolean"
+                },
+                "int": {
+                    "type": "integer"
+                }
+            },
+            "required": ["test", "int"],
+            "additionalProperties": false
+        }
+    },
+    "required": [
+        "positiveConstObject",
+        "negativeConstObject"
+    ]
+}

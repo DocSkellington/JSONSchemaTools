@@ -1,6 +1,5 @@
 package be.ac.umons.jsonschematools.exploration.generatorhandlers;
 
-import be.ac.umons.jsonschematools.exploration.Choice;
 import be.ac.umons.jsonschematools.exploration.ChoicesSequence;
 
 /**
@@ -21,22 +20,6 @@ abstract class AHandler implements IHandler {
      *         choice.
      */
     protected int length(final int minLength, final int maxLength, final ChoicesSequence choices) {
-        if (choices.hasNextChoiceInExploration()) {
-            Choice choiceInRun = choices.getNextChoiceInExploration();
-            if (choices.hasUnseenValueFurtherInExploration()) {
-                return minLength + choiceInRun.currentValue();
-            }
-            choices.removeAllChoicesAfterCurrentChoiceInExploration();
-
-            if (choiceInRun.hasNextValue()) {
-                return minLength + choiceInRun.nextValue();
-            } else {
-                choices.popLastChoice();
-                return -1;
-            }
-        } else {
-            Choice choice = choices.createNewChoice(maxLength - minLength + 1, true);
-            return minLength + choice.nextValue();
-        }
+        return choices.getNextValueBetween(minLength, maxLength);
     }
 }
