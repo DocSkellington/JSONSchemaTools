@@ -33,11 +33,15 @@ public class DefaultArrayHandler extends AHandler {
 
     @Override
     public Optional<Object> generate(final JSONSchema schema, final ExplorationGenerator generator,
-            final ChoicesSequence choices) throws JSONSchemaException, JSONException {
+            int maxDocumentDepth, final ChoicesSequence choices) throws JSONSchemaException, JSONException {
+        if (maxDocumentDepth == 0) {
+            return Optional.empty();
+        }
+
         final List<JSONArray> forbiddenValues = new ArrayList<>(
                 schema.getForbiddenValuesFilteredByType(JSONArray.class));
 
-        Optional<Object> value = generateArray(schema, generator, choices);
+        Optional<Object> value = generateArray(schema, generator, maxDocumentDepth - 1, choices);
         if (value.isEmpty()) {
             return value;
         }
@@ -50,7 +54,7 @@ public class DefaultArrayHandler extends AHandler {
         return value;
     }
 
-    private Optional<Object> generateArray(final JSONSchema schema, final ExplorationGenerator generator,
+    private Optional<Object> generateArray(final JSONSchema schema, final ExplorationGenerator generator, int maxDocumentDepth,
             final ChoicesSequence choices) throws JSONSchemaException, JSONException {
         final JSONArray array = new JSONArray();
 
@@ -78,7 +82,7 @@ public class DefaultArrayHandler extends AHandler {
             }
         } else {
             for (int i = 0; i < length; i++) {
-                Optional<Object> value = generator.generateValueAccordingToConstraints(itemsSchema, choices);
+                Optional<Object> value = generator.generateValueAccordingToConstraints(itemsSchema, maxDocumentDepth, choices);
                 if (value.isEmpty()) {
                     return Optional.empty();
                 }

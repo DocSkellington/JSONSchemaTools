@@ -46,18 +46,49 @@ public class ExplorationGenerator {
         this.arrayHandler = arrayHandler;
     }
 
+    /**
+     * Creates an iterator over the documents this generator can produce.
+     * 
+     * Documents are created when calling {@code next()}.
+     * 
+     * The depth of the documents is not bounded, i.e., they can be an infinite
+     * number of documents if the schema is recursive.
+     * 
+     * @param schema The schema
+     * @return An iterator
+     */
     public Iterator<JSONObject> createIterator(JSONSchema schema) {
-        return new ExplorationIterator(schema, this);
+        return createIterator(schema, -1);
     }
 
-    JSONObject generateDocument(JSONSchema schema, ChoicesSequence choices) throws JSONException, JSONSchemaException {
+    /**
+     * Creates an iterator over the documents this generator can produce up to the
+     * given document depth.
+     * 
+     * Documents are created when calling {@code next()}.
+     * 
+     * The depth of the documents is bounded, i.e., in any document, there can only
+     * be {@code maxDocumentDepth} nested objects and arrays.
+     * Note that if the bound is set too low, only invalid documents may be
+     * generated as the deepest objects or arrays may not be correct.
+     * In particular, no documents will be generated with a depth of zero.
+     * 
+     * @param schema The schema
+     * @return An iterator
+     */
+    public Iterator<JSONObject> createIterator(JSONSchema schema, int maxDocumentDepth) {
+        return new ExplorationIterator(schema, maxDocumentDepth, this);
+    }
+
+    JSONObject generateDocument(JSONSchema schema, int maxDocumentDepth, ChoicesSequence choices)
+            throws JSONException, JSONSchemaException {
         choices.prepareForNewExploration();
-        Optional<Object> object = generateValueAccordingToConstraints(schema, choices);
+        Optional<Object> object = generateValueAccordingToConstraints(schema, maxDocumentDepth, choices);
         // If it was not possible to generate the object with the previous choices, we
         // start again if it is possible.
         while (object.isEmpty() && choices.containsChoiceWithNextValue()) {
             choices.prepareForNewExploration();
-            object = generateValueAccordingToConstraints(schema, choices);
+            object = generateValueAccordingToConstraints(schema, maxDocumentDepth, choices);
         }
         if (object.isEmpty()) {
             return null;
@@ -65,7 +96,7 @@ public class ExplorationGenerator {
         return (JSONObject) object.get();
     }
 
-    private Optional<Object> generateValue(JSONSchema schema, Type type, ChoicesSequence choices)
+    private Optional<Object> generateValue(JSONSchema schema, Type type, int maxDocumentDepth, ChoicesSequence choices)
             throws JSONException, JSONSchemaException {
         IHandler handler;
         switch (type) {
@@ -96,20 +127,22 @@ public class ExplorationGenerator {
                 return Optional.empty();
         }
 
-        return handler.generate(schema, this, choices);
+        return handler.generate(schema, this, maxDocumentDepth, choices);
     }
 
     /**
      * Generates a value according to the constraints given in the schema and
      * following the sequence of choices.
      * 
-     * @param schema  The schema
-     * @param choices The sequence of choices
+     * @param schema           The schema
+     * @param maxDocumentDepth The maximal depth of the document
+     * @param choices          The sequence of choices
      * @return An optional containing the value, if it was possible to generate it.
      * @throws JSONException
      * @throws JSONSchemaException
      */
-    public Optional<Object> generateValueAccordingToConstraints(JSONSchema schema, ChoicesSequence choices)
+    public Optional<Object> generateValueAccordingToConstraints(JSONSchema schema, int maxDocumentDepth,
+            ChoicesSequence choices)
             throws JSONException, JSONSchemaException {
         final JSONSchema allOf = schema.getAllOf();
         // @formatter:off
@@ -185,15 +218,16 @@ public class ExplorationGenerator {
             ;
             // @formatter:on
 
-            value = generateValueForMergedSchema(mergedSchema, choices);
+            value = generateValueForMergedSchema(mergedSchema, maxDocumentDepth, choices);
         } while (value.isEmpty());
         return value;
     }
 
-    private Optional<Object> generateValueForMergedSchema(final JSONSchema mergedSchema, final ChoicesSequence choices)
+    private Optional<Object> generateValueForMergedSchema(final JSONSchema mergedSchema, int maxDocumentDepth,
+            final ChoicesSequence choices)
             throws JSONException, JSONSchemaException {
         if (mergedSchema.needsFurtherUnfolding()) {
-            return generateValueAccordingToConstraints(mergedSchema, choices);
+            return generateValueAccordingToConstraints(mergedSchema, maxDocumentDepth, choices);
         }
 
         List<Type> allowedTypes = mergedSchema.getAllowedTypes();
@@ -205,7 +239,7 @@ public class ExplorationGenerator {
         if (selectedType == null) {
             return Optional.empty();
         }
-        return generateValue(mergedSchema, selectedType, choices);
+        return generateValue(mergedSchema, selectedType, maxDocumentDepth, choices);
     }
 
     private Type selectType(List<Type> allowedTypes, ChoicesSequence choices) {

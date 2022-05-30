@@ -19,11 +19,13 @@ class ExplorationIterator implements Iterator<JSONObject> {
     private final JSONSchema schema;
     private final ChoicesSequence choices = new ChoicesSequence();
     private final ExplorationGenerator generator;
+    private final int maxDocumentDepth;
     private JSONObject nextDocument = null;
 
-    ExplorationIterator(JSONSchema schema, ExplorationGenerator generator) {
+    ExplorationIterator(JSONSchema schema, int maxDocumentDepth, ExplorationGenerator generator) {
         this.schema = schema;
         this.generator = generator;
+        this.maxDocumentDepth = maxDocumentDepth;
         computeNextDocument();
     }
 
@@ -47,7 +49,7 @@ class ExplorationIterator implements Iterator<JSONObject> {
     private void computeNextDocument() {
         if (choices.containsChoiceWithNextValue()) {
             try {
-                nextDocument = generator.generateDocument(schema, choices);
+                nextDocument = generator.generateDocument(schema, maxDocumentDepth, choices);
             } catch (JSONException | JSONSchemaException e) {
                 e.printStackTrace();
                 nextDocument = null;

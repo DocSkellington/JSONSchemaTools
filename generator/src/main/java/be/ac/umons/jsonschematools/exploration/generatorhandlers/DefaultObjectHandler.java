@@ -39,11 +39,15 @@ public class DefaultObjectHandler extends AHandler {
 
     @Override
     public Optional<Object> generate(final JSONSchema schema, final ExplorationGenerator generator,
-            final ChoicesSequence choices) throws JSONSchemaException, JSONException {
+            int maxDocumentDepth, final ChoicesSequence choices) throws JSONSchemaException, JSONException {
+        if (maxDocumentDepth == 0) {
+            return Optional.empty();
+        }
+
         final List<JSONObject> forbiddenValues = new ArrayList<>(
                 schema.getForbiddenValuesFilteredByType(JSONObject.class));
 
-        Optional<Object> value = generateObject(schema, generator, choices);
+        Optional<Object> value = generateObject(schema, generator, maxDocumentDepth - 1, choices);
         if (value.isEmpty()) {
             return value;
         }
@@ -57,7 +61,7 @@ public class DefaultObjectHandler extends AHandler {
     }
 
     private Optional<Object> generateObject(final JSONSchema schema, final ExplorationGenerator generator,
-            final ChoicesSequence choices) throws JSONSchemaException, JSONException {
+            int maxDocumentDepth, final ChoicesSequence choices) throws JSONSchemaException, JSONException {
         final JSONObject jsonObject = new JSONObject();
 
         final BiConsumer<String, Optional<Object>> addToDocumentIfNotNullType = (key, value) -> {
@@ -86,7 +90,7 @@ public class DefaultObjectHandler extends AHandler {
         for (Map.Entry<String, JSONSchema> entry : schema.getRequiredProperties().entrySet()) {
             JSONSchema subSchema = entry.getValue();
             String key = entry.getKey();
-            Optional<Object> value = generator.generateValueAccordingToConstraints(subSchema, choices);
+            Optional<Object> value = generator.generateValueAccordingToConstraints(subSchema, maxDocumentDepth, choices);
             if (value.isEmpty()) {
                 return Optional.empty();
             }
@@ -115,7 +119,7 @@ public class DefaultObjectHandler extends AHandler {
 
         for (final String key : selectedKeys) {
             final JSONSchema subSchema = schema.getSubSchemaProperties(key);
-            final Optional<Object> value = generator.generateValueAccordingToConstraints(subSchema, choices);
+            final Optional<Object> value = generator.generateValueAccordingToConstraints(subSchema, maxDocumentDepth, choices);
             if (value.isEmpty()) {
                 return Optional.empty();
             }

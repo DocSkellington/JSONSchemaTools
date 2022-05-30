@@ -50,6 +50,14 @@ public class TestExplorationGenerator {
     }
 
     @Test
+    public void testGeneratorZeroDepth() throws FileNotFoundException, JSONSchemaException, URISyntaxException {
+        JSONSchema schema = loadSchema("primitiveTypes.json", false);
+        ExplorationGenerator generator = new DefaultExplorationGenerator();
+        Iterator<JSONObject> iterator = generator.createIterator(schema, 0);
+        Assert.assertFalse(iterator.hasNext());
+    }
+
+    @Test
     public void testGeneratorPrimitiveTypes() throws URISyntaxException, FileNotFoundException, JSONSchemaException, JSONException, GeneratorException {
         JSONSchema schema = loadSchema("primitiveTypes.json", false);
         ExplorationGenerator generator = new DefaultExplorationGenerator();
@@ -128,7 +136,6 @@ public class TestExplorationGenerator {
                 for (Object anythingInObject : listAnythingInObject) {
                     Assert.assertTrue(iterator.hasNext());
                     document = iterator.next();
-                    System.out.println(document.toString(4));
                     checkValuesInBasicTypes(document, booleanValue, anythingInObject, sizeArray);
                 }
             }
@@ -191,7 +198,6 @@ public class TestExplorationGenerator {
                 for (List<Boolean> argumentsValues : listArgumentsValues) {
                     Assert.assertTrue(iterator.hasNext());
                     JSONObject document = iterator.next();
-                    System.out.println(document.toString(4));
                     checkValuesInDefinitionByRef(document, descriptionArgumentsValues, argumentsValues, commentPresent);
                 }
             }
@@ -453,14 +459,31 @@ public class TestExplorationGenerator {
         ExplorationGenerator generator = new DefaultExplorationGenerator(4, 4);
         Iterator<JSONObject> iterator = generator.createIterator(schema);
 
-        for (int depth = 0 ; depth < 20 ; depth++) {
+        for (int nRecursion = 0 ; nRecursion < 20 ; nRecursion++) {
             Assert.assertTrue(iterator.hasNext());
             JSONObject document = iterator.next();
-            checkRecursiveList(document, depth);
+            checkRecursiveList(document, nRecursion);
         }
 
         // There is an infinite number of documents
         Assert.assertTrue(iterator.hasNext());
+    }
+
+    @Test
+    public void testGeneratorRecursiveListBoundedDepth() throws FileNotFoundException, JSONSchemaException, URISyntaxException {
+        JSONSchema schema = loadSchema("recursiveList.json", false);
+        ExplorationGenerator generator = new DefaultExplorationGenerator(4, 4);
+        Iterator<JSONObject> iterator = generator.createIterator(schema, 40);
+
+        for (int nRecursion = 0 ; nRecursion < 20 ; nRecursion++) {
+            Assert.assertTrue(iterator.hasNext());
+            JSONObject document = iterator.next();
+            System.out.println(document);
+            checkRecursiveList(document, nRecursion);
+        }
+
+        // There is a finite number of documents thanks to maximal depth
+        Assert.assertFalse(iterator.hasNext());
     }
 
     private void checkRecursiveList(JSONObject document, int maxDepth) {

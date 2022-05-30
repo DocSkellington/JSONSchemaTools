@@ -19,7 +19,7 @@ public class DefaultIntegerHandler extends AHandler {
 
     @Override
     public Optional<Object> generate(final JSONSchema schema, final ExplorationGenerator generator,
-            final ChoicesSequence choices) throws JSONSchemaException, JSONException {
+            int maxDocumentDepth, final ChoicesSequence choices) throws JSONSchemaException, JSONException {
         return Optional.of(AbstractConstants.integerConstant);
     }
 

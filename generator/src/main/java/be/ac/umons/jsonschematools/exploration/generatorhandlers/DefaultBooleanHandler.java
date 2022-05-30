@@ -22,8 +22,8 @@ public class DefaultBooleanHandler extends AHandler {
     private static final List<Boolean> booleanValues = List.of(true, false);
 
     @Override
-    public Optional<Object> generate(final JSONSchema schema, ExplorationGenerator generator,
-            final ChoicesSequence choices) throws JSONSchemaException, JSONException {
+    public Optional<Object> generate(final JSONSchema schema, final ExplorationGenerator generator,
+            int maxDocumentDepth, final ChoicesSequence choices) throws JSONSchemaException, JSONException {
         final List<Boolean> forbiddenValues = new ArrayList<>(schema.getForbiddenValuesFilteredByType(Boolean.class));
 
         if (forbiddenValues.contains(true) && forbiddenValues.contains(false)) {
