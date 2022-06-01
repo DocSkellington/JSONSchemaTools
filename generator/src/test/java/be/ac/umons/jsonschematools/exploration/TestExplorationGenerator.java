@@ -464,7 +464,7 @@ public class TestExplorationGenerator {
         for (int nRecursion = 0 ; nRecursion < 20 ; nRecursion++) {
             Assert.assertTrue(iterator.hasNext());
             JSONObject document = iterator.next();
-            checkRecursiveList(document, nRecursion);
+            checkRecursiveList(document, nRecursion, false);
         }
 
         // There is an infinite number of documents
@@ -475,23 +475,23 @@ public class TestExplorationGenerator {
     public void testGeneratorRecursiveListBoundedDepth() throws FileNotFoundException, JSONSchemaException, URISyntaxException {
         JSONSchema schema = loadSchema("recursiveList.json", false);
         ExplorationGenerator generator = new DefaultExplorationGenerator(4, 4);
-        Iterator<JSONObject> iterator = generator.createIterator(schema, 39);
+        Iterator<JSONObject> iterator = generator.createIterator(schema, 40);
 
         for (int nRecursion = 0 ; nRecursion < 20 ; nRecursion++) {
             Assert.assertTrue(iterator.hasNext());
             JSONObject document = iterator.next();
-            checkRecursiveList(document, nRecursion);
+            checkRecursiveList(document, nRecursion, false);
         }
 
         Assert.assertTrue(iterator.hasNext());
-        checkRecursiveList(iterator.next(), 19);
+        checkRecursiveList(iterator.next(), 20, true);
 
         // There is a finite number of documents thanks to maximal depth
         Assert.assertFalse(iterator.hasNext());
     }
 
-    private void checkRecursiveList(JSONObject document, int maxDepth) {
-        if (maxDepth != 0) {
+    private void checkRecursiveList(JSONObject document, int wantedDepth, boolean reachedMaxDepth) {
+        if (wantedDepth != 0) {
             Assert.assertEquals(document.length(), 2);
         }
         else {
@@ -501,11 +501,16 @@ public class TestExplorationGenerator {
         Assert.assertTrue(document.has("name"));
         Assert.assertEquals(document.get("name"), AbstractConstants.stringConstant);
 
-        if (maxDepth != 0) {
+        if (wantedDepth != 0) {
             Assert.assertTrue(document.has("list"));
             JSONArray array = document.getJSONArray("list");
-            Assert.assertEquals(array.length(), 1);
-            checkRecursiveList(array.getJSONObject(0), maxDepth - 1);
+            if (wantedDepth == 1 && reachedMaxDepth) {
+                Assert.assertEquals(array.length(), 0);
+            }
+            else {
+                Assert.assertEquals(array.length(), 1);
+                checkRecursiveList(array.getJSONObject(0), wantedDepth - 1, reachedMaxDepth);
+            }
         }
     }
 

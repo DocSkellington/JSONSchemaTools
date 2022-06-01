@@ -123,7 +123,9 @@ public class DefaultArrayHandler extends AHandler {
                 if (value.isEmpty()) {
                     return Optional.empty();
                 }
-                array.put(value.get());
+                if (value != ExplorationGenerator.EMPTY_VALUE_DUE_TO_MAX_DEPTH) {
+                    array.put(value.get());
+                }
             }
         }
 

@@ -28,6 +28,8 @@ import be.ac.umons.jsonschematools.exploration.generatorhandlers.IHandler;
  */
 public class ExplorationGenerator {
 
+    public static final Optional<Object> EMPTY_VALUE_DUE_TO_MAX_DEPTH = Optional.of(Type.NULL);
+
     private static final List<Type> allTypes = new ArrayList<>(EnumSet.allOf(Type.class));
 
     private final IHandler stringHandler;
@@ -148,7 +150,7 @@ public class ExplorationGenerator {
             choices.prepareForNewExploration();
             object = generateValueAccordingToConstraints(schema, maxDocumentDepth, canGenerateInvalid, choices, true);
         }
-        if (object.isEmpty() || object.get() == Type.NULL) {
+        if (object.isEmpty() || object == ExplorationGenerator.EMPTY_VALUE_DUE_TO_MAX_DEPTH) {
             return null;
         }
         return (JSONObject) object.get();
@@ -187,7 +189,7 @@ public class ExplorationGenerator {
         }
 
         if ((type == Type.OBJECT || type == Type.ARRAY) && maxDocumentDepth == 0) {
-            return Optional.of(Type.NULL);
+            return EMPTY_VALUE_DUE_TO_MAX_DEPTH;
         }
         return handler.generate(schema, this, maxDocumentDepth, canGenerateInvalid, choices);
     }

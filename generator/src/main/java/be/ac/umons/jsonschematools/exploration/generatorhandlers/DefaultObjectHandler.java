@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 
@@ -14,7 +13,6 @@ import org.json.JSONObject;
 import be.ac.umons.jsonschematools.AbstractConstants;
 import be.ac.umons.jsonschematools.JSONSchema;
 import be.ac.umons.jsonschematools.JSONSchemaException;
-import be.ac.umons.jsonschematools.Type;
 import be.ac.umons.jsonschematools.exploration.ChoicesSequence;
 import be.ac.umons.jsonschematools.exploration.ExplorationGenerator;
 
@@ -74,7 +72,7 @@ public class DefaultObjectHandler extends AHandler {
         final JSONObject jsonObject = new JSONObject();
 
         final BiConsumer<String, Optional<Object>> addToDocumentIfNotNullType = (key, value) -> {
-            if (value.isPresent() && !Objects.equals(value.get(), Type.NULL)) {
+            if (value.isPresent() && value != ExplorationGenerator.EMPTY_VALUE_DUE_TO_MAX_DEPTH) {
                 jsonObject.put(key, value.get());
             }
         };
