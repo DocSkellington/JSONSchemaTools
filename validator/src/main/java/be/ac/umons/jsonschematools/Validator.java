@@ -2,7 +2,6 @@ package be.ac.umons.jsonschematools;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 import org.json.JSONObject;
 
@@ -26,6 +25,8 @@ public class Validator {
     private final Handler enumHandler;
     private final Handler objectHandler;
     private final Handler arrayHandler;
+    private final long memoryStart;
+    private long maxMemory;
 
     public Validator(final Handler stringHandler, final Handler integerHandler, final Handler numberHandler,
             final Handler booleanHandler, final Handler enumHandler, final Handler objectHandler,
@@ -37,6 +38,7 @@ public class Validator {
         this.enumHandler = enumHandler;
         this.objectHandler = objectHandler;
         this.arrayHandler = arrayHandler;
+        this.memoryStart = getMemoryUse();
     }
 
     public boolean validate(final JSONSchema schema, final JSONObject document) throws JSONSchemaException {
@@ -194,6 +196,18 @@ public class Validator {
     }
 
     public boolean validateValue(final JSONSchema schema, final Object object) throws JSONSchemaException {
-        return validateValue(schema, object, true);
+        maxMemory = Math.max(maxMemory, getMemoryUse());
+        boolean valid = validateValue(schema, object, true);
+        maxMemory = Math.max(maxMemory, getMemoryUse());
+        return valid;
+    }
+
+    public long getMaxMemoryUsed() {
+        return maxMemory - memoryStart;
+    }
+
+    private long getMemoryUse() {
+        final Runtime runtime = Runtime.getRuntime();
+        return (runtime.totalMemory() - runtime.freeMemory()) / 1024;
     }
 }
