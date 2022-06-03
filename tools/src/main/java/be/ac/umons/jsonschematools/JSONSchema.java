@@ -251,6 +251,39 @@ public final class JSONSchema {
         types.remove(Type.valueOf(type.toUpperCase()));
     }
 
+    public int depth() throws JSONSchemaException {
+        int depth = 0;
+        if (JSONSchemaStore.isTrueSchema(this)) {
+            return depth;
+        }
+        if (isObject()) {
+            depth = 1;
+            for (JSONSchema required : getRequiredProperties().values()) {
+                depth = Math.max(depth, required.depth());
+            }
+            for (JSONSchema nonRequired : getNonRequiredProperties().values()) {
+                depth = Math.max(depth, nonRequired.depth());
+            }
+        }
+        if (isArray()) {
+            depth = 1;
+            for (JSONSchema items : getItemsArray()) {
+                depth = Math.max(depth, items.depth());
+            }
+        }
+        depth = Math.max(depth, getAllOf().depth());
+        for (JSONSchema anyOf : getAnyOf()) {
+            depth = Math.max(depth, anyOf.depth());
+        }
+        for (JSONSchema oneOf : getOneOf()) {
+            depth = Math.max(depth, oneOf.depth());
+        }
+        for (JSONSchema not : getNot()) {
+            depth = Math.max(depth, not.depth());
+        }
+        return depth;
+    }
+
     /**
      * Retrieves all the keys present in this schema.
      * 
