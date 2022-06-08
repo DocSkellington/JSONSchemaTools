@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -12,6 +13,7 @@ import java.util.stream.Collectors;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import be.ac.umons.jsonschematools.IGenerator;
 import be.ac.umons.jsonschematools.JSONSchema;
 import be.ac.umons.jsonschematools.JSONSchemaException;
 import be.ac.umons.jsonschematools.JSONSchemaStore;
@@ -27,7 +29,7 @@ import be.ac.umons.jsonschematools.random.generatorhandlers.IHandler;
  * 
  * @author Gaëtan Staquet
  */
-public class RandomGenerator {
+public class RandomGenerator implements IGenerator {
 
     private final IHandler stringHandler;
     private final IHandler integerHandler;
@@ -36,12 +38,11 @@ public class RandomGenerator {
     private final IHandler enumHandler;
     private final IHandler objectHandler;
     private final IHandler arrayHandler;
-    private final boolean generateInvalid;
     private final Set<Type> allTypes = EnumSet.allOf(Type.class);
 
     public RandomGenerator(final IHandler stringHandler, final IHandler integerHandler, final IHandler numberHandler,
             final IHandler booleanHandler, final IHandler enumHandler, final IHandler objectHandler,
-            final IHandler arrayHandler, final boolean generateInvalid) {
+            final IHandler arrayHandler) {
         this.stringHandler = stringHandler;
         this.integerHandler = integerHandler;
         this.numberHandler = numberHandler;
@@ -49,7 +50,6 @@ public class RandomGenerator {
         this.enumHandler = enumHandler;
         this.objectHandler = objectHandler;
         this.arrayHandler = arrayHandler;
-        this.generateInvalid = generateInvalid;
     }
 
     private static JSONSchema getMergedSchema(final JSONSchema baseSchema, final JSONSchema allOf,
@@ -64,17 +64,26 @@ public class RandomGenerator {
         return baseSchema.dropAllOfAnyOfOneOfAndNot().merge(allOf).merge(anyOf).merge(oneOf).merge(not);
     }
 
-    public JSONObject generate(final JSONSchema schema, final int maxTreeSize)
-            throws JSONSchemaException, JSONException, GeneratorException {
-        return generateRoot(schema, maxTreeSize, new Random());
+    @Override
+    public Iterator<JSONObject> createIterator(JSONSchema schema, int documentDepth, boolean canGenerateInvalid) {
+        return createIterator(schema, documentDepth, canGenerateInvalid, new Random());
     }
 
-    public JSONObject generate(final JSONSchema schema, final int maxTreeSize, final Random rand)
-            throws JSONSchemaException, JSONException, GeneratorException {
-        return generateRoot(schema, maxTreeSize, rand);
+    public Iterator<JSONObject> createIterator(JSONSchema schema, int documentDepth, boolean canGenerateInvalid, Random rand) {
+        return new RandomIterator(schema, documentDepth, canGenerateInvalid, this, rand);
     }
 
-    private JSONObject generateRoot(final JSONSchema schema, final int maxTreeSize, final Random rand)
+    public JSONObject generate(final JSONSchema schema, final int maxTreeSize, boolean canGenerateInvalid)
+            throws JSONSchemaException, JSONException, GeneratorException {
+        return generate(schema, maxTreeSize, canGenerateInvalid, new Random());
+    }
+
+    public JSONObject generate(final JSONSchema schema, final int maxTreeSize, boolean canGenerateInvalid, final Random rand)
+            throws JSONSchemaException, JSONException, GeneratorException {
+        return generateRoot(schema, maxTreeSize, canGenerateInvalid, rand);
+    }
+
+    private JSONObject generateRoot(final JSONSchema schema, final int maxTreeSize, boolean canGenerateInvalid, final Random rand)
             throws JSONSchemaException, GeneratorException {
         final JSONSchema allOf = schema.getAllOf();
         final List<JSONSchema> anyOfList = schema.getAnyOf();
@@ -97,7 +106,7 @@ public class RandomGenerator {
                         if (!types.contains(Type.OBJECT)) {
                             continue;
                         }
-                        return (JSONObject) generateValue(Type.OBJECT, fullSchema, maxTreeSize, rand);
+                        return (JSONObject) generateValue(Type.OBJECT, fullSchema, maxTreeSize, canGenerateInvalid, rand);
                     } catch (GeneratorException e) {
                         // The choice we made lead to an invalid schema. We retry with a different
                         // choice
@@ -147,7 +156,7 @@ public class RandomGenerator {
      * @throws JSONSchemaException
      * @throws GeneratorException
      */
-    public Object generateAccordingToConstraints(JSONSchema schema, int maxTreeSize, Random rand)
+    public Object generateAccordingToConstraints(JSONSchema schema, int maxTreeSize, boolean canGenerateInvalid, Random rand)
             throws JSONException, JSONSchemaException, GeneratorException {
         final JSONSchema allOf = schema.getAllOf();
         final List<JSONSchema> anyOfList = schema.getAnyOf();
@@ -169,7 +178,7 @@ public class RandomGenerator {
                         // If we still have some constraints behind "allOf", "anyOf", "oneOf", or "not",
                         // we unfold them
                         if (fullSchema.needsFurtherUnfolding()) {
-                            return generateAccordingToConstraints(fullSchema, maxTreeSize, rand);
+                            return generateAccordingToConstraints(fullSchema, maxTreeSize, canGenerateInvalid, rand);
                         }
 
                         List<Type> allowedTypes = fullSchema.getAllowedTypes();
@@ -179,8 +188,8 @@ public class RandomGenerator {
                                     + " as the set of allowed types is empty");
                         }
 
-                        Type type = selectType(allowedTypes, rand);
-                        return generateValue(type, fullSchema, maxTreeSize, rand);
+                        Type type = selectType(allowedTypes, canGenerateInvalid, rand);
+                        return generateValue(type, fullSchema, maxTreeSize, canGenerateInvalid, rand);
                     } catch (GeneratorException e) {
                         // The choice we made lead to an invalid schema. We retry with a different
                         // choice
@@ -191,9 +200,9 @@ public class RandomGenerator {
         throw new GeneratorException("Impossible to generate a document: all tries failed for the schema " + schema);
     }
 
-    private Type selectType(final Collection<Type> allowedTypes, final Random rand) {
+    private Type selectType(final Collection<Type> allowedTypes, final boolean canGenerateInvalid, final Random rand) {
         final Collection<Type> typesToConsider;
-        if (generateInvalid && allTypes.size() != Type.values().length && rand.nextBoolean()) {
+        if (canGenerateInvalid && allTypes.size() != Type.values().length && rand.nextBoolean()) {
             typesToConsider = new HashSet<>(allTypes);
             typesToConsider.removeAll(allowedTypes);
         }
@@ -204,7 +213,7 @@ public class RandomGenerator {
         return new ArrayList<>(typesToConsider).get(rand.nextInt(typesToConsider.size()));
     }
 
-    private Object generateValue(Type type, JSONSchema schema, int maxTreeSize, Random rand)
+    private Object generateValue(Type type, JSONSchema schema, int maxTreeSize, boolean canGenerateInvalid, Random rand)
             throws JSONSchemaException, JSONException, GeneratorException {
         IHandler handler;
         switch (type) {
@@ -236,7 +245,7 @@ public class RandomGenerator {
         if ((type == Type.OBJECT || type == Type.ARRAY) && maxTreeSize == 0) {
             return Type.NULL;
         }
-        return handler.generate(this, schema, maxTreeSize, rand);
+        return handler.generate(this, schema, maxTreeSize, canGenerateInvalid, rand);
     }
 
     private static List<Integer> generateIndicesRandomOrder(final List<?> list, Random rand) {

@@ -24,27 +24,26 @@ import be.ac.umons.jsonschematools.random.RandomGenerator;
  * 
  * @author Gaëtan Staquet
  */
-public class DefaultArrayHandler extends AHandler {
+public class DefaultArrayHandler implements IHandler {
 
     private final int maxItems;
 
-    public DefaultArrayHandler(boolean generateInvalid) {
-        this(generateInvalid, Integer.MAX_VALUE - 1);
+    public DefaultArrayHandler() {
+        this(Integer.MAX_VALUE - 1);
     }
 
-    public DefaultArrayHandler(boolean generateInvalid, int maxItems) {
-        super(generateInvalid);
+    public DefaultArrayHandler(int maxItems) {
         this.maxItems = maxItems;
     }
 
     @Override
-    public JSONArray generate(RandomGenerator generator, JSONSchema schema, int maxTreeSize,
+    public JSONArray generate(RandomGenerator generator, JSONSchema schema, int maxTreeSize, boolean canGenerateInvalid,
             Random rand) throws JSONSchemaException, GeneratorException, JSONException {
         if (maxTreeSize == 0) {
             return new JSONArray();
         }
         final Set<JSONArray> forbiddenValues = schema.getForbiddenValuesFilteredByType(JSONArray.class);
-        final boolean generateInvalid = generateInvalid(rand);
+        final boolean generateInvalid = generateInvalid(canGenerateInvalid, rand);
 
         if (generateInvalid && !forbiddenValues.isEmpty()) {
             return (JSONArray) new ArrayList<>(forbiddenValues).get(rand.nextInt(forbiddenValues.size()));
@@ -116,7 +115,8 @@ public class DefaultArrayHandler extends AHandler {
             }
         } else {
             for (int i = 0; i < size; i++) {
-                Object value = generator.generateAccordingToConstraints(itemsSchema, maxTreeSize - 1, rand);
+                Object value = generator.generateAccordingToConstraints(itemsSchema, maxTreeSize - 1, generateInvalid,
+                        rand);
                 if (!Objects.equals(value, Type.NULL)) {
                     array.put(value);
                 }

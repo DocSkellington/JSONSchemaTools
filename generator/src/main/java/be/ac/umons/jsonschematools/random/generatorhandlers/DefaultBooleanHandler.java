@@ -18,19 +18,15 @@ import be.ac.umons.jsonschematools.random.RandomGenerator;
  * 
  * @author Gaëtan Staquet
  */
-public class DefaultBooleanHandler extends AHandler {
-
-    public DefaultBooleanHandler(final boolean generateInvalid) {
-        super(generateInvalid);
-    }
+public class DefaultBooleanHandler implements IHandler {
 
     @Override
-    public Object generate(RandomGenerator generator, JSONSchema schema, int maxTreeSize,
+    public Object generate(RandomGenerator generator, JSONSchema schema, int maxTreeSize, boolean canGenerateInvalid,
             Random rand) throws JSONSchemaException, GeneratorException, JSONException {
         Set<Boolean> forbiddenValues = schema.getForbiddenValuesFilteredByType(Boolean.class);
 
         final Object constValue = schema.getConstValueIfType(Boolean.class);
-        boolean generateInvalid = generateInvalid(rand);
+        boolean generateInvalid = generateInvalid(canGenerateInvalid, rand);
         if (constValue != null) {
             if (forbiddenValues.contains(constValue)) {
                 if (generateInvalid) {

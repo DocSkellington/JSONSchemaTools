@@ -20,7 +20,7 @@ import be.ac.umons.jsonschematools.random.RandomGenerator;
 public class DefaultEnumHandler implements IHandler {
 
     @Override
-    public Object generate(RandomGenerator generator, JSONSchema schema, int maxTreeSize,
+    public Object generate(RandomGenerator generator, JSONSchema schema, int maxTreeSize, boolean canGenerateInvalid,
             Random rand) throws JSONSchemaException, GeneratorException, JSONException {
         return AbstractConstants.enumConstant;
     }

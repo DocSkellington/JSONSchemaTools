@@ -9,22 +9,22 @@ import be.ac.umons.jsonschematools.random.generatorhandlers.DefaultObjectHandler
 import be.ac.umons.jsonschematools.random.generatorhandlers.DefaultStringHandler;
 
 /**
- * Constructs a {@link RandomGenerator} with the default handlers that can produce
- * invalid documents.
+ * Constructs a {@link RandomGenerator} with the default handlers to produce
+ * values in a JSON document.
  * 
  * @author Gaëtan Staquet
  */
-public class DefaultRandomGeneratorInvalid extends RandomGenerator {
-    public DefaultRandomGeneratorInvalid(int maxPropertiesObject, int maxItemsArray) {
+public class DefaultRandomGenerator extends RandomGenerator {
+    public DefaultRandomGenerator(int maxPropertiesObject, int maxItemsArray) {
         super(new DefaultStringHandler(), new DefaultIntegerHandler(), new DefaultNumberHandler(),
-                new DefaultBooleanHandler(true), new DefaultEnumHandler(),
-                new DefaultObjectHandler(true, maxPropertiesObject),
-                new DefaultArrayHandler(true, maxItemsArray), true);
+                new DefaultBooleanHandler(), new DefaultEnumHandler(),
+                new DefaultObjectHandler(maxPropertiesObject),
+                new DefaultArrayHandler(maxItemsArray));
     }
 
-    public DefaultRandomGeneratorInvalid() {
+    public DefaultRandomGenerator() {
         super(new DefaultStringHandler(), new DefaultIntegerHandler(), new DefaultNumberHandler(),
-                new DefaultBooleanHandler(true), new DefaultEnumHandler(), new DefaultObjectHandler(true),
-                new DefaultArrayHandler(true), true);
+                new DefaultBooleanHandler(), new DefaultEnumHandler(), new DefaultObjectHandler(),
+                new DefaultArrayHandler());
     }
 }

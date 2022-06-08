@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import be.ac.umons.jsonschematools.IGenerator;
 import be.ac.umons.jsonschematools.JSONSchema;
 import be.ac.umons.jsonschematools.JSONSchemaException;
 import be.ac.umons.jsonschematools.JSONSchemaStore;
@@ -26,7 +27,7 @@ import be.ac.umons.jsonschematools.exploration.generatorhandlers.IHandler;
  * 
  * @author Gaëtan Staquet
  */
-public class ExplorationGenerator {
+public class ExplorationGenerator implements IGenerator {
 
     public static final Optional<Object> EMPTY_VALUE_DUE_TO_MAX_DEPTH = Optional.of(Type.NULL);
 
@@ -52,93 +53,12 @@ public class ExplorationGenerator {
         this.arrayHandler = arrayHandler;
     }
 
-    /**
-     * Creates an iterator over the documents this generator can produce.
-     * 
-     * Documents are created when calling {@code next()}.
-     * 
-     * The depth of the documents is not bounded, i.e., they can be an infinite
-     * number of documents if the schema is recursive.
-     * 
-     * Only valid documents are generated.
-     * 
-     * @param schema The schema
-     * @return An iterator
-     */
-    public Iterator<JSONObject> createIterator(JSONSchema schema) {
-        return createIterator(schema, -1);
-    }
-
-    /**
-     * Creates an iterator over the documents this generator can produce up to the
-     * given document depth.
-     * 
-     * Documents are created when calling {@code next()}.
-     * 
-     * The depth of the documents is bounded, i.e., in any document, there can only
-     * be {@code maxDocumentDepth} nested objects and arrays.
-     * Note that if the bound is set too low, only invalid documents may be
-     * generated as the deepest objects or arrays may not be correct.
-     * In particular, no documents will be generated with a depth of zero.
-     * 
-     * Only valid documents are generated.
-     * 
-     * @param schema           The schema
-     * @param maxDocumentDepth The maximal depth of the documents
-     * @return An iterator
-     */
-    public Iterator<JSONObject> createIterator(JSONSchema schema, int maxDocumentDepth) {
-        return createIterator(schema, maxDocumentDepth, false);
-    }
-
-    /**
-     * Creates an iterator over the documents this generator can produce.
-     * 
-     * Documents are created when calling {@code next()}.
-     * 
-     * The depth of the documents is not bounded, i.e., they can be an infinite
-     * number of documents if the schema is recursive.
-     * 
-     * Invalid documents can be generated if {@code canGenerateInvalid} is
-     * {@code true}.
-     * Note that valid documents are still generated, no matter the value of
-     * {@code canGenerateInvalid}.
-     * 
-     * @param schema             The schema
-     * @param canGenerateInvalid Whether invalid documents can be generated
-     * @return An iterator
-     */
-    public Iterator<JSONObject> createIterator(JSONSchema schema, boolean canGenerateInvalid) {
-        return createIterator(schema, -1, canGenerateInvalid);
-    }
-
-    /**
-     * Creates an iterator over the documents this generator can produce up to the
-     * given document depth.
-     * 
-     * Documents are created when calling {@code next()}.
-     * 
-     * The depth of the documents is bounded, i.e., in any document, there can only
-     * be {@code maxDocumentDepth} nested objects and arrays.
-     * Note that if the bound is set too low, only invalid documents may be
-     * generated as the deepest objects or arrays may not be correct.
-     * In particular, no documents will be generated with a depth of zero.
-     * 
-     * Invalid documents can be generated if {@code canGenerateInvalid} is
-     * {@code true}.
-     * Note that valid documents are still generated, no matter the value of
-     * {@code canGenerateInvalid}.
-     * 
-     * @param schema             The schema
-     * @param maxDocumentDepth   The maximal depth of the documents
-     * @param canGenerateInvalid Whether invalid documents can be generated
-     * @return An iterator
-     */
+    @Override
     public Iterator<JSONObject> createIterator(JSONSchema schema, int maxDocumentDepth, boolean canGenerateInvalid) {
         return new ExplorationIterator(schema, maxDocumentDepth, canGenerateInvalid, this);
     }
 
-    JSONObject generateDocument(JSONSchema schema, int maxDocumentDepth, boolean canGenerateInvalid,
+    public JSONObject generateDocument(JSONSchema schema, int maxDocumentDepth, boolean canGenerateInvalid,
             ChoicesSequence choices)
             throws JSONException, JSONSchemaException {
         choices.prepareForNewExploration();

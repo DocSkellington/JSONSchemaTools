@@ -20,34 +20,33 @@ import be.ac.umons.jsonschematools.random.GeneratorException;
 import be.ac.umons.jsonschematools.random.RandomGenerator;
 
 /**
- * An object handler that returns an object in which elements are abstracted.
+ * An object handler that returns an object in which values are abstracted.
  * 
  * It does not support every keyword that can be used in a schema.
  * 
  * @author Gaëtan Staquet
  */
-public class DefaultObjectHandler extends AHandler {
+public class DefaultObjectHandler implements IHandler {
 
     private final int maxProperties;
     private static final float PROBABILITY_SKIP_REQUIRED = 0.7f;
 
-    public DefaultObjectHandler(boolean generateInvalid) {
-        this(generateInvalid, Integer.MAX_VALUE - 1);
+    public DefaultObjectHandler() {
+        this(Integer.MAX_VALUE - 1);
     }
 
-    public DefaultObjectHandler(boolean generateInvalid, int maxProperties) {
-        super(generateInvalid);
+    public DefaultObjectHandler(int maxProperties) {
         this.maxProperties = maxProperties;
     }
 
     @Override
-    public Object generate(RandomGenerator generator, JSONSchema schema, int maxTreeSize,
+    public Object generate(RandomGenerator generator, JSONSchema schema, int maxTreeSize, boolean canGenerateInvalid,
             Random rand) throws JSONSchemaException, GeneratorException, JSONException {
         if (maxTreeSize == 0) {
             return new JSONObject();
         }
         final Set<JSONObject> forbiddenValues = schema.getForbiddenValuesFilteredByType(JSONObject.class);
-        final boolean generateInvalid = generateInvalid(rand);
+        final boolean generateInvalid = generateInvalid(canGenerateInvalid, rand);
 
         if (generateInvalid && !forbiddenValues.isEmpty()) {
             return new ArrayList<>(forbiddenValues).get(rand.nextInt(forbiddenValues.size()));
@@ -123,7 +122,7 @@ public class DefaultObjectHandler extends AHandler {
             }
             JSONSchema subSchema = entry.getValue();
             String key = entry.getKey();
-            Object value = generator.generateAccordingToConstraints(subSchema, newMaxTreeSize, rand);
+            Object value = generator.generateAccordingToConstraints(subSchema, newMaxTreeSize, generateInvalid, rand);
             addToDocumentIfNotNullType.accept(key, value);
         }
 
@@ -142,7 +141,7 @@ public class DefaultObjectHandler extends AHandler {
         final Set<String> allNonRequiredKeys = nonRequiredProperties.keySet();
         if (generateInvalid && !allNonRequiredKeys.contains(AbstractConstants.stringConstant) && rand.nextBoolean()) {
             JSONSchema trueSchema = schema.getStore().trueSchema();
-            Object value = generator.generateAccordingToConstraints(trueSchema, newMaxTreeSize, rand);
+            Object value = generator.generateAccordingToConstraints(trueSchema, newMaxTreeSize, generateInvalid, rand);
             addToDocumentIfNotNullType.accept(AbstractConstants.stringConstant, value);
         }
 
@@ -163,7 +162,7 @@ public class DefaultObjectHandler extends AHandler {
                 continue;
             }
             JSONSchema subSchema = schema.getSubSchemaProperties(key);
-            Object value = generator.generateAccordingToConstraints(subSchema, newMaxTreeSize, rand);
+            Object value = generator.generateAccordingToConstraints(subSchema, newMaxTreeSize, generateInvalid, rand);
             addToDocumentIfNotNullType.accept(key, value);
             nonRequiredProperties.remove(key);
         }
@@ -175,7 +174,7 @@ public class DefaultObjectHandler extends AHandler {
         for (String key : unusedKeys) {
             JSONSchema subSchema = nonRequiredProperties.get(key);
             if (rand.nextBoolean()) {
-                Object value = generator.generateAccordingToConstraints(subSchema, newMaxTreeSize, rand);
+                Object value = generator.generateAccordingToConstraints(subSchema, newMaxTreeSize, generateInvalid, rand);
                 addToDocumentIfNotNullType.accept(key, value);
 
                 if (jsonObject.length() >= maxProperties) {

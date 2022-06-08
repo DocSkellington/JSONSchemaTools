@@ -15,6 +15,11 @@ import be.ac.umons.jsonschematools.random.RandomGenerator;
  * @author Gaëtan Staquet
  */
 public interface IHandler {
-    Object generate(final RandomGenerator generator, final JSONSchema schema, final int maxTreeSize, final Random rand)
+    Object generate(final RandomGenerator generator, final JSONSchema schema, final int maxTreeSize,
+            final boolean canGenerateInvalid, final Random rand)
             throws JSONSchemaException, GeneratorException, JSONException;
+
+    default boolean generateInvalid(final boolean canGenerateInvalid, final Random rand) {
+        return canGenerateInvalid && rand.nextBoolean();
+    }
 }
