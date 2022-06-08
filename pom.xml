@@ -23,7 +23,7 @@ limitations under the License.
     -->
     <groupId>be.ac.umons.jsonschematools</groupId>
     <artifactId>jsonschematools</artifactId>
-    <version>1.0</version>
+    <version>2.0</version>
     <packaging>pom</packaging>
 
     <name>JSON Schema tools</name>
