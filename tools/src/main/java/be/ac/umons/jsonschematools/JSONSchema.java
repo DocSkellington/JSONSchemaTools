@@ -44,6 +44,7 @@ public final class JSONSchema {
     private final int fullSchemaId;
     private final Object constValue;
     private final Object forbiddenValue;
+    private final JSONObject additionalProperties;
 
     JSONSchema(final JSONObject object, final JSONSchemaStore store, final int fullSchemaId)
             throws JSONSchemaException {
@@ -121,7 +122,7 @@ public final class JSONSchema {
             } else {
                 this.properties = new ComparableJSONObject();
             }
-            final JSONObject additionalProperties = getAdditionalProperties();
+            this.additionalProperties = getSchemaForAdditionalProperties();
             if (!JSONSchemaStore.isFalseDocument(additionalProperties)) {
                 if (!JSONSchemaStore.isTrueDocument(additionalProperties)
                         || !store.shouldIgnoreTrueAdditionalProperties()) {
@@ -140,6 +141,7 @@ public final class JSONSchema {
             }
         } else {
             this.properties = null;
+            this.additionalProperties = JSONSchemaStore.falseDocument();
         }
     }
 
@@ -169,7 +171,7 @@ public final class JSONSchema {
         return getType(constValue);
     }
 
-    private JSONObject getAdditionalProperties() throws JSONSchemaException {
+    private JSONObject getSchemaForAdditionalProperties() throws JSONSchemaException {
         JSONObject schemaForAdditionalProperties;
         if (this.schema.has("additionalProperties")) {
             Object additionalProperties = schema.get("additionalProperties");
@@ -282,6 +284,10 @@ public final class JSONSchema {
             depth = Math.max(depth, not.depth());
         }
         return depth;
+    }
+
+    public JSONSchema getAdditionalProperties() throws JSONSchemaException {
+        return new JSONSchema(additionalProperties, store, fullSchemaId);
     }
 
     /**

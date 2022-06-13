@@ -16,7 +16,7 @@ public class DefaultNumberHandler implements Handler {
         if (!(object instanceof String)) {
             return false;
         }
-        return object.equals(AbstractConstants.numberConstant) || object.equals(AbstractConstants.integerConstant);
+        return object.equals(AbstractConstants.numberConstant);
     }
 
 }

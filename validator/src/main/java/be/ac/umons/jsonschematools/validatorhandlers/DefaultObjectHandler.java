@@ -45,7 +45,7 @@ public class DefaultObjectHandler implements Handler {
                 schemaForKey = schema.getSubSchemaProperties(key);
             }
             catch (JSONException e) {
-                schemaForKey = schema.getStore().trueSchema();
+                schemaForKey = schema.getAdditionalProperties();
             }
 
             if (!validator.validateValue(schemaForKey, objectForKey)) {

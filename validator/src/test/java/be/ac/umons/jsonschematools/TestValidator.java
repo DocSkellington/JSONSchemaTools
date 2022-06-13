@@ -773,5 +773,36 @@ public class TestValidator {
             append('}');
         // @formatter:on
         Assert.assertTrue(validator.validate(schema, new JSONObject(builder.toString())));
+
+        builder = new StringBuilder();
+        // @formatter:off
+        builder.
+            append('{').
+                append("\"key1\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                append(',').
+                append("\"key2\": ").
+                    append("[").
+                        append("{").
+                            append("\"^key*$\": true").
+                            append(",").
+                            // Additional properties are forbidden here
+                            append(escapeSymbol(AbstractConstants.stringConstant)).append(": true").
+                        append("}").
+                        append(",").
+                        append("{").
+                            append("\"^key*$\": true").
+                        append("}").
+                        append(",").
+                        append("{").
+                            append("\"^key*$\": true").
+                        append("}").
+                    append("]").
+                append(',').
+                append("\"^key3$\":").append(escapeSymbol(AbstractConstants.enumConstant)).
+                append(",").
+                append(escapeSymbol(AbstractConstants.stringConstant)).append(":").append(escapeSymbol(AbstractConstants.integerConstant)).
+            append('}');
+        // @formatter:on
+        Assert.assertFalse(validator.validate(schema, new JSONObject(builder.toString())));
     }
 }
