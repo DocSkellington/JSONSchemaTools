@@ -143,7 +143,6 @@ public class Validator {
         List<Type> allowedTypes = schema.getAllowedTypes();
 
         for (Type type : allowedTypes) {
-            final boolean valid;
             final Handler handler;
             switch (type) {
                 case BOOLEAN:
@@ -173,6 +172,7 @@ public class Validator {
                     break;
             }
 
+            final boolean valid;
             if (handler == null) {
                 valid = (Objects.equals(object, null) || Objects.equals(object, JSONObject.NULL));
             } else {
@@ -183,12 +183,12 @@ public class Validator {
                         return Objects.equals(object, schema.getConstValue());
                     }
                 }
-                valid = handler.validate(this, schema, object) && validateAllOf(schema, object)
-                        && validateAnyOf(schema, object) && validateOneOf(schema, object)
-                        && validateNot(schema, object);
+                valid = handler.validate(this, schema, object);
             }
 
-            if (valid) {
+            if (valid && validateAllOf(schema, object)
+                        && validateAnyOf(schema, object) && validateOneOf(schema, object)
+                        && validateNot(schema, object)) {
                 return true;
             }
         }
