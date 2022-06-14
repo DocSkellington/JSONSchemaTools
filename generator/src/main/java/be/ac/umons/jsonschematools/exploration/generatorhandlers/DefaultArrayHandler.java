@@ -72,8 +72,16 @@ public class DefaultArrayHandler extends AHandler {
         final boolean ignoreMinItems, ignoreMaxItems;
 
         if (canGenerateInvalid) {
-            ignoreMinItems = choices.getNextBooleanValue();
-            ignoreMaxItems = choices.getNextBooleanValue();
+            Boolean booleanValue = choices.getNextBooleanValue();
+            if (booleanValue == null) {
+                return null;
+            }
+            ignoreMinItems = booleanValue;
+            booleanValue = choices.getNextBooleanValue();
+            if (booleanValue == null) {
+                return null;
+            }
+            ignoreMaxItems = booleanValue;
         }
         else {
             ignoreMinItems = ignoreMaxItems = false;
@@ -107,19 +115,22 @@ public class DefaultArrayHandler extends AHandler {
 
         List<JSONSchema> itemsSchemaList = null;
         itemsSchemaList = schema.getItemsArray();
-        assert itemsSchemaList.size() == 1;
-        JSONSchema itemsSchema = itemsSchemaList.get(0);
 
-        final int length = length(minItems, maxItems, choices);
-        if (itemsSchema == null) {
-            for (int i = 0; i < length; i++) {
+        final Integer length = length(minItems, maxItems, choices);
+        if (length == null) {
+            return Optional.empty();
+        }
+        for (int i = 0 ; i < length ; i++) {
+            final Integer index = choices.getIndexNextExclusiveSelectionInList(itemsSchemaList.size());
+            if (index == null) {
+                return Optional.empty();
+            }
+            JSONSchema itemsSchema = itemsSchemaList.get(index);
+            if (itemsSchema == null) {
                 array.put(new JSONObject());
             }
-        } else {
-            for (int i = 0; i < length; i++) {
-                Optional<Object> value = generator.generateValueAccordingToConstraints(itemsSchema, maxDocumentDepth,
-                        canGenerateInvalid,
-                        choices);
+            else {
+                Optional<Object> value = generator.generateValueAccordingToConstraints(itemsSchema, maxDocumentDepth,canGenerateInvalid,choices);
                 if (value.isEmpty()) {
                     return Optional.empty();
                 }

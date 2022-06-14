@@ -81,8 +81,16 @@ public class DefaultObjectHandler extends AHandler {
         final boolean ignoreMinProperties, ignoreMaxProperties;
 
         if (canGenerateInvalid) {
-            ignoreMinProperties = choices.getNextBooleanValue();
-            ignoreMaxProperties = choices.getNextBooleanValue();
+            Boolean booleanValue = choices.getNextBooleanValue();
+            if (booleanValue == null) {
+                return null;
+            }
+            ignoreMinProperties = booleanValue;
+            booleanValue = choices.getNextBooleanValue();
+            if (booleanValue == null) {
+                return null;
+            }
+            ignoreMaxProperties = booleanValue;
         } else {
             ignoreMinProperties = ignoreMaxProperties = false;
         }
@@ -113,9 +121,14 @@ public class DefaultObjectHandler extends AHandler {
         }
 
         for (Map.Entry<String, JSONSchema> entry : schema.getRequiredProperties().entrySet()) {
-            if (canGenerateInvalid && choices.getNextBooleanValue()) {
-                // We skip the required property
-                continue;
+            if (canGenerateInvalid) {
+                Boolean booleanValue = choices.getNextBooleanValue();
+                if (booleanValue == null) {
+                    return null;
+                }
+                if (booleanValue) {
+                    continue;
+                }
             }
             JSONSchema subSchema = entry.getValue();
             String key = entry.getKey();
@@ -143,7 +156,10 @@ public class DefaultObjectHandler extends AHandler {
 
         List<String> selectedKeys = null;
         while (selectedKeys == null) {
-            final int numberPropertiesToAdd = length(missingProperties, maxPropertiesThatCanBeAdded, choices);
+            final Integer numberPropertiesToAdd = length(missingProperties, maxPropertiesThatCanBeAdded, choices);
+            if (numberPropertiesToAdd == null) {
+                return Optional.empty();
+            }
             selectedKeys = selectOptionalKeys(allNonRequiredKeys, numberPropertiesToAdd, choices);
         }
 

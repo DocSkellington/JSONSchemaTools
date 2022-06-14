@@ -19,7 +19,7 @@ abstract class AHandler implements IHandler {
      * @return The selected length, or -1 if there is no remaining value in the
      *         choice.
      */
-    protected int length(final int minLength, final int maxLength, final ChoicesSequence choices) {
+    protected Integer length(final int minLength, final int maxLength, final ChoicesSequence choices) {
         return choices.getNextValueBetween(minLength, maxLength);
     }
 }

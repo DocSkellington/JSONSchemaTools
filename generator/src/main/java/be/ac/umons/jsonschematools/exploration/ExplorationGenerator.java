@@ -137,8 +137,11 @@ public class ExplorationGenerator implements IGenerator {
         final List<JSONSchema> anyOfList, oneOfList, notList;
         final boolean exclusiveChoiceAnyOf, exclusiveChoiceOneOf, exclusiveChoiceNot;
         final boolean skipFirstAnyOf, skipFirstOneOf, skipFirstNot;
-        final boolean generateInvalid = invalidGenerationChoice(canGenerateInvalid, choices);
-        if (generateInvalid) {
+        final Boolean generateInvalid = invalidGenerationChoice(canGenerateInvalid, choices);
+        if (generateInvalid == null) {
+            return Optional.empty();
+        }
+        else if (generateInvalid) {
             anyOfList = schema.getAnyOf();
             oneOfList = schema.getOneOf();
             notList = schema.getNot();
@@ -289,17 +292,34 @@ public class ExplorationGenerator implements IGenerator {
                 return null;
             }
         }
-        if (!generateInvalid || choices.getNextBooleanValue()) {
-            int index = choices.getIndexNextExclusiveSelectionInList(allowedTypes.size());
-            return allowedTypes.get(index);
-        } else {
-            final List<Type> typesNotAllowed = new ArrayList<>(allTypes);
-            typesNotAllowed.removeAll(allowedTypes);
-            if (typesNotAllowed.isEmpty()) {
+        if (!generateInvalid) {
+            final Integer index = choices.getIndexNextExclusiveSelectionInList(allowedTypes.size());
+            if (index == null) {
                 return null;
             }
-            int index = choices.getIndexNextExclusiveSelectionInList(typesNotAllowed.size());
-            return typesNotAllowed.get(index);
+            return allowedTypes.get(index);
+        }
+        else {
+            Boolean booleanValue = choices.getNextBooleanValue();
+            if (booleanValue) {
+                final Integer index = choices.getIndexNextExclusiveSelectionInList(allowedTypes.size());
+                if (index == null) {
+                    return null;
+                }
+                return allowedTypes.get(index);
+            }
+            else {
+                final List<Type> typesNotAllowed = new ArrayList<>(allTypes);
+                typesNotAllowed.removeAll(allowedTypes);
+                if (typesNotAllowed.isEmpty()) {
+                    return null;
+                }
+                final Integer index = choices.getIndexNextExclusiveSelectionInList(typesNotAllowed.size());
+                if (index == null) {
+                    return null;
+                }
+                return typesNotAllowed.get(index);
+            }
         }
     }
 
@@ -348,7 +368,7 @@ public class ExplorationGenerator implements IGenerator {
         return merged;
     }
 
-    private boolean invalidGenerationChoice(final boolean canGenerateInvalid, final ChoicesSequence choices) {
+    private Boolean invalidGenerationChoice(final boolean canGenerateInvalid, final ChoicesSequence choices) {
         if (!canGenerateInvalid) {
             return false;
         }

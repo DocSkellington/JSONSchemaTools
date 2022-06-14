@@ -68,7 +68,10 @@ public class DefaultBooleanHandler extends AHandler {
     }
 
     private Optional<Object> generateBoolean(final ChoicesSequence choices) {
-        int index = choices.getIndexNextExclusiveSelectionInList(booleanValues.size());
+        Integer index = choices.getIndexNextExclusiveSelectionInList(booleanValues.size());
+        if (index == null) {
+            return Optional.empty();
+        }
         return Optional.of(booleanValues.get(index));
     }
 

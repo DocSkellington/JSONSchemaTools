@@ -173,7 +173,7 @@ public class ChoicesSequence implements Iterable<Choice> {
      * @param maxValue The maximal value
      * @return The next possible value
      */
-    public int getNextValueBetween(int minValue, int maxValue) {
+    public Integer getNextValueBetween(int minValue, int maxValue) {
         if (hasNextChoiceInExploration()) {
             Choice choiceInRun = getNextChoiceInExploration();
             if (hasUnseenValueFurtherInExploration()) {
@@ -184,7 +184,7 @@ public class ChoicesSequence implements Iterable<Choice> {
             if (choiceInRun.hasNextValue()) {
                 return minValue + choiceInRun.nextValue();
             } else {
-                throw new RuntimeException("Invalid state for next value between two bounds");
+                return null;
             }
         } else {
             Choice choice = createNewChoice(maxValue - minValue + 1, true);
@@ -199,7 +199,7 @@ public class ChoicesSequence implements Iterable<Choice> {
      * @param listSize The size of the list
      * @return The next possible index
      */
-    public int getIndexNextExclusiveSelectionInList(int listSize) {
+    public Integer getIndexNextExclusiveSelectionInList(int listSize) {
         return getNextValueBetween(0, listSize - 1);
     }
 
@@ -275,7 +275,7 @@ public class ChoicesSequence implements Iterable<Choice> {
      * 
      * @return The next Boolean
      */
-    public boolean getNextBooleanValue() {
+    public Boolean getNextBooleanValue() {
         if (hasNextChoiceInExploration()) {
             Choice choiceInExploration = getNextChoiceInExploration();
             if (hasUnseenValueFurtherInExploration()) {
@@ -286,7 +286,9 @@ public class ChoicesSequence implements Iterable<Choice> {
             if (choiceInExploration.hasNextValue()) {
                 return choiceInExploration.nextValue() == 1;
             }
-            throw new RuntimeException("Invalid state for a boolean choice");
+            else {
+                return null;
+            }
         } else {
             Choice choice = createNewChoice(1, false);
             return choice.nextValue() == 1;
