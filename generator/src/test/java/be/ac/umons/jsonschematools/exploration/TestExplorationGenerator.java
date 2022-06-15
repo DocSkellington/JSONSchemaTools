@@ -118,26 +118,19 @@ public class TestExplorationGenerator {
 
         Iterator<JSONObject> iterator = generator.createIterator(schema);
 
-        // @formatter:off
-        List<Object> listAnythingInObject = List.of(
-            AbstractConstants.stringConstant,
-            AbstractConstants.integerConstant,
-            AbstractConstants.numberConstant,
-            true,
-            false
-        );
-        // @formatter:on
+        List<Object> listAnythingInObject = new ArrayList<>();
+        listAnythingInObject.add(null);
+        listAnythingInObject.add(AbstractConstants.numberConstant);
+        listAnythingInObject.add(AbstractConstants.integerConstant);
+        listAnythingInObject.add(true);
+        listAnythingInObject.add(false);
+        listAnythingInObject.add(AbstractConstants.stringConstant);
 
-        for (int sizeArray = 2 ; sizeArray <= 4 ; sizeArray++) {
-            for (final boolean booleanValue : List.of(true, false)) {
-                Assert.assertTrue(iterator.hasNext());
-                JSONObject document = iterator.next();
-                // Since "anything" is not required, the first object we generate does not contain it
-                checkValuesInBasicTypes(document, booleanValue, null, sizeArray);
-
-                for (Object anythingInObject : listAnythingInObject) {
+        for (final boolean booleanValue : List.of(true, false)) {
+            for (Object anythingInObject : listAnythingInObject) {
+                for (int sizeArray = 2 ; sizeArray <= 4 ; sizeArray++) {
                     Assert.assertTrue(iterator.hasNext());
-                    document = iterator.next();
+                    JSONObject document = iterator.next();
                     checkValuesInBasicTypes(document, booleanValue, anythingInObject, sizeArray);
                 }
             }
@@ -192,14 +185,20 @@ public class TestExplorationGenerator {
             List.of(false, false)
         );
         // @formatter:on
-        List<List<Boolean>> listArgumentsValues = new ArrayList<>(listDescriptionArgumentsValues);
-        listArgumentsValues.add(0, List.of());
 
         for (List<Boolean> descriptionArgumentsValues : listDescriptionArgumentsValues) {
+            Assert.assertTrue(iterator.hasNext());
+            JSONObject document = iterator.next();
+            checkValuesInDefinitionByRef(document, descriptionArgumentsValues, List.of(), false);
+
+            Assert.assertTrue(iterator.hasNext());
+            document = iterator.next();
+            checkValuesInDefinitionByRef(document, descriptionArgumentsValues, List.of(), true);
+
             for (boolean commentPresent : List.of(false, true)) {
-                for (List<Boolean> argumentsValues : listArgumentsValues) {
+                for (List<Boolean> argumentsValues : listDescriptionArgumentsValues) {
                     Assert.assertTrue(iterator.hasNext());
-                    JSONObject document = iterator.next();
+                    document = iterator.next();
                     checkValuesInDefinitionByRef(document, descriptionArgumentsValues, argumentsValues, commentPresent);
                 }
             }
@@ -257,10 +256,10 @@ public class TestExplorationGenerator {
         
         // @formatter:off
         final List<List<String>> listPresentKeys = List.of(
+            List.of("key1", "key2", "\\S"          ),
+            List.of("key1", "key2",        "^key3$"),
             List.of("key1",         "\\S", "^key3$"),
             List.of(        "key2", "\\S", "^key3$"),
-            List.of("key1", "key2", "\\S"),
-            List.of("key1", "key2",        "^key3$"),
             List.of("key1", "key2", "\\S", "^key3$")
         );
         // @formatter:on
@@ -365,9 +364,9 @@ public class TestExplorationGenerator {
         );
         // @formatter:on
 
-        for (Pair<Integer, Integer> bounds : arraySizeBounds) {
-            for (int sizeArray = bounds.getFirst() ; sizeArray <= bounds.getSecond() ; sizeArray++) {
-                for (String valueInObject : List.of(AbstractConstants.integerConstant, AbstractConstants.stringConstant)) {
+        for (String valueInObject : List.of(AbstractConstants.integerConstant, AbstractConstants.stringConstant)) {
+            for (Pair<Integer, Integer> bounds : arraySizeBounds) {
+                for (int sizeArray = bounds.getFirst() ; sizeArray <= bounds.getSecond() ; sizeArray++) {
                     Assert.assertTrue(iterator.hasNext());
                     JSONObject document = iterator.next();
                     Assert.assertEquals(document.length(), 2);
@@ -396,8 +395,8 @@ public class TestExplorationGenerator {
         ExplorationGenerator generator = new DefaultExplorationGenerator(4, 4);
         Iterator<JSONObject> iterator = generator.createIterator(schema);
 
-        for (int sizeArray : List.of(4, 0, 1)) {
-            for (boolean properties : List.of(true, false)) {
+        for (boolean properties : List.of(true, false)) {
+            for (int sizeArray : List.of(4, 0, 1)) {
                 Assert.assertTrue(iterator.hasNext());
                 final JSONObject document = iterator.next();
                 Assert.assertEquals(document.length(), 2);

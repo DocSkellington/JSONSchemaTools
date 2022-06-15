@@ -5,14 +5,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
@@ -39,7 +38,7 @@ import org.json.JSONObject;
 public final class JSONSchema {
     private final JSONObject schema;
     private final JSONObject properties;
-    private final Set<Type> types = new TreeSet<>();
+    private final Set<Type> types = new LinkedHashSet<>();
     private final JSONSchemaStore store;
     private final int fullSchemaId;
     private final Object constValue;
@@ -120,7 +119,7 @@ public final class JSONSchema {
             if (object.has("properties")) {
                 this.properties = object.getJSONObject("properties");
             } else {
-                this.properties = new ComparableJSONObject();
+                this.properties = new HashableJSONObject();
             }
             this.additionalProperties = getSchemaForAdditionalProperties();
             if (!JSONSchemaStore.isFalseDocument(additionalProperties)) {
@@ -314,8 +313,8 @@ public final class JSONSchema {
             return Collections.emptySet();
         }
 
-        final Set<String> allKeys = new TreeSet<>();
-        final Set<String> seenPaths = new TreeSet<>(); // Store "#/properties/object/value", and so on
+        final Set<String> allKeys = new LinkedHashSet<>();
+        final Set<String> seenPaths = new LinkedHashSet<>(); // Store "#/properties/object/value", and so on
         final Queue<InQueue> queue = new LinkedList<>();
         queue.add(new InQueue("#", schema));
         seenPaths.add("#");
@@ -371,7 +370,7 @@ public final class JSONSchema {
                 if (object instanceof JSONArray) {
                     items = (JSONArray) object;
                 } else {
-                    items = new ComparableJSONArray();
+                    items = new HashableJSONArray();
                     items.put((JSONObject) object);
                 }
                 for (int i = 0; i < items.length(); i++) {
@@ -619,7 +618,7 @@ public final class JSONSchema {
         }
 
         if (schema.has("required")) {
-            Set<String> keys = new TreeSet<>();
+            Set<String> keys = new LinkedHashSet<>();
             JSONArray required = schema.getJSONArray("required");
             for (int i = 0; i < required.length(); i++) {
                 keys.add(required.getString(i));
@@ -642,7 +641,7 @@ public final class JSONSchema {
         }
 
         if (schema.has("required")) {
-            Map<String, JSONSchema> requiredProperties = new TreeMap<>();
+            Map<String, JSONSchema> requiredProperties = new LinkedHashMap<>();
             JSONArray required = schema.getJSONArray("required");
             for (int i = 0; i < required.length(); i++) {
                 String key = required.getString(i);
@@ -669,7 +668,7 @@ public final class JSONSchema {
         }
 
         Set<String> requiredKeys = getRequiredPropertiesKeys();
-        Map<String, JSONSchema> nonRequired = new TreeMap<>();
+        Map<String, JSONSchema> nonRequired = new LinkedHashMap<>();
         for (String key : properties.keySet()) {
             if (!requiredKeys.contains(key)) {
                 nonRequired.put(key, getSubSchemaProperties(key));
@@ -684,7 +683,7 @@ public final class JSONSchema {
         for (String key : keys) {
             if (schema.has(key)) {
                 if (!constraints.containsKey(key)) {
-                    constraints.put(key, new TreeSet<>());
+                    constraints.put(key, new LinkedHashSet<>());
                 }
                 constraints.get(key).add(schema.get(key));
             }
@@ -695,7 +694,7 @@ public final class JSONSchema {
             throws JSONSchemaException {
         // We will handle "not" afterwards. This is because we potentially need to merge
         // the constraints in "not" with the regular constraints
-        final JSONObject constraints = new ComparableJSONObject();
+        final JSONObject constraints = new HashableJSONObject();
         for (final Map.Entry<String, Set<Object>> entry : keyToValues.entrySet()) {
             final String key = entry.getKey();
             if (!key.equals("not")) {
@@ -717,7 +716,7 @@ public final class JSONSchema {
      *                             schema.
      */
     public JSONSchema dropAllOfAnyOfOneOfAndNot() throws JSONSchemaException {
-        JSONObject newSchema = new ComparableJSONObject();
+        JSONObject newSchema = new HashableJSONObject();
         for (String key : schema.keySet()) {
             if (key.equals("allOf") || key.equals("anyOf") || key.equals("oneOf") || key.equals("not")) {
                 continue;
@@ -742,7 +741,7 @@ public final class JSONSchema {
             return store.trueSchema();
         }
         final JSONArray allOf = schema.getJSONArray("allOf");
-        final Map<String, Set<Object>> keyToValues = new TreeMap<>();
+        final Map<String, Set<Object>> keyToValues = new LinkedHashMap<>();
         for (int i = 0; i < allOf.length(); i++) {
             JSONObject schema = allOf.getJSONObject(i);
             if (schema.has("$ref")) {
@@ -811,18 +810,18 @@ public final class JSONSchema {
 
         final List<JSONSchema> combinations = new ArrayList<>(schemas.size());
         for (int i = 0; i < schemas.size(); i++) {
-            final JSONArray onePossibility = new ComparableJSONArray(schemas.size());
+            final JSONArray onePossibility = new HashableJSONArray(schemas.size());
             final JSONSchema positive = schemas.get(i);
             onePossibility.put(positive.schema);
             for (int j = 0; j < schemas.size(); j++) {
                 if (i == j) {
                     continue;
                 }
-                final JSONObject notSchema = new ComparableJSONObject();
+                final JSONObject notSchema = new HashableJSONObject();
                 notSchema.put("not", schemas.get(j).schema);
                 onePossibility.put(notSchema);
             }
-            final JSONObject allOf = new ComparableJSONObject();
+            final JSONObject allOf = new HashableJSONObject();
             allOf.put("allOf", onePossibility);
             final JSONSchema schemaForPossibility = new JSONSchema(allOf, store, fullSchemaId);
             combinations.add(schemaForPossibility);
@@ -834,13 +833,13 @@ public final class JSONSchema {
             throws JSONSchemaException {
         if (keyToValues.containsKey("not")) {
             List<?> valueAfterOperation = (List<?>) MergeKeys.applyOperation("not", keyToValues.get("not"));
-            JSONArray notArray = new ComparableJSONArray(valueAfterOperation);
+            JSONArray notArray = new HashableJSONArray(valueAfterOperation);
             if (constraints.has("anyOf")) {
-                JSONObject alreadyAnyOf = new ComparableJSONObject();
+                JSONObject alreadyAnyOf = new HashableJSONObject();
                 alreadyAnyOf.put("anyOf", constraints.getJSONArray("anyOf"));
-                JSONObject fromNot = new ComparableJSONObject();
+                JSONObject fromNot = new HashableJSONObject();
                 fromNot.put("anyOf", notArray);
-                JSONArray allOf = new ComparableJSONArray();
+                JSONArray allOf = new HashableJSONArray();
                 allOf.put(alreadyAnyOf);
                 allOf.put(fromNot);
 
@@ -873,23 +872,23 @@ public final class JSONSchema {
         if (other == null || other.schema.isEmpty()) {
             return this;
         }
-        Map<String, Set<Object>> keyToValues = new TreeMap<>();
+        Map<String, Set<Object>> keyToValues = new LinkedHashMap<>();
         for (String key : schema.keySet()) {
             Object value = schema.get(key);
             if (!keyToValues.containsKey(key)) {
-                keyToValues.put(key, new TreeSet<>());
+                keyToValues.put(key, new LinkedHashSet<>());
             }
             keyToValues.get(key).add(value);
         }
         for (String key : other.schema.keySet()) {
             Object value = other.schema.get(key);
             if (!keyToValues.containsKey(key)) {
-                keyToValues.put(key, new TreeSet<>());
+                keyToValues.put(key, new LinkedHashSet<>());
             }
             keyToValues.get(key).add(value);
         }
 
-        JSONObject constraints = new ComparableJSONObject();
+        JSONObject constraints = new HashableJSONObject();
         for (Map.Entry<String, Set<Object>> entry : keyToValues.entrySet()) {
             final String key = entry.getKey();
             if (!key.equals("not")) {
@@ -1003,7 +1002,7 @@ public final class JSONSchema {
     }
 
     private JSONSchema getSubSchema(String key, JSONObject object) throws JSONException, JSONSchemaException {
-        JSONObject subObject = new ComparableJSONObject(object.getJSONObject(key));
+        JSONObject subObject = new HashableJSONObject(object.getJSONObject(key));
         if (subObject.has("$ref")) {
             return handleRef(subObject.getString("$ref"));
         } else {
@@ -1028,7 +1027,7 @@ public final class JSONSchema {
         if (items instanceof JSONArray) {
             array = (JSONArray) items;
         } else if (items instanceof JSONObject) {
-            array = new ComparableJSONArray();
+            array = new HashableJSONArray();
             array.put((JSONObject) items);
         } else {
             throw new JSONSchemaException("Invalid type for \"items\" in schema " + this);

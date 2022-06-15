@@ -3,7 +3,7 @@ package be.ac.umons.jsonschematools.random;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
@@ -203,7 +203,7 @@ public class RandomGenerator implements IGenerator {
     private Type selectType(final Collection<Type> allowedTypes, final boolean canGenerateInvalid, final Random rand) {
         final Collection<Type> typesToConsider;
         if (canGenerateInvalid && allTypes.size() != Type.values().length && rand.nextBoolean()) {
-            typesToConsider = new HashSet<>(allTypes);
+            typesToConsider = new LinkedHashSet<>(allTypes);
             typesToConsider.removeAll(allowedTypes);
         }
         else {
