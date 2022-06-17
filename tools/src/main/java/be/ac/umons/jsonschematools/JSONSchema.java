@@ -252,37 +252,69 @@ public final class JSONSchema {
         types.remove(Type.valueOf(type.toUpperCase()));
     }
 
-    public int depth() throws JSONSchemaException {
+    private int depth(JSONObject schema) throws JSONSchemaException {
+        if (JSONSchemaStore.isTrueDocument(schema)) {
+            return 0;
+        }
+        if (schema.has("$ref")) {
+            JSONSchema asSchema = new JSONSchema(schema, store, fullSchemaId);
+            return asSchema.handleRef(schema.getString("$ref")).depth();
+        }
         int depth = 0;
-        if (JSONSchemaStore.isTrueSchema(this)) {
-            return depth;
-        }
-        if (isObject()) {
-            depth = 1;
-            for (JSONSchema required : getRequiredProperties().values()) {
-                depth = Math.max(depth, required.depth());
+        for (String key : schema.keySet()) {
+            if (key.equals("properties")) {
+                JSONObject properties = schema.getJSONObject("properties");
+                depth = Math.max(depth, depth(properties) + 1);
             }
-            for (JSONSchema nonRequired : getNonRequiredProperties().values()) {
-                depth = Math.max(depth, nonRequired.depth());
+            else if (key.equals("items")) {
+                Object items = schema.get("items");
+                if (items instanceof JSONObject) {
+                    depth = Math.max(depth, depth((JSONObject) items) + 1);
+                }
+                else if (items instanceof JSONArray) {
+                    for (Object item : (JSONArray) items) {
+                        depth = Math.max(depth, depth((JSONObject) item) + 1);
+                    }
+                }
+            }
+            else if (key.equals("allOf")) {
+                JSONArray allOf = schema.getJSONArray("allOf");
+                for (Object all : (JSONArray) allOf) {
+                    depth = Math.max(depth, depth((JSONObject) all));
+                }
+            }
+            else if (key.equals("anyOf")) {
+                JSONArray anyOf = schema.getJSONArray("anyOf");
+                for (Object all : (JSONArray) anyOf) {
+                    depth = Math.max(depth, depth((JSONObject) all));
+                }
+            }
+            else if (key.equals("oneOf")) {
+                JSONArray oneOf = schema.getJSONArray("oneOf");
+                for (Object all : (JSONArray) oneOf) {
+                    depth = Math.max(depth, depth((JSONObject) all));
+                }
+            }
+            else if (key.equals("not")) {
+                JSONObject not = schema.getJSONObject("not");
+                depth = Math.max(depth, depth(not));
+            }
+            else {
+                Object value = schema.get(key);
+                if (value instanceof JSONObject) {
+                    depth = Math.max(depth, depth((JSONObject)value));
+                }
             }
         }
-        if (isArray()) {
-            depth = 1;
-            for (JSONSchema items : getItemsArray()) {
-                depth = Math.max(depth, items.depth());
-            }
-        }
-        depth = Math.max(depth, getAllOf().depth());
-        for (JSONSchema anyOf : getAnyOf()) {
-            depth = Math.max(depth, anyOf.depth());
-        }
-        for (JSONSchema oneOf : getOneOf()) {
-            depth = Math.max(depth, oneOf.depth());
-        }
-        for (JSONSchema not : getNot()) {
-            depth = Math.max(depth, not.depth());
-        }
+
         return depth;
+    }
+
+    public int depth() throws JSONSchemaException {
+        if (JSONSchemaStore.isTrueSchema(this)) {
+            return 0;
+        }
+        return depth(schema);
     }
 
     public JSONSchema getAdditionalProperties() throws JSONSchemaException {

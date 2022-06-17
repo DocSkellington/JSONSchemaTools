@@ -8,7 +8,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 public class TestGettingKeys {
-    private JSONSchema loadSchema(String path) throws FileNotFoundException, JSONSchemaException, URISyntaxException {
+    public static JSONSchema loadSchema(String path) throws FileNotFoundException, JSONSchemaException, URISyntaxException {
         JSONSchemaStore store = new JSONSchemaStore();
         return store.load(TestGettingKeys.class.getResource("/" + path).toURI());
     }
