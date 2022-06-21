@@ -25,8 +25,8 @@ public class Validator {
     private final Handler enumHandler;
     private final Handler objectHandler;
     private final Handler arrayHandler;
-    private final long memoryStart;
-    private long maxMemory;
+    private long maxMemory = 0L;
+    private long memoryStart = 0L;
 
     public Validator(final Handler stringHandler, final Handler integerHandler, final Handler numberHandler,
             final Handler booleanHandler, final Handler enumHandler, final Handler objectHandler,
@@ -38,10 +38,10 @@ public class Validator {
         this.enumHandler = enumHandler;
         this.objectHandler = objectHandler;
         this.arrayHandler = arrayHandler;
-        this.memoryStart = getMemoryUse();
     }
 
     public boolean validate(final JSONSchema schema, final JSONObject document) throws JSONSchemaException {
+        memoryStart = getMemoryInUse();
         return this.objectHandler.validate(this, schema, document);
     }
 
@@ -186,27 +186,37 @@ public class Validator {
                 valid = handler.validate(this, schema, object);
             }
 
-            if (valid && validateAllOf(schema, object)
-                        && validateAnyOf(schema, object) && validateOneOf(schema, object)
-                        && validateNot(schema, object)) {
+            // @formatter:off
+            if (valid
+                && validateAllOf(schema, object)
+                && validateAnyOf(schema, object)
+                && validateOneOf(schema, object)
+                && validateNot(schema, object)) {
                 return true;
             }
+            // @formatter:on
         }
         return false;
     }
 
     public boolean validateValue(final JSONSchema schema, final Object object) throws JSONSchemaException {
-        maxMemory = Math.max(maxMemory, getMemoryUse());
+        maxMemory = Math.max(maxMemory, getMemoryInUse());
         boolean valid = validateValue(schema, object, true);
-        maxMemory = Math.max(maxMemory, getMemoryUse());
+        maxMemory = Math.max(maxMemory, getMemoryInUse());
         return valid;
     }
 
+    /**
+     * Gets the maximal memory (in kilobytes) used by the validator during the last
+     * run.
+     * 
+     * @return The maximal memory consumed
+     */
     public long getMaxMemoryUsed() {
         return maxMemory - memoryStart;
     }
 
-    private long getMemoryUse() {
+    private long getMemoryInUse() {
         final Runtime runtime = Runtime.getRuntime();
         return (runtime.totalMemory() - runtime.freeMemory()) / 1024;
     }
