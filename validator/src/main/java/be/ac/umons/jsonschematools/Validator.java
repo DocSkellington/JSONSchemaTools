@@ -42,6 +42,7 @@ public class Validator {
 
     public boolean validate(final JSONSchema schema, final JSONObject document) throws JSONSchemaException {
         memoryStart = getMemoryInUse();
+        maxMemory = memoryStart;
         return this.objectHandler.validate(this, schema, document);
     }
 
