@@ -174,7 +174,8 @@ public class DefaultObjectHandler implements IHandler {
         for (String key : unusedKeys) {
             JSONSchema subSchema = nonRequiredProperties.get(key);
             if (rand.nextBoolean()) {
-                Object value = generator.generateAccordingToConstraints(subSchema, newMaxTreeSize, generateInvalid, rand);
+                Object value = generator.generateAccordingToConstraints(subSchema, newMaxTreeSize, generateInvalid,
+                        rand);
                 addToDocumentIfNotNullType.accept(key, value);
 
                 if (jsonObject.length() >= maxProperties) {

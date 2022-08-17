@@ -40,7 +40,7 @@ class MergeKeys {
     private static final Map<String, String> minToMax = new LinkedHashMap<>();
     private static final Map<String, String> maxToMin = new LinkedHashMap<>();
 
-    public static void prepareKeys() {
+    static {
         String[] mini = { "minItems", "minProperties", "minimum", "exclusiveMinimum", "minLength", "minContains" };
         String[] maxi = { "maxItems", "maxProperties", "maximum", "exclusiveMaximum", "maxLength", "maxContains" };
         String[] productKeys = { "multipleOf" };
@@ -178,13 +178,13 @@ class MergeKeys {
         return merge;
     }
 
-    public static JSONObject getMergeItems(Set<Object> values) {
+    private static JSONObject getMergeItems(Set<Object> values) {
         JSONObject merge = new HashableJSONObject();
         merge.put("allOf", new HashableJSONArray(values));
         return merge;
     }
 
-    public static Object getCheckEquality(String key, Set<Object> values) throws JSONSchemaException {
+    private static Object getCheckEquality(String key, Set<Object> values) throws JSONSchemaException {
         if (values.size() != 1) {
             throw new JSONSchemaException("JSON Schema: the values for the key " + key
                     + " must be identical within a schema and the \"allOf\", \"anyOf\", \"oneOf\" keywords");
@@ -282,11 +282,11 @@ class MergeKeys {
         return null;
     }
 
-    public static List<JSONObject> getNot(final Set<Object> values) throws JSONSchemaException {
-        Set<String> keysToKeep = keysToKeepInNot();
-        Map<String, Set<Object>> valuesByKey = new LinkedHashMap<>();
+    private static List<JSONObject> getNot(final Set<Object> values) throws JSONSchemaException {
+        final Set<String> keysToKeep = keysToKeepInNot();
+        final Map<String, Set<Object>> valuesByKey = new LinkedHashMap<>();
         for (Object object : values) {
-            JSONObject schema = (JSONObject) object;
+            final JSONObject schema = (JSONObject) object;
             for (String key : schema.keySet()) {
                 if (keysToKeep.contains(key)) {
                     if (!valuesByKey.containsKey(key)) {
@@ -344,44 +344,5 @@ class MergeKeys {
             default:
                 return null;
         }
-    }
-
-    public static String getKeyAfterNotOperation(String key) {
-        switch (key) {
-            case "not":
-                return "anyOf";
-            case "minItems":
-                return "maxItems";
-            case "maxItems":
-                return "minItems";
-            case "minProperties":
-                return "maxProperties";
-            case "maxProperties":
-                return "minProperties";
-            case "minimum":
-                return "maximum";
-            case "maximum":
-                return "minimum";
-            case "exclusiveMinimum":
-                return "exclusiveMaximum";
-            case "exclusiveMaximum":
-                return "exclusiveMinimum";
-            case "minLength":
-                return "maxLength";
-            case "maxLength":
-                return "minLength";
-            case "minContains":
-                return "maxContains";
-            case "maxContains":
-                return "minContains";
-            case "uniqueItems":
-            case "properties":
-            case "items":
-            case "type":
-            case "const":
-            case "enum":
-                return key;
-        }
-        return null;
     }
 }

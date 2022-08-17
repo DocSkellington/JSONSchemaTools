@@ -20,7 +20,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * A JSON schema describes constraints JSON documents must satisfy.
+ * A JSON schema stores the constraints a JSON document must satisfy to be valid.
  * 
  * This class implements tools to manipulate a JSON schema:
  * <ul>
@@ -30,7 +30,7 @@ import org.json.JSONObject;
  * <li>Merge multiple sub-schemas into a single schema, with all the
  * constraints. See the non-API documentation for more information on merging
  * the constraints given by multiples instances of a key.</li>
- * <li>Follow <code>$ref</code>.
+ * <li>Automatically follow <code>$ref</code> when encountered.</li>
  * </ul>
  * 
  * @author Gaëtan Staquet
@@ -148,26 +148,22 @@ public final class JSONSchema {
         return schema;
     }
 
-    private Type getType(Object object) {
-        if (object instanceof Integer) {
+    private Type getConstType() {
+        if (constValue instanceof Integer) {
             return Type.INTEGER;
-        } else if (object instanceof Number) {
+        } else if (constValue instanceof Number) {
             return Type.NUMBER;
-        } else if (object instanceof Boolean) {
+        } else if (constValue instanceof Boolean) {
             return Type.BOOLEAN;
-        } else if (object instanceof String) {
+        } else if (constValue instanceof String) {
             return Type.STRING;
-        } else if (object instanceof JSONArray) {
+        } else if (constValue instanceof JSONArray) {
             return Type.ARRAY;
-        } else if (object instanceof JSONObject) {
+        } else if (constValue instanceof JSONObject) {
             return Type.OBJECT;
         } else {
             return Type.NULL;
         }
-    }
-
-    private Type getConstType() {
-        return getType(constValue);
     }
 
     private JSONObject getSchemaForAdditionalProperties() throws JSONSchemaException {
@@ -310,6 +306,13 @@ public final class JSONSchema {
         return depth;
     }
 
+    /**
+     * Computes the depth of the schema, i.e., the maximal number of nested objects.
+     * 
+     * If the schema is recursive, the depth is infinite and this function does not return.
+     * @return The depth of the schema
+     * @throws JSONSchemaException
+     */
     public int depth() throws JSONSchemaException {
         if (JSONSchemaStore.isTrueSchema(this)) {
             return 0;
@@ -317,6 +320,13 @@ public final class JSONSchema {
         return depth(schema);
     }
 
+    /**
+     * Returns the schema describing the additional properties of this schema.
+     * 
+     * If this schema does not describe an object, the returned schema is always false.
+     * @return The schema describing the additional properties
+     * @throws JSONSchemaException
+     */
     public JSONSchema getAdditionalProperties() throws JSONSchemaException {
         return new JSONSchema(additionalProperties, store, fullSchemaId);
     }
@@ -486,10 +496,24 @@ public final class JSONSchema {
                 .collect(Collectors.toSet());
     }
 
+    /**
+     * Returns the const value defined in this schema.
+     * 
+     * If the const value is not defined, returns null.
+     * @return The const value, or null
+     */
     public Object getConstValue() {
         return constValue;
     }
 
+    /**
+     * Returns the const value defined in this schema, if the value's type matches the provided type.
+     * 
+     * If the const value is not defined or is not an instance of the provided type, returns null.
+     * @param <T> The required type
+     * @param type The required class
+     * @return The const value, or null
+     */
     public <T> T getConstValueIfType(Class<T> type) {
         if (type.isInstance(constValue)) {
             return type.cast(constValue);
@@ -1125,6 +1149,10 @@ public final class JSONSchema {
         return fullSchemaId;
     }
 
+    /**
+     * Returns the {@link JSONSchemaStore} holding this schema.
+     * @return The schema store
+     */
     public JSONSchemaStore getStore() {
         return store;
     }

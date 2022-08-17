@@ -18,13 +18,13 @@ public interface IHandler {
     /**
      * Generates the value according to the schema.
      * 
-     * @param schema           The JSON schema
-     * @param generator        The generator
-     * @param maxDocumentDepth The maximal depth (number of nested objects and
-     *                         arrays) of the document
-     * @param canGenerateInvalid  Whether the generator can produce invalid values
-     *                         for the schema
-     * @param choices          The sequence of choices
+     * @param schema             The JSON schema
+     * @param generator          The generator
+     * @param maxDocumentDepth   The maximal depth (number of nested objects and
+     *                           arrays) of the document
+     * @param canGenerateInvalid Whether the generator can produce invalid values
+     *                           for the schema
+     * @param choices            The sequence of choices
      * @return The generated value
      * @throws JSONSchemaException
      * @throws JSONException

@@ -10,7 +10,7 @@ import be.ac.umons.jsonschematools.generator.random.handlers.DefaultStringHandle
 
 /**
  * Constructs a {@link RandomGenerator} with the default handlers to produce
- * values in a JSON document.
+ * abstracted values in a JSON document.
  * 
  * @author Gaëtan Staquet
  */

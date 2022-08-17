@@ -24,6 +24,10 @@ import be.ac.umons.jsonschematools.generator.exploration.handlers.IHandler;
  * 
  * If the schema contains a recursive part, an infinite number of documents can
  * be generated.
+
+ * This implementation relies on external classes to handle each type allowed in
+ * a JSON schema. See the {@link be.ac.umons.jsonschematools.generator.exploration.handlers
+ * handlers package} for implemented handlers.
  * 
  * @author Gaëtan Staquet
  */

@@ -82,22 +82,19 @@ public class DefaultArrayHandler extends AHandler {
                 return null;
             }
             ignoreMaxItems = booleanValue;
-        }
-        else {
+        } else {
             ignoreMinItems = ignoreMaxItems = false;
         }
 
         if (ignoreMinItems) {
             minItems = 0;
-        }
-        else {
+        } else {
             minItems = schema.getIntOr("minItems", 0);
         }
 
         if (ignoreMaxItems) {
             maxItems = this.maxItems;
-        }
-        else {
+        } else {
             maxItems = schema.getIntOr("maxItems", this.maxItems);
         }
 
@@ -120,7 +117,7 @@ public class DefaultArrayHandler extends AHandler {
         if (length == null) {
             return Optional.empty();
         }
-        for (int i = 0 ; i < length ; i++) {
+        for (int i = 0; i < length; i++) {
             final Integer index = choices.getIndexNextExclusiveSelectionInList(itemsSchemaList.size());
             if (index == null) {
                 return Optional.empty();
@@ -128,9 +125,9 @@ public class DefaultArrayHandler extends AHandler {
             JSONSchema itemsSchema = itemsSchemaList.get(index);
             if (itemsSchema == null) {
                 array.put(new JSONObject());
-            }
-            else {
-                Optional<Object> value = generator.generateValueAccordingToConstraints(itemsSchema, maxDocumentDepth,canGenerateInvalid,choices);
+            } else {
+                Optional<Object> value = generator.generateValueAccordingToConstraints(itemsSchema, maxDocumentDepth,
+                        canGenerateInvalid, choices);
                 if (value.isEmpty()) {
                     return Optional.empty();
                 }

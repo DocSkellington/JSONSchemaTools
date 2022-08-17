@@ -102,7 +102,8 @@ public class TestValidator {
     }
 
     @Test
-    public void testMissingRequiredPropertiesRecursiveList() throws FileNotFoundException, JSONSchemaException, URISyntaxException {
+    public void testMissingRequiredPropertiesRecursiveList()
+            throws FileNotFoundException, JSONSchemaException, URISyntaxException {
         JSONSchema schema = loadSchemaResource("recursiveList.json");
         Validator validator = new DefaultValidator();
         StringBuilder builder = new StringBuilder();
@@ -167,7 +168,8 @@ public class TestValidator {
     }
 
     @Test
-    public void testMissingReferencedPropertyDefinitionByRef() throws JSONException, JSONSchemaException, FileNotFoundException, URISyntaxException {
+    public void testMissingReferencedPropertyDefinitionByRef()
+            throws JSONException, JSONSchemaException, FileNotFoundException, URISyntaxException {
         JSONSchema schema = loadSchemaResource("definitionByRef.json");
         Validator validator = new DefaultValidator();
         StringBuilder builder = new StringBuilder();
@@ -186,7 +188,8 @@ public class TestValidator {
     }
 
     @Test
-    public void testValidDocumentDefinitionByRef() throws FileNotFoundException, JSONSchemaException, URISyntaxException {
+    public void testValidDocumentDefinitionByRef()
+            throws FileNotFoundException, JSONSchemaException, URISyntaxException {
         JSONSchema schema = loadSchemaResource("definitionByRef.json");
         Validator validator = new DefaultValidator();
         StringBuilder builder = new StringBuilder();
@@ -223,7 +226,8 @@ public class TestValidator {
     }
 
     @Test
-    public void testValidDocumentSchemaTwoFiles() throws FileNotFoundException, JSONSchemaException, URISyntaxException {
+    public void testValidDocumentSchemaTwoFiles()
+            throws FileNotFoundException, JSONSchemaException, URISyntaxException {
         JSONSchema schema = loadSchemaResource("firstPart.json");
         Validator validator = new DefaultValidator();
         StringBuilder builder = new StringBuilder();
@@ -325,7 +329,7 @@ public class TestValidator {
             append('}');
         // @formatter:on
         Assert.assertFalse(validator.validate(schema, new JSONObject(builder.toString())));
-     
+
         builder = new StringBuilder();
         // @formatter:off
         builder.
@@ -746,7 +750,8 @@ public class TestValidator {
     }
 
     @Test
-    public void testAdditionalAndPatternProperties() throws FileNotFoundException, JSONSchemaException, URISyntaxException {
+    public void testAdditionalAndPatternProperties()
+            throws FileNotFoundException, JSONSchemaException, URISyntaxException {
         JSONSchema schema = loadSchemaResource("additionalAndPatternProperties.json");
         Validator validator = new DefaultValidator();
         StringBuilder builder = new StringBuilder();

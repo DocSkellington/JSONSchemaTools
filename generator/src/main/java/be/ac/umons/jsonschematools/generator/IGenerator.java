@@ -90,7 +90,7 @@ public interface IGenerator {
      * {@code canGenerateInvalid}.
      * 
      * @param schema             The schema
-     * @param maxDocumentDepth   The maximal depth of the documents
+     * @param documentDepth     The maximal depth of the documents
      * @param canGenerateInvalid Whether invalid documents can be generated
      * @return An iterator
      */

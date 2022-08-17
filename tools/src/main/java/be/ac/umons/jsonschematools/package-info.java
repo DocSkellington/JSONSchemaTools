@@ -1,5 +1,5 @@
 /**
- * Contains tools to manipulate and abstract a JSON Schema, a generator, and a validator.
+ * Contains tools to manipulate and abstract a JSON Schema.
  * 
  * @author Gaëtan Staquet
  */

@@ -285,8 +285,7 @@ public class ChoicesSequence implements Iterable<Choice> {
 
             if (choiceInExploration.hasNextValue()) {
                 return choiceInExploration.nextValue() == 1;
-            }
-            else {
+            } else {
                 return null;
             }
         } else {

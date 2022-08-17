@@ -23,7 +23,8 @@ class ExplorationIterator implements Iterator<JSONObject> {
     private final boolean canGenerateInvalid;
     private JSONObject nextDocument = null;
 
-    ExplorationIterator(JSONSchema schema, int maxDocumentDepth, boolean canGenerateInvalid, ExplorationGenerator generator) {
+    ExplorationIterator(JSONSchema schema, int maxDocumentDepth, boolean canGenerateInvalid,
+            ExplorationGenerator generator) {
         this.schema = schema;
         this.generator = generator;
         this.maxDocumentDepth = maxDocumentDepth;

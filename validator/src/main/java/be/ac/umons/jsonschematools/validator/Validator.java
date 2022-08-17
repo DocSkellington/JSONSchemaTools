@@ -16,7 +16,7 @@ import be.ac.umons.jsonschematools.validator.handlers.Handler;
  * Decides whether a JSON document satisfies a JSON schema.
  * 
  * This implementation relies on external classes to handle each type allowed in
- * a JSON schema. See the {@link be.ac.umons.jsonschematools.validatorhandlers
+ * a JSON schema. See the {@link be.ac.umons.jsonschematools.validator.handlers
  * handlers package} for implemented handlers.
  * 
  * @author Gaëtan Staquet
@@ -205,9 +205,17 @@ public class Validator {
         return false;
     }
 
-    public boolean validateValue(final JSONSchema schema, final Object object) throws JSONSchemaException {
+    /**
+     * Validate a JSON value against a schema
+     * 
+     * @param schema The JSON schema
+     * @param value  The value to validate
+     * @return True iff the value is correct for the provided schema
+     * @throws JSONSchemaException
+     */
+    public boolean validateValue(final JSONSchema schema, final Object value) throws JSONSchemaException {
         maxMemory = Math.max(maxMemory, getMemoryInUse());
-        boolean valid = validateValue(schema, object, true);
+        boolean valid = validateValue(schema, value, true);
         maxMemory = Math.max(maxMemory, getMemoryInUse());
         return valid;
     }

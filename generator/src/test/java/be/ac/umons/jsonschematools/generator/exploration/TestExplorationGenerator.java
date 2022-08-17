@@ -23,7 +23,7 @@ import be.ac.umons.jsonschematools.validator.DefaultValidator;
 import be.ac.umons.jsonschematools.validator.Validator;
 
 public class TestExplorationGenerator {
-    
+
     private static class Pair<I1, I2> {
         private final I1 first;
         private final I2 second;
@@ -46,7 +46,8 @@ public class TestExplorationGenerator {
         }
     }
 
-    private JSONSchema loadSchema(String path, boolean shouldIgnoreTrueAdditionalProperties) throws FileNotFoundException, JSONSchemaException, URISyntaxException {
+    private JSONSchema loadSchema(String path, boolean shouldIgnoreTrueAdditionalProperties)
+            throws FileNotFoundException, JSONSchemaException, URISyntaxException {
         JSONSchemaStore store = new JSONSchemaStore(shouldIgnoreTrueAdditionalProperties);
         return store.load(TestRandomGenerator.class.getResource("/" + path).toURI());
     }
@@ -60,7 +61,8 @@ public class TestExplorationGenerator {
     }
 
     @Test
-    public void testGeneratorPrimitiveTypes() throws URISyntaxException, FileNotFoundException, JSONSchemaException, JSONException, GeneratorException {
+    public void testGeneratorPrimitiveTypes()
+            throws URISyntaxException, FileNotFoundException, JSONSchemaException, JSONException, GeneratorException {
         JSONSchema schema = loadSchema("primitiveTypes.json", false);
         ExplorationGenerator generator = new DefaultExplorationGenerator();
 
@@ -112,7 +114,8 @@ public class TestExplorationGenerator {
     }
 
     @Test
-    public void testGeneratorBasicTypes() throws URISyntaxException, FileNotFoundException, JSONSchemaException, JSONException, GeneratorException {
+    public void testGeneratorBasicTypes()
+            throws URISyntaxException, FileNotFoundException, JSONSchemaException, JSONException, GeneratorException {
         JSONSchema schema = loadSchema("basicTypes.json", true);
         ExplorationGenerator generator = new DefaultExplorationGenerator(4, 4);
 
@@ -128,7 +131,7 @@ public class TestExplorationGenerator {
 
         for (final boolean booleanValue : List.of(true, false)) {
             for (Object anythingInObject : listAnythingInObject) {
-                for (int sizeArray = 2 ; sizeArray <= 4 ; sizeArray++) {
+                for (int sizeArray = 2; sizeArray <= 4; sizeArray++) {
                     Assert.assertTrue(iterator.hasNext());
                     JSONObject document = iterator.next();
                     checkValuesInBasicTypes(document, booleanValue, anythingInObject, sizeArray);
@@ -139,7 +142,8 @@ public class TestExplorationGenerator {
         Assert.assertFalse(iterator.hasNext());
     }
 
-    private void checkValuesInBasicTypes(JSONObject document, boolean expectedBoolean, Object anythingInObject, int sizeArray) {
+    private void checkValuesInBasicTypes(JSONObject document, boolean expectedBoolean, Object anythingInObject,
+            int sizeArray) {
         Set<String> keys = document.keySet();
         Assert.assertEquals(keys.size(), 7);
 
@@ -162,8 +166,7 @@ public class TestExplorationGenerator {
         JSONObject object = document.getJSONObject("object");
         if (anythingInObject == null) {
             Assert.assertFalse(object.has("anything"));
-        }
-        else {
+        } else {
             Assert.assertTrue(object.has("anything"));
             Assert.assertEquals(object.get("anything"), anythingInObject);
         }
@@ -174,7 +177,7 @@ public class TestExplorationGenerator {
         JSONSchema schema = loadSchema("definitionByRef.json", true);
         ExplorationGenerator generator = new DefaultExplorationGenerator();
         Iterator<JSONObject> iterator = generator.createIterator(schema);
-        
+
         // @formatter:off
         List<List<Boolean>> listDescriptionArgumentsValues = List.of(
             List.of(true),
@@ -207,7 +210,8 @@ public class TestExplorationGenerator {
         Assert.assertFalse(iterator.hasNext());
     }
 
-    private void checkValuesInDefinitionByRef(final JSONObject document, final List<Boolean> descriptionArgumentsValues, final List<Boolean> argumentsValues, boolean shouldCommentBePresent) {
+    private void checkValuesInDefinitionByRef(final JSONObject document, final List<Boolean> descriptionArgumentsValues,
+            final List<Boolean> argumentsValues, boolean shouldCommentBePresent) {
         Assert.assertTrue(document.has("description"));
 
         JSONObject description = document.getJSONObject("description");
@@ -220,7 +224,7 @@ public class TestExplorationGenerator {
 
         JSONArray values = arguments.getJSONArray("values");
         Assert.assertEquals(values.length(), descriptionArgumentsValues.size());
-        for (int i = 0 ; i < values.length() ; i++) {
+        for (int i = 0; i < values.length(); i++) {
             Assert.assertEquals(values.get(i), descriptionArgumentsValues.get(i));
         }
 
@@ -231,29 +235,28 @@ public class TestExplorationGenerator {
             Assert.assertTrue(arguments.has("values"));
             values = arguments.getJSONArray("values");
             Assert.assertEquals(values.length(), argumentsValues.size());
-            for (int i = 0 ; i < values.length() ; i++) {
+            for (int i = 0; i < values.length(); i++) {
                 Assert.assertEquals(values.get(i), argumentsValues.get(i));
             }
-        }
-        else {
+        } else {
             Assert.assertFalse(document.has("arguments"));
         }
 
         if (shouldCommentBePresent) {
             Assert.assertTrue(document.has("comment"));
             Assert.assertEquals(document.get("comment"), AbstractConstants.stringConstant);
-        }
-        else {
+        } else {
             Assert.assertFalse(document.has("comment"));
         }
     }
 
     @Test
-    public void testGeneratorAdditionalAndPatternProperties() throws FileNotFoundException, JSONSchemaException, URISyntaxException {
+    public void testGeneratorAdditionalAndPatternProperties()
+            throws FileNotFoundException, JSONSchemaException, URISyntaxException {
         JSONSchema schema = loadSchema("additionalAndPatternPropertiesForExploration.json", false);
         ExplorationGenerator generator = new DefaultExplorationGenerator();
         Iterator<JSONObject> iterator = generator.createIterator(schema);
-        
+
         // @formatter:off
         final List<List<String>> listPresentKeys = List.of(
             List.of("key1", "key2", "\\S"          ),
@@ -272,18 +275,18 @@ public class TestExplorationGenerator {
                 Assert.assertTrue(iterator.hasNext());
                 final JSONObject document = iterator.next();
                 checkValuesInAdditionalAndPatternProperties(document, presentKeys, absentKeys, true);
-            }
-            else {
+            } else {
                 Assert.assertTrue(iterator.hasNext());
                 final JSONObject document = iterator.next();
                 checkValuesInAdditionalAndPatternProperties(document, presentKeys, absentKeys, false);
             }
         }
-        
+
         Assert.assertFalse(iterator.hasNext());
     }
 
-    private void checkValuesInAdditionalAndPatternProperties(final JSONObject document, final List<String> presentKeys, final List<String> absentKeys, boolean key2Present) {
+    private void checkValuesInAdditionalAndPatternProperties(final JSONObject document, final List<String> presentKeys,
+            final List<String> absentKeys, boolean key2Present) {
         for (String key : presentKeys) {
             Assert.assertTrue(document.has(key));
 
@@ -319,14 +322,14 @@ public class TestExplorationGenerator {
         ExplorationGenerator generator = new DefaultExplorationGenerator();
         Iterator<JSONObject> iterator = generator.createIterator(schema);
 
-        for (int sizeArray = 2 ; sizeArray <= 4 ; sizeArray++) {
+        for (int sizeArray = 2; sizeArray <= 4; sizeArray++) {
             Assert.assertTrue(iterator.hasNext());
             JSONObject document = iterator.next();
 
             Assert.assertTrue(document.has("allOfArray"));
             JSONArray array = document.getJSONArray("allOfArray");
             Assert.assertEquals(array.length(), sizeArray);
-            for (int i = 0 ; i < sizeArray ; i++) {
+            for (int i = 0; i < sizeArray; i++) {
                 Assert.assertEquals(array.get(i), AbstractConstants.stringConstant);
             }
 
@@ -338,7 +341,7 @@ public class TestExplorationGenerator {
             Assert.assertTrue(object.has("prop"));
             JSONArray prop = object.getJSONArray("prop");
             Assert.assertEquals(prop.length(), 2);
-            for (int i = 0 ; i < prop.length() ; i++) {
+            for (int i = 0; i < prop.length(); i++) {
                 Assert.assertEquals(prop.get(i), AbstractConstants.integerConstant);
             }
         }
@@ -366,7 +369,7 @@ public class TestExplorationGenerator {
 
         for (String valueInObject : List.of(AbstractConstants.integerConstant, AbstractConstants.stringConstant)) {
             for (Pair<Integer, Integer> bounds : arraySizeBounds) {
-                for (int sizeArray = bounds.getFirst() ; sizeArray <= bounds.getSecond() ; sizeArray++) {
+                for (int sizeArray = bounds.getFirst(); sizeArray <= bounds.getSecond(); sizeArray++) {
                     Assert.assertTrue(iterator.hasNext());
                     JSONObject document = iterator.next();
                     Assert.assertEquals(document.length(), 2);
@@ -460,7 +463,7 @@ public class TestExplorationGenerator {
         ExplorationGenerator generator = new DefaultExplorationGenerator(4, 4);
         Iterator<JSONObject> iterator = generator.createIterator(schema);
 
-        for (int nRecursion = 0 ; nRecursion < 20 ; nRecursion++) {
+        for (int nRecursion = 0; nRecursion < 20; nRecursion++) {
             Assert.assertTrue(iterator.hasNext());
             JSONObject document = iterator.next();
             checkRecursiveList(document, nRecursion, false);
@@ -471,12 +474,13 @@ public class TestExplorationGenerator {
     }
 
     @Test
-    public void testGeneratorRecursiveListBoundedDepth() throws FileNotFoundException, JSONSchemaException, URISyntaxException {
+    public void testGeneratorRecursiveListBoundedDepth()
+            throws FileNotFoundException, JSONSchemaException, URISyntaxException {
         JSONSchema schema = loadSchema("recursiveList.json", false);
         ExplorationGenerator generator = new DefaultExplorationGenerator(4, 4);
         Iterator<JSONObject> iterator = generator.createIterator(schema, 40);
 
-        for (int nRecursion = 0 ; nRecursion < 20 ; nRecursion++) {
+        for (int nRecursion = 0; nRecursion < 20; nRecursion++) {
             Assert.assertTrue(iterator.hasNext());
             JSONObject document = iterator.next();
             checkRecursiveList(document, nRecursion, false);
@@ -492,8 +496,7 @@ public class TestExplorationGenerator {
     private void checkRecursiveList(JSONObject document, int wantedDepth, boolean reachedMaxDepth) {
         if (wantedDepth != 0) {
             Assert.assertEquals(document.length(), 2);
-        }
-        else {
+        } else {
             Assert.assertEquals(document.length(), 1);
         }
 
@@ -505,8 +508,7 @@ public class TestExplorationGenerator {
             JSONArray array = document.getJSONArray("list");
             if (wantedDepth == 1 && reachedMaxDepth) {
                 Assert.assertEquals(array.length(), 0);
-            }
-            else {
+            } else {
                 Assert.assertEquals(array.length(), 1);
                 checkRecursiveList(array.getJSONObject(0), wantedDepth - 1, reachedMaxDepth);
             }
@@ -519,7 +521,7 @@ public class TestExplorationGenerator {
         ExplorationGenerator generator = new DefaultExplorationGenerator(4, 4);
         Iterator<JSONObject> iterator = generator.createIterator(schema);
 
-        for (int idDocument = 0 ; idDocument < 6 ; idDocument++) {
+        for (int idDocument = 0; idDocument < 6; idDocument++) {
             Assert.assertTrue(iterator.hasNext());
             JSONObject document = iterator.next();
             Assert.assertEquals(document.length(), 12);
@@ -550,11 +552,13 @@ public class TestExplorationGenerator {
 
             Assert.assertTrue(document.has("positiveConstObject"));
             JSONObject positiveConstObject = document.getJSONObject("positiveConstObject");
-            JSONObject expectedPositiveConstObject = new JSONObject("{\"test\": true, \"int\": \"\\" + AbstractConstants.integerConstant + "\"}");
+            JSONObject expectedPositiveConstObject = new JSONObject(
+                    "{\"test\": true, \"int\": \"\\" + AbstractConstants.integerConstant + "\"}");
             Assert.assertTrue(positiveConstObject.similar(expectedPositiveConstObject));
 
             Assert.assertTrue(document.has("negativeConstObject"));
-            // Due to the abstracted values, we can not explicitly test that the generated value is correct
+            // Due to the abstracted values, we can not explicitly test that the generated
+            // value is correct
 
             Assert.assertTrue(document.has("positiveConstArray"));
             JSONArray positiveConstArray = document.getJSONArray("positiveConstArray");
@@ -568,7 +572,8 @@ public class TestExplorationGenerator {
     }
 
     @Test
-    public void testInvalidGeneratorConstPrimitives() throws FileNotFoundException, JSONSchemaException, URISyntaxException {
+    public void testInvalidGeneratorConstPrimitives()
+            throws FileNotFoundException, JSONSchemaException, URISyntaxException {
         runInvalidGenerator(loadSchema("withConstInteger.json", true), 1, 1);
         runInvalidGenerator(loadSchema("withConstNumber.json", true), 1, 1);
         runInvalidGenerator(loadSchema("withConstString.json", true), 1, 1);
@@ -595,7 +600,8 @@ public class TestExplorationGenerator {
     }
 
     @Test
-    public void testInvalidGeneratorConstObject() throws FileNotFoundException, JSONSchemaException, URISyntaxException {
+    public void testInvalidGeneratorConstObject()
+            throws FileNotFoundException, JSONSchemaException, URISyntaxException {
         runInvalidGenerator(loadSchema("withConstObject.json", true), 3, 1);
     }
 

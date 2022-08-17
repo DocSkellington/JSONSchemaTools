@@ -8,7 +8,7 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 
 /**
- * A {@code JSONObject} that implements the {@code hashCode} function.
+ * A {@code JSONObject} that overrides the {@code hashCode} function.
  * 
  * @author Gaëtan Staquet
  */

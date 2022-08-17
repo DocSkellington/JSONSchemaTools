@@ -25,8 +25,8 @@ import org.json.JSONTokener;
  */
 public class JSONSchemaStore {
 
-    private static int TRUE_IDENTIFIER = -1;
-    private static int FALSE_IDENTIFIER = -2;
+    private final static int TRUE_IDENTIFIER = -1;
+    private final static int FALSE_IDENTIFIER = -2;
 
     private final boolean ignoreTrueAdditionalProperties;
 
@@ -39,10 +39,11 @@ public class JSONSchemaStore {
     }
 
     /**
-     * @param ignoreTrueAdditionalProperties If true, schemas will discard "additionalProperties" if the value is true.
+     * @param ignoreTrueAdditionalProperties If true, schemas will discard
+     *                                       "additionalProperties" if the value is
+     *                                       true.
      */
     public JSONSchemaStore(final boolean ignoreTrueAdditionalProperties) {
-        MergeKeys.prepareKeys();
         this.ignoreTrueAdditionalProperties = ignoreTrueAdditionalProperties;
     }
 

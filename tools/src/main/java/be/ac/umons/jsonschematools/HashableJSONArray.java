@@ -8,7 +8,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * A {@code JSONArray} that overrides the {@link hashCode} function.
+ * A {@code JSONArray} that overrides the {@code hashCode} function.
  * 
  * @author Gaëtan Staquet
  */

@@ -22,7 +22,8 @@ public class RandomIterator implements Iterator<JSONObject> {
     private final int maxDocumentDepth;
     private final boolean canGenerateInvalid;
 
-    RandomIterator(JSONSchema schema, int maxDocumentDepth, boolean canGenerateInvalid, RandomGenerator generator, Random random) {
+    RandomIterator(JSONSchema schema, int maxDocumentDepth, boolean canGenerateInvalid, RandomGenerator generator,
+            Random random) {
         this.schema = schema;
         this.random = random;
         this.generator = generator;
@@ -43,5 +44,5 @@ public class RandomIterator implements Iterator<JSONObject> {
             return null;
         }
     }
-    
+
 }

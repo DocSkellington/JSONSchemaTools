@@ -1,7 +1,7 @@
 /**
- * Contains default implementations of handlers for the generator.
+ * Contains tools to generate documents satisfying a specified JSON schema.
  * 
- * The produced values are abstracted.
+ * The produced documents have abstracted values.
  * For instance, integer values are all represented by the special symbol
  * {@code \I}.
  * See {@link be.ac.umons.jsonschematools.AbstractConstants} for all abstract
@@ -11,4 +11,4 @@
  * 
  * @author Gaëtan Staquet
  */
-package be.ac.umons.jsonschematools.generator.random.handlers;
+package be.ac.umons.jsonschematools.generator;

@@ -8,6 +8,12 @@ import be.ac.umons.jsonschematools.generator.exploration.handlers.DefaultNumberH
 import be.ac.umons.jsonschematools.generator.exploration.handlers.DefaultObjectHandler;
 import be.ac.umons.jsonschematools.generator.exploration.handlers.DefaultStringHandler;
 
+/**
+ * Constructs an {@link ExplorationGenerator} with the default handlers to
+ * exhaustively produce abstracted values in a JSON document.
+ * 
+ * @author Gaëtan Staquet
+ */
 public class DefaultExplorationGenerator extends ExplorationGenerator {
     public DefaultExplorationGenerator(int maxPropertiesObject, int maxItemsArray) {
         super(new DefaultStringHandler(), new DefaultIntegerHandler(), new DefaultNumberHandler(),

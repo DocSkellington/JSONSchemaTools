@@ -27,7 +27,7 @@ public class DefaultObjectHandler implements Handler {
         final JSONObject document = (JSONObject) object;
         final int minProperties = schema.getIntOr("minProperties", 0);
         final int maxProperties = schema.getIntOr("maxProperties", Integer.MAX_VALUE);
-        
+
         if (!(minProperties <= document.length() && document.length() <= maxProperties)) {
             return false;
         }
@@ -43,8 +43,7 @@ public class DefaultObjectHandler implements Handler {
 
             try {
                 schemaForKey = schema.getSubSchemaProperties(key);
-            }
-            catch (JSONException e) {
+            } catch (JSONException e) {
                 schemaForKey = schema.getAdditionalProperties();
             }
 
@@ -59,7 +58,7 @@ public class DefaultObjectHandler implements Handler {
         }
 
         if (schema.getConstValue() != null) {
-            JSONObject abstracted = (JSONObject)AbstractConstants.abstractConstValue(schema.getConstValue());
+            JSONObject abstracted = (JSONObject) AbstractConstants.abstractConstValue(schema.getConstValue());
             if (!document.similar(abstracted)) {
                 return false;
             }

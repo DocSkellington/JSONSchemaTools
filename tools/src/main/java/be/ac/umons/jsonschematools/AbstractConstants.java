@@ -21,7 +21,7 @@ public class AbstractConstants {
     public static String enumConstant = "\\E";
 
     /**
-     * Abstract a const value given in a schema.
+     * Abstract a const value given in an object.
      * 
      * That is, it recursively replaces the strings by "\S", the integers by "\I",
      * and so on. See {@link AbstractConstants} for the abstracted values.

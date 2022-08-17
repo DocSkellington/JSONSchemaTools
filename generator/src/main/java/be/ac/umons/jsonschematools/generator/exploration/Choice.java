@@ -134,8 +134,7 @@ public class Choice {
         final int value;
         if (firstValue) {
             value = 0;
-        }
-        else {
+        } else {
             value = currentValue() + 1;
         }
         return "" + value + "/" + numberOfValues() + " (" + (exclusive ? "" : "not ") + "exclusive)";

@@ -10,11 +10,11 @@ public class TestChoice {
 
         Assert.assertEquals(choice.numberOfValues(), 16);
 
-        for (int i = 0 ; i < 16 ; i++) {
+        for (int i = 0; i < 16; i++) {
             Assert.assertTrue(choice.hasNextValue());
             Assert.assertEquals(choice.nextValue(), i);
         }
-        
+
         Assert.assertFalse(choice.hasNextValue());
     }
 
@@ -23,7 +23,7 @@ public class TestChoice {
         Choice choice = new Choice(4, true);
 
         Assert.assertEquals(choice.numberOfValues(), 4);
-        
+
         Assert.assertTrue(choice.hasNextValue());
         Assert.assertEquals(choice.nextValue(), 0);
 
