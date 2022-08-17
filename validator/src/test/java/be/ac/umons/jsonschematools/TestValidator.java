@@ -8,6 +8,9 @@ import org.json.JSONObject;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import be.ac.umons.jsonschematools.validator.DefaultValidator;
+import be.ac.umons.jsonschematools.validator.Validator;
+
 public class TestValidator {
     private JSONSchema loadSchemaResource(String path)
             throws FileNotFoundException, JSONSchemaException, URISyntaxException {

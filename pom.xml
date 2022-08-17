@@ -42,8 +42,8 @@ limitations under the License.
             <id>DocSkellington</id>
             <name>Gaëtan Staquet</name>
             <email>gaetan.staquet@umons.ac.be</email>
-            <organization>University of Mons and University of Antwerp, PhD Student</organization>
-            <organizationUrl>https://web.umons.ac.be/en/ and https://www.uantwerpen.be/en/</organizationUrl>
+            <organization>F.R.S.-FNRS, University of Mons and University of Antwerp, PhD Student</organization>
+            <organizationUrl>https://www.frs-fnrs.be/en/, https://web.umons.ac.be/en/ and https://www.uantwerpen.be/en/</organizationUrl>
             <roles>
                 <role>Developer</role>
                 <role>Maintainer</role>
@@ -95,13 +95,13 @@ limitations under the License.
         <javadoc-plugin.conf.release>8</javadoc-plugin.conf.release>
 
         <!-- Dependency versions -->
-        <json.version>20210307</json.version>
-        <testng.version>7.4.0</testng.version>
-        <javadoc-plugin.version>3.3.1</javadoc-plugin.version>
+        <json.version>20220320</json.version>
+        <testng.version>7.6.1</testng.version>
+        <javadoc-plugin.version>3.4.1</javadoc-plugin.version>
         <source-plugin.version>3.2.1</source-plugin.version>
-        <surefire-plugin.version>3.0.0-M5</surefire-plugin.version>
-        <project-reports.version>3.2.1</project-reports.version>
-        <site-plugin.version>3.9.1</site-plugin.version>
+        <surefire-plugin.version>3.0.0-M7</surefire-plugin.version>
+        <project-reports.version>3.4.1</project-reports.version>
+        <site-plugin.version>4.0.0-M3</site-plugin.version>
 
         <!-- Javadoc links -->
         <java.apidocs>http://docs.oracle.com/javase/8/docs/api/</java.apidocs>
