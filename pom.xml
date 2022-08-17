@@ -62,7 +62,7 @@ limitations under the License.
     ================================= MODULES ===================================
     -->
     <modules>
-        <module>tools</module>
+        <module>core</module>
         <module>generator</module>
         <module>validator</module>
     </modules>

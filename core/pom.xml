@@ -23,10 +23,10 @@ limitations under the License.
         <version>2.0</version>
     </parent>
 
-    <artifactId>jsonschematools-tools</artifactId>
+    <artifactId>jsonschematools-core</artifactId>
 
     <name>JSON Schema tools :: JSON Schema</name>
-    <description>Tools to handle JSON Schemas and documents</description>
+    <description>Implementation of a JSON Schema, abstract values used in the generator and the validator, and special JSON objects and arrays that support hashing.</description>
 
     <dependencies>
         <!-- External -->

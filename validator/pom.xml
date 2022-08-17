@@ -32,7 +32,7 @@ limitations under the License.
         <!-- Internal -->
         <dependency>
             <groupId>be.ac.umons.jsonschematools</groupId>
-            <artifactId>jsonschematools-tools</artifactId>
+            <artifactId>jsonschematools-core</artifactId>
             <version>${project.version}</version>
         </dependency>
 
