@@ -29,7 +29,6 @@ theme: minima
 plugins:
   - font-awesome-sass
   - jekyll-font-awesome-sass
-  - jekyll-tabs
 
 header_pages:
   - core.md
