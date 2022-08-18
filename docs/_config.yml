@@ -13,11 +13,11 @@
 # you will see them accessed via {{ site.title }}, {{ site.email }}, and so on.
 # You can create any custom variable you would like, and they will be accessible
 # in the templates via {{ site.myvariable }}.
-title: Generator and validator for JSON Schemas, with abstract values
+title: Generators and validator for JSON Schemas, with abstract values
 author: Gaëtan Staquet (F.R.S.-FNRS, UMONS, and UAntwerpen)
 email: gaetan.staquet@umons.ac.be
 description: >- # this means to ignore newlines until "baseurl:"
-  Documentation for the generator and validator for JSON Schemas, relying on abstracted values.
+  Documentation for the generators and validator for JSON Schemas, relying on abstracted values.
 baseurl: "/JSONSchemaTools" # the subpath of your site, e.g. /blog
 url: "https://docskellington.github.io" # the base hostname & protocol for your site, e.g. http://example.com
 github_username:  DocSkellington
@@ -29,11 +29,13 @@ theme: minima
 plugins:
   - font-awesome-sass
   - jekyll-font-awesome-sass
+  - jekyll-tabs
 
 header_pages:
-  - structure.md
-  - invalidGenerator.md
-  - todos.md
+  - core.md
+  - generator.md
+  - validator.md
+  - keywords.md
   - about.md
 
 sass:

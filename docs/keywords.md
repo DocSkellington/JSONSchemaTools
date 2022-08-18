@@ -1,9 +1,12 @@
 ---
-layout: page
-title: List of unsupported keywords
+title: Unsupported keywords
+layout: pageMath
 ---
 
-This is a technical page listing the keywords that are not (yet) supported and ideas for their implementations.
+* 
+{:toc}
+
+This page lists the keywords that are partially supported or unsupported.
 
 ## Partially supported keywords
   * `patternProperties`.
@@ -17,13 +20,10 @@ This is a technical page listing the keywords that are not (yet) supported and i
   * `prefixItems`, `contains`, `minContains`, and `maxContains` for arrays.
   * `oneOf` inside a `not`. I must think about a clever way to merge the constraints.
 
-## Keywords that will not be supported
+### Keywords that will not be supported
   * With the default handlers:
     * any keyword that has an effect on numbers, integers, or strings.
     * `uniqueItems` for arrays.
   * In general:
     * `format` for strings is discarded.
     * `enum` values inside a `not` are not considered when processing the enumeration. This is due to the fact that we abstract enumeration values.
-
-## Other remaining tasks
-  * Configure continuous integration (for my own experience).
