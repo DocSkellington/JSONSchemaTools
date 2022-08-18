@@ -1,3 +1,8 @@
 be.ac.umons.jsonschematools
-be.ac.umons.jsonschematools.generatorhandlers
-be.ac.umons.jsonschematools.validatorhandlers
+be.ac.umons.jsonschematools.generator
+be.ac.umons.jsonschematools.generator.exploration
+be.ac.umons.jsonschematools.generator.exploration.handlers
+be.ac.umons.jsonschematools.generator.random
+be.ac.umons.jsonschematools.generator.random.handlers
+be.ac.umons.jsonschematools.validator
+be.ac.umons.jsonschematools.validator.handlers
