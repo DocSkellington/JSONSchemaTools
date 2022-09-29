@@ -65,6 +65,16 @@ public class JSONSchemaStore {
         this.ignoreTrueAdditionalProperties = ignoreTrueAdditionalProperties;
     }
 
+    /**
+     * Loads a JSON schema from a file stored in the computer's filesystem.
+     * 
+     * This implementation does not support downloading documents from the Internet.
+     * Every schema must be locally available.
+     * @param path The path to the file
+     * @return The schema
+     * @throws FileNotFoundException
+     * @throws JSONSchemaException
+     */
     public JSONSchema load(URI path) throws FileNotFoundException, JSONSchemaException {
         if (path.getHost() != null) {
             System.err.println(
@@ -75,13 +85,28 @@ public class JSONSchemaStore {
         if (pathToSchema.containsKey(actualPath)) {
             return pathToSchema.get(actualPath);
         }
-        int schemaId = schemas.size();
         FileReader reader = new FileReader(new File(path));
         JSONObject object = new HashableJSONObject(new JSONTokener(reader));
-        JSONSchema schema = new JSONSchema(object, this, schemaId);
+        return load(object, actualPath);
+    }
+
+    /**
+     * Loads a JSON schema directly from a JSON object
+     * @param schemaObject The JSON document
+     * @return The schema
+     * @throws JSONSchemaException
+     */
+    public JSONSchema loadFromJSONObject(JSONObject schemaObject) throws JSONSchemaException {
+        final Path path = Path.of("fromSchema");
+        return load(new HashableJSONObject(schemaObject), path);
+    }
+
+    private JSONSchema load(JSONObject schemaObject, Path path) throws JSONSchemaException {
+        final int schemaId = schemas.size();
+        final JSONSchema schema = new JSONSchema(schemaObject, this, schemaId);
         schemas.add(schema);
-        pathToSchema.put(actualPath, schema);
-        idToPath.put(schemaId, actualPath);
+        pathToSchema.put(path, schema);
+        idToPath.put(schemaId, path);
         return schema;
     }
 
