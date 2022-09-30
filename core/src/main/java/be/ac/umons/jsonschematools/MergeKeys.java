@@ -363,4 +363,34 @@ class MergeKeys {
                 return null;
         }
     }
+
+    public static Object applyOperationInAllOf(String key, Set<Object> values) throws JSONSchemaException {
+        final Operation operation = getOperation(key);
+        if (operation == null) {
+            return null;
+        }
+        switch (operation) {
+            case AND:
+                return getAnd(values);
+            case CONCATENATION:
+            case INTERSECTION:
+                return getIntersection(values);
+            case MAXIMUM:
+                return getMaximum(values);
+            case MERGE_PROPERTIES:
+                return getMergeProperties(values);
+            case MERGE_ITEMS:
+                return getMergeItems(values);
+            case MINIMUM:
+                return getMinimum(values);
+            case PRODUCT:
+                return getProduct(values);
+            case CHECK_EQUALITY:
+                return getCheckEquality(key, values);
+            case NOT:
+                return getNot(values);
+            default:
+                return null;
+        }
+    }
 }

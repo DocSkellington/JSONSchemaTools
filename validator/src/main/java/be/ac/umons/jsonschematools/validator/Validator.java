@@ -61,8 +61,16 @@ public class Validator {
         this.arrayHandler = arrayHandler;
     }
 
+    /**
+     * Checks whether the provided document satisfies the schema
+     * 
+     * @param schema   The schema
+     * @param document The document
+     * @return True if and only if the document is valid
+     * @throws JSONSchemaException
+     */
     public boolean validate(final JSONSchema schema, final JSONObject document) throws JSONSchemaException {
-        return this.objectHandler.validate(this, schema, document);
+        return validateValue(schema, document);
     }
 
     public Handler getArrayHandler() {
@@ -228,7 +236,6 @@ public class Validator {
      * @throws JSONSchemaException
      */
     public boolean validateValue(final JSONSchema schema, final Object value) throws JSONSchemaException {
-        boolean valid = validateValue(schema, value, true);
-        return valid;
+        return validateValue(schema, value, true);
     }
 }

@@ -14,7 +14,7 @@ A similar use-case on XML documents has already been studied in Kumar, V., Madhu
 The other projects in the collection are:
   - [AutomataLib's fork](https://github.com/DocSkellington/automatalib): implements specific automata.
   - [LearnLib's fork](https://github.com/DocSkellington/learnlib): implements learning algorithms for automata.
-  - [Learning JSON schema](https://github.com/DocSkellington/LearningJSONSchema): combines the three other projects to learn automata from a schema.
+  - [Validating JSON documents with learned VPAs](https://github.com/DocSkellington/ValidatingJSONDocumentsWithLearnedVPA/): combines the three other projects to learn automata from a schema, and use the resulting automata to validate documents. Also provides benchmarks for both learning and validation.
 
 This project aims to provide tools to manipulate JSON schemas and is split into three modules:
   1. The `core` module contains an implementation of tools to process and navigate a JSON schema.
@@ -70,6 +70,12 @@ Then, to use the modules, add the following code in your `pom.xml`:
   ...
 </dependencies>
 ```
+
+## Known bugs
+  - A double negation (a "not" inside a "not") is incorrectly handled by the generators.
+    With regards to our [learning and validation benchmarks](https://github.com/DocSkellington/ValidatingJSONDocumentsWithLearnedVPA/), this bug does not influence the results as this situation does not arise in any of the considered schemas.
+    This also means that a "oneOf" inside a "not" does not work as intended.
+    See [issue #1](https://github.com/DocSkellington/JSONSchemaTools/issues/1).
 
 ## License
 The code of the library is distributed under Apache License 2.0.

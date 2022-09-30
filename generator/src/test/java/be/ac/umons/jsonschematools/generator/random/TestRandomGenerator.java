@@ -397,4 +397,17 @@ public class TestRandomGenerator {
 
         Assert.assertFalse(validator.validate(schema, document));
     }
+
+    @Test
+    public void testCompositionTopLevel() 
+            throws FileNotFoundException, JSONSchemaException, URISyntaxException, JSONException, GeneratorException {
+        JSONSchema schema = loadSchema("compositionTopLevel.json", false);
+        RandomGenerator generator = new DefaultRandomGenerator(5, 5);
+        Validator validator = new DefaultValidator();
+        Random random = new Random(1);
+        for (int i = 0 ; i <= 100; i++) {
+            JSONObject document = generator.generate(schema, 5, false, random);
+            Assert.assertTrue(validator.validate(schema, document));
+        }
+    }
 }

@@ -127,6 +127,10 @@ public class RandomGenerator implements IGenerator {
                         if (!types.contains(Type.OBJECT)) {
                             continue;
                         }
+
+                        if (fullSchema.needsFurtherUnfolding()) {
+                            return generateRoot(fullSchema, maxTreeSize, canGenerateInvalid, rand);
+                        }
                         return (JSONObject) generateValue(Type.OBJECT, fullSchema, maxTreeSize, canGenerateInvalid,
                                 rand);
                     } catch (GeneratorException e) {

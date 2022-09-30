@@ -627,4 +627,15 @@ public class TestExplorationGenerator {
     public void testInvalidGeneratorConstArray() throws FileNotFoundException, JSONSchemaException, URISyntaxException {
         runInvalidGenerator(loadSchema("withConstArray.json", true), 1, 3);
     }
+
+    @Test
+    public void testCompositionTopLevel() throws FileNotFoundException, JSONSchemaException, URISyntaxException {
+        JSONSchema schema = loadSchema("compositionTopLevel.json", false);
+        ExplorationGenerator generator = new DefaultExplorationGenerator();
+        Iterator<JSONObject> iterator = generator.createIterator(schema);
+        Validator validator = new DefaultValidator();
+        while (iterator.hasNext()) {
+            Assert.assertTrue(validator.validate(schema, iterator.next()));
+        }
+    }
 }

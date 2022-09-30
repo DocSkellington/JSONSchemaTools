@@ -752,7 +752,7 @@ public final class JSONSchema {
         return nonRequired;
     }
 
-    private void addConstraintToSet(final Map<String, Set<Object>> constraints, final JSONObject schema,
+    private void addConstraintToSetForAllOf(final Map<String, Set<Object>> constraints, final JSONObject schema,
             final Set<String> keys) {
         for (String key : keys) {
             if (schema.has(key)) {
@@ -764,7 +764,7 @@ public final class JSONSchema {
         }
     }
 
-    private JSONSchema transformConstraintsInSchema(final Map<String, Set<Object>> keyToValues)
+    private JSONSchema transformConstraintsInSchemaForAllOf(final Map<String, Set<Object>> keyToValues)
             throws JSONSchemaException {
         // We will handle "not" afterwards. This is because we potentially need to merge
         // the constraints in "not" with the regular constraints
@@ -772,7 +772,7 @@ public final class JSONSchema {
         for (final Map.Entry<String, Set<Object>> entry : keyToValues.entrySet()) {
             final String key = entry.getKey();
             if (!key.equals("not")) {
-                Object valueAfterOperation = MergeKeys.applyOperation(key, entry.getValue());
+                Object valueAfterOperation = MergeKeys.applyOperationInAllOf(key, entry.getValue());
                 constraints.put(key, valueAfterOperation);
             }
         }
@@ -824,9 +824,9 @@ public final class JSONSchema {
             if (JSONSchemaStore.isFalseDocument(schema)) {
                 return store.falseSchema();
             }
-            addConstraintToSet(keyToValues, schema, MergeKeys.getKeys());
+            addConstraintToSetForAllOf(keyToValues, schema, MergeKeys.getKeys());
         }
-        return transformConstraintsInSchema(keyToValues);
+        return transformConstraintsInSchemaForAllOf(keyToValues);
     }
 
     /**

@@ -831,4 +831,57 @@ public class TestValidator {
         // @formatter:on
         Assert.assertFalse(validator.validate(schema, new JSONObject(builder.toString())));
     }
+
+    @Test
+    public void testCompositionTopLevel() throws FileNotFoundException, JSONSchemaException, URISyntaxException {
+        JSONSchema schema = loadSchemaResource("compositionTopLevel.json");
+        Validator validator = new DefaultValidator();
+        StringBuilder builder = new StringBuilder();
+        // @formatter:off
+        builder
+            .append("{")
+            .append("}")
+        ;
+        // @formatter:on
+        Assert.assertFalse(validator.validate(schema, new JSONObject(builder.toString())));
+
+        builder = new StringBuilder();
+        // @formatter:off
+        builder
+            .append("{")
+                .append("\"2\":")
+                .append(escapeSymbol(AbstractConstants.stringConstant))
+            .append("}")
+        ;
+        // @formatter:on
+        Assert.assertTrue(validator.validate(schema, new JSONObject(builder.toString())));
+
+        builder = new StringBuilder();
+        // @formatter:off
+        builder
+            .append("{")
+                .append("\"1\":")
+                    .append(escapeSymbol(AbstractConstants.stringConstant))
+                .append(",")
+                .append("\"2\":")
+                    .append(escapeSymbol(AbstractConstants.stringConstant))
+            .append("}")
+        ;
+        // @formatter:on
+        Assert.assertFalse(validator.validate(schema, new JSONObject(builder.toString())));
+
+        builder = new StringBuilder();
+        // @formatter:off
+        builder
+            .append("{")
+                .append(escapeSymbol(AbstractConstants.stringConstant) + ":")
+                    .append(escapeSymbol(AbstractConstants.stringConstant))
+                .append(",")
+                .append("\"2\":")
+                    .append(escapeSymbol(AbstractConstants.stringConstant))
+            .append("}")
+        ;
+        // @formatter:on
+        Assert.assertTrue(validator.validate(schema, new JSONObject(builder.toString())));
+    }
 }
