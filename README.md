@@ -71,6 +71,19 @@ Then, to use the modules, add the following code in your `pom.xml`:
 </dependencies>
 ```
 
+To generate a document for any schema (with supported keywords), see the [`be.ac.umons.jsonschematools.generator.IGenerator` interface and its implementing classes documentation](https://docskellington.github.io/JSONSchemaTools/api/apidocs/be/ac/umons/jsonschematools/generator/IGenerator.html).
+To validate a document against a schema, see the [`be.ac.umons.jsonschematools.validator.Validator` class documentation](https://docskellington.github.io/JSONSchemaTools/api/apidocs/be/ac/umons/jsonschematools/validator/Validator.html).
+Moreover, the unit tests of each module provide examples on how to configure and use the different parts.
+
+## How to extend
+If you desire the modify the way integers (for instance) are handled for the validator, you simply have to create a new class that implements the `Handler` interface from the package `be.ac.umons.jsonschematools.validator.handlers`.
+Then, when creating an instance of the validator, you can provide your handler.
+Handlers for both generators can be created in a similar fashion.
+
+If you want to add support for more keywords, you can modify the class `be.ac.umons.jsonschematools.MergeKeys`.
+More precisely, the class dictates the keywords that must be kept when encountered and how to merge them when seen inside `allOf`, `anyOf`, `oneOf` or `not`.
+See [the core module documentation for more information](https://docskellington.github.io/JSONSchemaTools/core.html).
+
 ## Known bugs
   - A double negation (a "not" inside a "not") is incorrectly handled by the generators.
     With regards to our [learning and validation benchmarks](https://github.com/DocSkellington/ValidatingJSONDocumentsWithLearnedVPA/), this bug does not influence the results as this situation does not arise in any of the considered schemas.
