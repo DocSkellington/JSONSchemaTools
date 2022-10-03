@@ -48,7 +48,7 @@ The following table provides the abstracted values per type.
 See the documentation of each module for more details.
 
 ## Important pages
-  1. [Documentation of the code module](core.html)
+  1. [Documentation of the core module](core.html)
   2. [Documentation of the generator module](generator.html)
   3. [Documentation of the validator module](validator.html)
   4. [List of partially supported or unsupported keywords](keywords.html)
