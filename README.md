@@ -5,8 +5,8 @@ See [json.org](https://www.json.org/json-en.html) and [json-schema.org](https://
 See the [full documentation](https://docskellington.github.io/JSONSchemaTools/) for more details about the project, and the [API documentation](https://docskellington.github.io/JSONSchemaTools/api/apidocs/index.html) for the classes and methods.
 
 ## Motivation
-That project is part of a collection of projects.
-The final goal is to be able to automatically construct an automaton that approximates a JSON schema.
+This project is part of a collection of projects.
+The final goal is to be able to automatically construct an automaton that approximates a JSON schema, and use it to validate documents.
 An automaton accepting the same set of documents than a given schema is useful in the case of streaming large documents.
 A classical tool to validate a document must, in the worst case, wait for the whole document before processing it, while an automaton can process it in an efficient way symbol by symbol.
 A similar use-case on XML documents has already been studied in Kumar, V., Madhusudan, P., and Viswanathan, M., 2007. *Visibly pushdown automata for streaming XML*. In Proceedings of the 16th International Conference on World Wide Web (pp. 1053–1062); and Neider, D., 2008. *Learning Automata for Streaming XML Documents*. In Informatiktage (pp.&nbsp;23-26).

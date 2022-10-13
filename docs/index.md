@@ -12,8 +12,8 @@ See [json.org] and [json-schema.org] for more information.
 See the [API documentation](api/apidocs/index.html) if you are interested in the classes and methods.
 
 ## Motivation
-That project is part of a collection of projects.
-The final goal is to be able to automatically construct an automaton that approximates a JSON schema.
+This project is part of a collection of projects.
+The final goal is to be able to automatically construct an automaton that approximates a JSON schema, and use it to validate documents.
 An automaton accepting the same set of documents than a given schema is useful in the case of streaming large documents.
 A classical tool to validate a document must, in the worst case, wait for the whole document before processing it, while an automaton can process it in an efficient way symbol by symbol.
 A similar use-case on XML documents has already been studied.[^1]
@@ -21,7 +21,7 @@ A similar use-case on XML documents has already been studied.[^1]
 The other projects in the collection are:
   - [AutomataLib's fork](https://github.com/DocSkellington/automatalib): implements specific automata.
   - [LearnLib's fork](https://github.com/DocSkellington/learnlib): implements learning algorithms for automata.
-  - [Learning JSON schema](https://github.com/DocSkellington/LearningJSONSchema): combines the three other projects to learn automata from a schema.
+  - [Validating JSON documents with learned VPAs](https://github.com/DocSkellington/ValidatingJSONDocumentsWithLearnedVPA/): combines the three other projects to learn automata from a schema, and use the resulting automata to validate documents. Also provides benchmarks for both learning and validation.
 
 This project aims to provide tools to manipulate JSON schemas and is split into three modules:
   1. The [`core` module](core.html) contains an implementation of tools to process and navigate a JSON schema.
