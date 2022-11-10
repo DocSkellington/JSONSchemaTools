@@ -70,7 +70,7 @@ public class DefaultObjectHandler extends AHandler {
             newMaxDocumentDepth = maxDocumentDepth - 1;
         }
         Optional<Object> value = generateObject(schema, generator, newMaxDocumentDepth, canGenerateInvalid, choices);
-        if (value.isEmpty()) {
+        if (!value.isPresent()) {
             return value;
         }
         JSONObject object = (JSONObject) value.get();
@@ -152,7 +152,7 @@ public class DefaultObjectHandler extends AHandler {
             String key = entry.getKey();
             Optional<Object> value = generator.generateValueAccordingToConstraints(subSchema, maxDocumentDepth,
                     canGenerateInvalid, choices);
-            if (value.isEmpty()) {
+            if (!value.isPresent()) {
                 return Optional.empty();
             }
             addToDocumentIfNotNullType.accept(key, value);
@@ -185,7 +185,7 @@ public class DefaultObjectHandler extends AHandler {
             final JSONSchema subSchema = schema.getSubSchemaProperties(key);
             final Optional<Object> value = generator.generateValueAccordingToConstraints(subSchema, maxDocumentDepth,
                     canGenerateInvalid, choices);
-            if (value.isEmpty()) {
+            if (!value.isPresent()) {
                 return Optional.empty();
             }
             addToDocumentIfNotNullType.accept(key, value);

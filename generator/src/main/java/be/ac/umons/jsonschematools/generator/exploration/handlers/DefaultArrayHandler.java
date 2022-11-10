@@ -67,7 +67,7 @@ public class DefaultArrayHandler extends AHandler {
             newMaxDocumentDepth = maxDocumentDepth - 1;
         }
         Optional<Object> value = generateArray(schema, generator, newMaxDocumentDepth, canGenerateInvalid, choices);
-        if (value.isEmpty()) {
+        if (!value.isPresent()) {
             return value;
         }
         JSONArray array = (JSONArray) value.get();
@@ -146,7 +146,7 @@ public class DefaultArrayHandler extends AHandler {
             } else {
                 Optional<Object> value = generator.generateValueAccordingToConstraints(itemsSchema, maxDocumentDepth,
                         canGenerateInvalid, choices);
-                if (value.isEmpty()) {
+                if (!value.isPresent()) {
                     return Optional.empty();
                 }
                 if (value != ExplorationGenerator.EMPTY_VALUE_DUE_TO_MAX_DEPTH) {

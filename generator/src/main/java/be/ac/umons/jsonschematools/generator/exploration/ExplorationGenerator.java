@@ -88,11 +88,11 @@ public class ExplorationGenerator implements IGenerator {
                 choices, true);
         // If it was not possible to generate the object with the previous choices, we
         // start again if it is possible.
-        while (object.isEmpty() && choices.containsChoiceWithNextValue()) {
+        while (!object.isPresent() && choices.containsChoiceWithNextValue()) {
             choices.prepareForNewExploration();
             object = generateValueAccordingToConstraints(schema, maxDocumentDepth, canGenerateInvalid, choices, true);
         }
-        if (object.isEmpty() || object == ExplorationGenerator.EMPTY_VALUE_DUE_TO_MAX_DEPTH) {
+        if (!object.isPresent() || object == ExplorationGenerator.EMPTY_VALUE_DUE_TO_MAX_DEPTH) {
             return null;
         }
         return (JSONObject) object.get();
@@ -281,7 +281,7 @@ public class ExplorationGenerator implements IGenerator {
 
             value = generateValueForMergedSchema(mergedSchema, maxDocumentDepth, generateInvalid, choices,
                     mustBeObject);
-        } while (value.isEmpty());
+        } while (!value.isPresent());
         return value;
     }
 
