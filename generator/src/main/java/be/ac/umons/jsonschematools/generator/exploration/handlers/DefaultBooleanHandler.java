@@ -19,6 +19,7 @@
 package be.ac.umons.jsonschematools.generator.exploration.handlers;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,7 +37,7 @@ import be.ac.umons.jsonschematools.generator.exploration.ExplorationGenerator;
  */
 public class DefaultBooleanHandler extends AHandler {
 
-    private static final List<Boolean> booleanValues = List.of(true, false);
+    private static final List<Boolean> booleanValues = Arrays.asList(true, false);
 
     @Override
     public Optional<Object> generate(final JSONSchema schema, final ExplorationGenerator generator,

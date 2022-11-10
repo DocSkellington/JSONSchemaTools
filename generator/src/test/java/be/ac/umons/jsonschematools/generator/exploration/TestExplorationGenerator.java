@@ -21,6 +21,8 @@ package be.ac.umons.jsonschematools.generator.exploration;
 import java.io.FileNotFoundException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -147,7 +149,7 @@ public class TestExplorationGenerator {
         listAnythingInObject.add(false);
         listAnythingInObject.add(AbstractConstants.stringConstant);
 
-        for (final boolean booleanValue : List.of(true, false)) {
+        for (final boolean booleanValue : Arrays.asList(true, false)) {
             for (Object anythingInObject : listAnythingInObject) {
                 for (int sizeArray = 2; sizeArray <= 4; sizeArray++) {
                     Assert.assertTrue(iterator.hasNext());
@@ -197,26 +199,26 @@ public class TestExplorationGenerator {
         Iterator<JSONObject> iterator = generator.createIterator(schema);
 
         // @formatter:off
-        List<List<Boolean>> listDescriptionArgumentsValues = List.of(
-            List.of(true),
-            List.of(false),
-            List.of(true, true),
-            List.of(true, false),
-            List.of(false, true),
-            List.of(false, false)
+        List<List<Boolean>> listDescriptionArgumentsValues = Arrays.asList(
+            Arrays.asList(true),
+            Arrays.asList(false),
+            Arrays.asList(true, true),
+            Arrays.asList(true, false),
+            Arrays.asList(false, true),
+            Arrays.asList(false, false)
         );
         // @formatter:on
 
         for (List<Boolean> descriptionArgumentsValues : listDescriptionArgumentsValues) {
             Assert.assertTrue(iterator.hasNext());
             JSONObject document = iterator.next();
-            checkValuesInDefinitionByRef(document, descriptionArgumentsValues, List.of(), false);
+            checkValuesInDefinitionByRef(document, descriptionArgumentsValues, Collections.emptyList(), false);
 
             Assert.assertTrue(iterator.hasNext());
             document = iterator.next();
-            checkValuesInDefinitionByRef(document, descriptionArgumentsValues, List.of(), true);
+            checkValuesInDefinitionByRef(document, descriptionArgumentsValues, Collections.emptyList(), true);
 
-            for (boolean commentPresent : List.of(false, true)) {
+            for (boolean commentPresent : Arrays.asList(false, true)) {
                 for (List<Boolean> argumentsValues : listDescriptionArgumentsValues) {
                     Assert.assertTrue(iterator.hasNext());
                     document = iterator.next();
@@ -276,15 +278,15 @@ public class TestExplorationGenerator {
         Iterator<JSONObject> iterator = generator.createIterator(schema);
 
         // @formatter:off
-        final List<List<String>> listPresentKeys = List.of(
-            List.of("key1", "key2", "\\S"          ),
-            List.of("key1", "key2",        "^key3$"),
-            List.of("key1",         "\\S", "^key3$"),
-            List.of(        "key2", "\\S", "^key3$"),
-            List.of("key1", "key2", "\\S", "^key3$")
+        final List<List<String>> listPresentKeys = Arrays.asList(
+            Arrays.asList("key1", "key2", "\\S"          ),
+            Arrays.asList("key1", "key2",        "^key3$"),
+            Arrays.asList("key1",         "\\S", "^key3$"),
+            Arrays.asList(        "key2", "\\S", "^key3$"),
+            Arrays.asList("key1", "key2", "\\S", "^key3$")
         );
         // @formatter:on
-        final List<String> allKeys = List.of("key1", "key2", "\\S", "^key3$");
+        final List<String> allKeys = Arrays.asList("key1", "key2", "\\S", "^key3$");
 
         for (final List<String> presentKeys : listPresentKeys) {
             final List<String> absentKeys = new ArrayList<>(allKeys);
@@ -374,7 +376,7 @@ public class TestExplorationGenerator {
         Iterator<JSONObject> iterator = generator.createIterator(schema);
 
         // @formatter:off
-        List<Pair<Integer, Integer>> arraySizeBounds = List.of(
+        List<Pair<Integer, Integer>> arraySizeBounds = Arrays.asList(
             Pair.of(1, 4),
             Pair.of(1, 3),
             Pair.of(1, 3),
@@ -385,7 +387,7 @@ public class TestExplorationGenerator {
         );
         // @formatter:on
 
-        for (String valueInObject : List.of(AbstractConstants.integerConstant, AbstractConstants.stringConstant)) {
+        for (String valueInObject : Arrays.asList(AbstractConstants.integerConstant, AbstractConstants.stringConstant)) {
             for (Pair<Integer, Integer> bounds : arraySizeBounds) {
                 for (int sizeArray = bounds.getFirst(); sizeArray <= bounds.getSecond(); sizeArray++) {
                     Assert.assertTrue(iterator.hasNext());
@@ -416,8 +418,8 @@ public class TestExplorationGenerator {
         ExplorationGenerator generator = new DefaultExplorationGenerator(4, 4);
         Iterator<JSONObject> iterator = generator.createIterator(schema);
 
-        for (boolean properties : List.of(true, false)) {
-            for (int sizeArray : List.of(4, 0, 1)) {
+        for (boolean properties : Arrays.asList(true, false)) {
+            for (int sizeArray : Arrays.asList(4, 0, 1)) {
                 Assert.assertTrue(iterator.hasNext());
                 final JSONObject document = iterator.next();
                 Assert.assertEquals(document.length(), 2);
