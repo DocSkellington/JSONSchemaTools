@@ -213,8 +213,15 @@ class MergeKeys {
     private static Set<String> keysToKeepInNot() {
         // TODO: more keywords?
         // TODO: oneOf
-        Set<String> set = new LinkedHashSet<>(
-                Set.of("items", "properties", "type", "not", "enum", "const", "anyOf", "allOf"));
+        Set<String> set = new LinkedHashSet<>();
+        set.add("items");
+        set.add("properties");
+        set.add("type");
+        set.add("not");
+        set.add("enum");
+        set.add("const");
+        set.add("anyOf");
+        set.add("allOf");
         set.addAll(minKeys);
         set.addAll(maxKeys);
         return set;
@@ -239,8 +246,14 @@ class MergeKeys {
             return schema;
         } else if (key.equals("type")) {
             final JSONArray types = (JSONArray) applyOperation(key, values);
-            Set<String> allTypes = new LinkedHashSet<>(
-                    Set.of("string", "integer", "number", "object", "array", "boolean", "null"));
+            Set<String> allTypes = new LinkedHashSet<>();
+            allTypes.add("string");
+            allTypes.add("integer");
+            allTypes.add("number");
+            allTypes.add("object");
+            allTypes.add("array");
+            allTypes.add("boolean");
+            allTypes.add("null");
             for (int i = 0; i < types.length(); i++) {
                 String type = types.getString(i);
                 allTypes.remove(type);

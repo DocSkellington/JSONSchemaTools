@@ -97,7 +97,7 @@ public class JSONSchemaStore {
      * @throws JSONSchemaException
      */
     public JSONSchema loadFromJSONObject(JSONObject schemaObject) throws JSONSchemaException {
-        final Path path = Path.of("fromSchema");
+        final Path path = Paths.get("fromSchema");
         return load(new HashableJSONObject(schemaObject), path);
     }
 
