@@ -55,17 +55,17 @@ Then, to use the modules, add the following code in your `pom.xml`:
   <dependency>
     <groupId>be.ac.umons.jsonschematools</groupId>
     <artifactId>jsonschematools-core</artifactId>
-    <version>2.0</version>
+    <version>3.0</version>
   </dependency>
   <dependency>
     <groupId>be.ac.umons.jsonschematools</groupId>
     <artifactId>jsonschematools-validator</artifactId>
-    <version>2.0</version>
+    <version>3.0</version>
   </dependency>
   <dependency>
     <groupId>be.ac.umons.jsonschematools</groupId>
     <artifactId>jsonschematools-generator</artifactId>
-    <version>2.0</version>
+    <version>3.0</version>
   </dependency>
   ...
 </dependencies>

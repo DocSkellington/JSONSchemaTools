@@ -25,7 +25,7 @@
     -->
     <groupId>be.ac.umons.jsonschematools</groupId>
     <artifactId>jsonschematools</artifactId>
-    <version>2.0</version>
+    <version>3.0</version>
     <packaging>pom</packaging>
 
     <name>JSON Schema tools</name>
