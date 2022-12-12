@@ -29,7 +29,7 @@ import be.ac.umons.jsonschematools.generator.random.GeneratorException;
 import be.ac.umons.jsonschematools.generator.random.RandomGenerator;
 
 /**
- * A string handler that returns an abstracted string, i.e., "\S".
+ * A string handler that returns an abstracted string, i.e., "s".
  * 
  * This means that constraints on strings are ignored by this generator.
  * 

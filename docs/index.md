@@ -40,10 +40,10 @@ The following table provides the abstracted values per type.
 
 | Type        | Value |
 |-------------|-------|
-| Number      | \D    |
-| Integer     | \I    |
-| String      | \S    |
-| Enumeration | \E    |
+| Number      | d     |
+| Integer     | i     |
+| String      | s     |
+| Enumeration | e     |
 
 See the documentation of each module for more details.
 

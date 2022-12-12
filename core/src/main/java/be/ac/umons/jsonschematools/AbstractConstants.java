@@ -27,21 +27,21 @@ import org.json.JSONObject;
  * Constants used for our abstractions for strings, integers, numbers, and enum
  * values.
  * 
- * Strings are always equal to "\S", ignoring the requirements of the schema. In
- * a similar way, integers are always "\I", numbers "\D", and enum values "\E".
+ * Strings are always equal to "s", ignoring the requirements of the schema. In
+ * a similar way, integers are always "i", numbers "d", and enum values "e".
  * 
  * @author Gaëtan Staquet
  */
 public class AbstractConstants {
-    public static String stringConstant = "\\S";
-    public static String integerConstant = "\\I";
-    public static String numberConstant = "\\D";
-    public static String enumConstant = "\\E";
+    public static final String stringConstant = "s";
+    public static final String integerConstant = "i";
+    public static final String numberConstant = "d";
+    public static final String enumConstant = "e";
 
     /**
      * Abstract a const value given in an object.
      * 
-     * That is, it recursively replaces the strings by "\S", the integers by "\I",
+     * That is, it recursively replaces the strings by "s", the integers by "i",
      * and so on. See {@link AbstractConstants} for the abstracted values.
      * 
      * @param object The object to abstract

@@ -36,10 +36,6 @@ public class TestValidator {
         return store.load(TestValidator.class.getResource("/" + path).toURI());
     }
 
-    private String escapeSymbol(String string) {
-        return "\"\\" + string + "\"";
-    }
-
     @Test
     public void testMissingRequiredPropertiesBasicTypes()
             throws FileNotFoundException, JSONException, JSONSchemaException, URISyntaxException {
@@ -48,7 +44,7 @@ public class TestValidator {
         StringBuilder stringBuilder = new StringBuilder();
         // @formatter:off
         stringBuilder.append("{").
-            append("\"integer\": ").append(escapeSymbol(AbstractConstants.integerConstant)).
+            append("\"integer\": ").append(AbstractConstants.integerConstant).
         append("}");
         // @formatter:on
         Assert.assertFalse(validator.validate(schema, new JSONObject(stringBuilder.toString())));
@@ -62,24 +58,24 @@ public class TestValidator {
         // @formatter:off
         builder.
             append('{').
-                append("\"integer\": ").append(escapeSymbol(AbstractConstants.numberConstant)).
+                append("\"integer\": ").append(AbstractConstants.numberConstant).
                 append(',').
                 append("\"boolean\": false").
                 append(',').
-                append("\"string\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                append("\"string\": ").append(AbstractConstants.stringConstant).
                 append(',').
-                append("\"double\": ").append(escapeSymbol(AbstractConstants.numberConstant)).
+                append("\"double\": ").append(AbstractConstants.numberConstant).
                 append(",").
-                append("\"enumVar\": ").append(escapeSymbol(AbstractConstants.enumConstant)).
+                append("\"enumVar\": ").append(AbstractConstants.enumConstant).
                 append(",").
                 append("\"object\": {").
-                    append("\"anything\": ").append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append("\"anything\": ").append(AbstractConstants.integerConstant).
                 append("}").
                 append(",").
                 append("\"array\": [").
-                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(AbstractConstants.stringConstant).
                     append(',').
-                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(AbstractConstants.stringConstant).
                     append(']').
             append('}');
         // @formatter:on
@@ -95,24 +91,24 @@ public class TestValidator {
         // @formatter:off
         builder.
             append('{').
-                append("\"integer\": ").append(escapeSymbol(AbstractConstants.integerConstant)).
+                append("\"integer\": ").append(AbstractConstants.integerConstant).
                 append(',').
                 append("\"boolean\": true").
                 append(',').
-                append("\"string\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                append("\"string\": ").append(AbstractConstants.stringConstant).
                 append(',').
-                append("\"double\": ").append(escapeSymbol(AbstractConstants.numberConstant)).
+                append("\"double\": ").append(AbstractConstants.numberConstant).
                 append(",").
-                append("\"enumVar\": ").append(escapeSymbol(AbstractConstants.enumConstant)).
+                append("\"enumVar\": ").append(AbstractConstants.enumConstant).
                 append(",").
                 append("\"object\": {").
-                    append("\"anything\": ").append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append("\"anything\": ").append(AbstractConstants.integerConstant).
                 append("}").
                 append(",").
                 append("\"array\": [").
-                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(AbstractConstants.stringConstant).
                     append(',').
-                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(AbstractConstants.stringConstant).
                     append(']').
             append('}');
         // @formatter:on
@@ -128,10 +124,10 @@ public class TestValidator {
         // @formatter:off
         builder.
             append('{').
-            append("\"name\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+            append("\"name\": ").append(AbstractConstants.stringConstant).
             append(',').
             append("\"list\": [{").
-                    append("\"name\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append("\"name\": ").append(AbstractConstants.stringConstant).
                     append(',').
                     append("\"list\": [{").
                     append("}]").
@@ -149,13 +145,13 @@ public class TestValidator {
         // @formatter:off
         builder.
             append('{').
-            append("\"name\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+            append("\"name\": ").append(AbstractConstants.stringConstant).
             append(',').
             append("\"list\": [{").
-                    append("\"name\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append("\"name\": ").append(AbstractConstants.stringConstant).
                     append(',').
                     append("\"list\": [{").
-                        append("\"name\": ").append(escapeSymbol(AbstractConstants.integerConstant)).
+                        append("\"name\": ").append(AbstractConstants.integerConstant).
                     append("}]").
                 append("}]").
             append('}');
@@ -171,13 +167,13 @@ public class TestValidator {
         // @formatter:off
         builder.
             append('{').
-            append("\"name\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+            append("\"name\": ").append(AbstractConstants.stringConstant).
             append(',').
             append("\"list\": [{").
-                    append("\"name\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append("\"name\": ").append(AbstractConstants.stringConstant).
                     append(',').
                     append("\"list\": [{").
-                        append("\"name\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                        append("\"name\": ").append(AbstractConstants.stringConstant).
                     append("}]").
                 append("}]").
             append('}');
@@ -194,7 +190,7 @@ public class TestValidator {
         // @formatter:off
         builder.
             append('{').
-                append("\"comment\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                append("\"comment\": ").append(AbstractConstants.stringConstant).
                 append(',').
                 append("\"description\": {").
                     append("\"arguments\": {").
@@ -214,7 +210,7 @@ public class TestValidator {
         // @formatter:off
         builder.
             append('{').
-                append("\"comment\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                append("\"comment\": ").append(AbstractConstants.stringConstant).
                 append(',').
                 append("\"description\": {").
                     append("\"arguments\": {").
@@ -253,9 +249,9 @@ public class TestValidator {
         builder.
             append('{').
                 append("\"value\": {").
-                    append("\"comment\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append("\"comment\": ").append(AbstractConstants.stringConstant).
                     append(',').
-                    append("\"id\": ").append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append("\"id\": ").append(AbstractConstants.integerConstant).
                     append('}').
                 append('}').
             append('}');
@@ -271,9 +267,9 @@ public class TestValidator {
         // @formatter:off
         builder.
             append('{').
-                append("\"str3\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                append("\"str3\": ").append(AbstractConstants.stringConstant).
                 append(',').
-                append("\"str1\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                append("\"str1\": ").append(AbstractConstants.stringConstant).
             append('}');
         // @formatter:on
         Assert.assertTrue(validator.validate(schema, new JSONObject(builder.toString())));
@@ -290,11 +286,11 @@ public class TestValidator {
         // @formatter:off
         builder.
             append('{').
-                append("\"str3\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                append("\"str3\": ").append(AbstractConstants.stringConstant).
                 append(',').
-                append("\"str1\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                append("\"str1\": ").append(AbstractConstants.stringConstant).
                 append(',').
-                append("\"str4\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                append("\"str4\": ").append(AbstractConstants.stringConstant).
             append('}');
         // @formatter:on
         Assert.assertFalse(validator.validate(schema, new JSONObject(builder.toString())));
@@ -310,18 +306,18 @@ public class TestValidator {
             append('{').
                 append("\"allOfObject\": {").
                     append("\"prop\": [").
-                        append(escapeSymbol(AbstractConstants.integerConstant)).
+                        append(AbstractConstants.integerConstant).
                         append(',').
-                        append(escapeSymbol(AbstractConstants.integerConstant)).
+                        append(AbstractConstants.integerConstant).
                     append("],").
-                    append("\"val\": ").append(escapeSymbol(AbstractConstants.numberConstant)).
+                    append("\"val\": ").append(AbstractConstants.numberConstant).
                 append("},").
                 append("\"allOfArray\": [").
-                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(AbstractConstants.stringConstant).
                     append(',').
-                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(AbstractConstants.stringConstant).
                     append(',').
-                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(AbstractConstants.stringConstant).
                 append("]").
             append('}');
         // @formatter:on
@@ -333,16 +329,16 @@ public class TestValidator {
             append('{').
                 append("\"allOfObject\": {").
                     append("\"prop\": [").
-                        append(escapeSymbol(AbstractConstants.integerConstant)).
+                        append(AbstractConstants.integerConstant).
                     append("],").
-                    append("\"val\": ").append(escapeSymbol(AbstractConstants.numberConstant)).
+                    append("\"val\": ").append(AbstractConstants.numberConstant).
                 append("},").
                 append("\"allOfArray\": [").
-                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(AbstractConstants.stringConstant).
                     append(',').
-                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(AbstractConstants.stringConstant).
                     append(',').
-                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(AbstractConstants.stringConstant).
                 append("]").
             append('}');
         // @formatter:on
@@ -354,18 +350,18 @@ public class TestValidator {
             append('{').
                 append("\"allOfObject\": {").
                     append("\"prop\": [").
-                        append(escapeSymbol(AbstractConstants.integerConstant)).
+                        append(AbstractConstants.integerConstant).
                         append(',').
-                        append(escapeSymbol(AbstractConstants.integerConstant)).
+                        append(AbstractConstants.integerConstant).
                     append("],").
-                    append("\"val\": ").append(escapeSymbol(AbstractConstants.numberConstant)).
+                    append("\"val\": ").append(AbstractConstants.numberConstant).
                 append("},").
                 append("\"allOfArray\": [").
-                    append(escapeSymbol(AbstractConstants.numberConstant)).
+                    append(AbstractConstants.numberConstant).
                     append(',').
-                    append(escapeSymbol(AbstractConstants.numberConstant)).
+                    append(AbstractConstants.numberConstant).
                     append(',').
-                    append(escapeSymbol(AbstractConstants.numberConstant)).
+                    append(AbstractConstants.numberConstant).
                 append("]").
             append('}');
         // @formatter:on
@@ -381,14 +377,14 @@ public class TestValidator {
         builder.
             append('{').
                 append("\"anyOfObject\": {").
-                    append("\"prop\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append("\"prop\": ").append(AbstractConstants.stringConstant).
                 append("},").
                 append("\"anyOfArray\": [").
-                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(AbstractConstants.stringConstant).
                     append(',').
-                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(AbstractConstants.stringConstant).
                     append(',').
-                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(AbstractConstants.stringConstant).
                 append("]").
             append('}');
         // @formatter:on
@@ -399,10 +395,10 @@ public class TestValidator {
         builder.
             append('{').
                 append("\"anyOfObject\": {").
-                    append("\"prop\": ").append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append("\"prop\": ").append(AbstractConstants.integerConstant).
                 append("},").
                 append("\"anyOfArray\": [").
-                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(AbstractConstants.stringConstant).
                 append("]").
             append('}');
         // @formatter:on
@@ -413,7 +409,7 @@ public class TestValidator {
         builder.
             append('{').
                 append("\"anyOfObject\": {").
-                    append("\"prop\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append("\"prop\": ").append(AbstractConstants.stringConstant).
                 append("},").
                 append("\"anyOfArray\": [").
                     append(false).
@@ -438,13 +434,13 @@ public class TestValidator {
                 append("\"oneOfObject\": {").
                 append("},").
                 append("\"oneOfArray\": [").
-                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(AbstractConstants.stringConstant).
                     append(',').
-                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(AbstractConstants.stringConstant).
                     append(',').
-                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(AbstractConstants.stringConstant).
                     append(',').
-                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(AbstractConstants.stringConstant).
                 append("]").
             append('}');
         // @formatter:on
@@ -455,18 +451,18 @@ public class TestValidator {
         builder.
             append('{').
                 append("\"oneOfObject\": {").
-                    append("\"prop1\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append("\"prop1\": ").append(AbstractConstants.stringConstant).
                     append(',').
-                    append("\"prop2\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append("\"prop2\": ").append(AbstractConstants.stringConstant).
                 append("},").
                 append("\"oneOfArray\": [").
-                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(AbstractConstants.stringConstant).
                     append(',').
-                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(AbstractConstants.stringConstant).
                     append(',').
-                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(AbstractConstants.stringConstant).
                     append(',').
-                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(AbstractConstants.stringConstant).
                 append("]").
             append('}');
         // @formatter:on
@@ -477,12 +473,12 @@ public class TestValidator {
         builder.
             append('{').
                 append("\"oneOfObject\": {").
-                    append("\"prop1\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append("\"prop1\": ").append(AbstractConstants.stringConstant).
                     append(',').
-                    append("\"prop2\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append("\"prop2\": ").append(AbstractConstants.stringConstant).
                 append("},").
                 append("\"oneOfArray\": [").
-                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(AbstractConstants.stringConstant).
                 append("]").
             append('}');
         // @formatter:on
@@ -493,16 +489,16 @@ public class TestValidator {
         builder.
             append('{').
                 append("\"oneOfObject\": {").
-                    append("\"prop1\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append("\"prop1\": ").append(AbstractConstants.stringConstant).
                 append("},").
                 append("\"oneOfArray\": [").
-                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(AbstractConstants.stringConstant).
                     append(',').
-                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(AbstractConstants.stringConstant).
                     append(',').
-                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(AbstractConstants.stringConstant).
                     append(',').
-                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(AbstractConstants.stringConstant).
                 append("]").
             append('}');
         // @formatter:on
@@ -513,14 +509,14 @@ public class TestValidator {
         builder.
             append('{').
                 append("\"oneOfObject\": {").
-                    append("\"prop1\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append("\"prop1\": ").append(AbstractConstants.stringConstant).
                     append(',').
-                    append("\"prop2\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append("\"prop2\": ").append(AbstractConstants.stringConstant).
                 append("},").
                 append("\"oneOfArray\": [").
-                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(AbstractConstants.stringConstant).
                     append(',').
-                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(AbstractConstants.stringConstant).
                 append("]").
             append('}');
         // @formatter:on
@@ -536,7 +532,7 @@ public class TestValidator {
         builder.
             append('{').
                 append("\"subObject\": {").
-                    append("\"value\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append("\"value\": ").append(AbstractConstants.stringConstant).
                     append(',').
                     append("\"empty\": true").
                 append("}").
@@ -549,7 +545,7 @@ public class TestValidator {
         builder.
             append('{').
                 append("\"subObject\": {").
-                    append("\"value\": ").append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append("\"value\": ").append(AbstractConstants.integerConstant).
                     append(',').
                     append("\"empty\": false").
                 append("}").
@@ -562,7 +558,7 @@ public class TestValidator {
         builder.
             append('{').
                 append("\"subObject\": {").
-                    append("\"value\": ").append(escapeSymbol(AbstractConstants.numberConstant)).
+                    append("\"value\": ").append(AbstractConstants.numberConstant).
                     append(',').
                     append("\"empty\": false").
                 append("}").
@@ -580,7 +576,7 @@ public class TestValidator {
         builder.
             append('{').
                 append("\"subObject\": {").
-                    append("\"value\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append("\"value\": ").append(AbstractConstants.stringConstant).
                     append(',').
                     append("\"empty\": true").
                 append("}").
@@ -593,7 +589,7 @@ public class TestValidator {
         builder.
             append('{').
                 append("\"subObject\": {").
-                    append("\"value\": ").append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append("\"value\": ").append(AbstractConstants.integerConstant).
                     append(',').
                     append("\"empty\": false").
                 append("}").
@@ -606,7 +602,7 @@ public class TestValidator {
         builder.
             append('{').
                 append("\"subObject\": {").
-                    append("\"value\": ").append(escapeSymbol(AbstractConstants.numberConstant)).
+                    append("\"value\": ").append(AbstractConstants.numberConstant).
                     append(',').
                     append("\"empty\": false").
                 append("}").
@@ -627,42 +623,42 @@ public class TestValidator {
                 append(',').
                 append("\"negativeConstBoolean\": false").
                 append(',').
-                append("\"positiveConstInteger\": ").append(escapeSymbol(AbstractConstants.integerConstant)).
+                append("\"positiveConstInteger\": ").append(AbstractConstants.integerConstant).
                 append(',').
-                append("\"negativeConstInteger\": ").append(escapeSymbol(AbstractConstants.integerConstant)).
+                append("\"negativeConstInteger\": ").append(AbstractConstants.integerConstant).
                 append(',').
-                append("\"positiveConstNumber\": ").append(escapeSymbol(AbstractConstants.numberConstant)).
+                append("\"positiveConstNumber\": ").append(AbstractConstants.numberConstant).
                 append(',').
-                append("\"negativeConstNumber\": ").append(escapeSymbol(AbstractConstants.numberConstant)).
+                append("\"negativeConstNumber\": ").append(AbstractConstants.numberConstant).
                 append(',').
-                append("\"positiveConstString\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                append("\"positiveConstString\": ").append(AbstractConstants.stringConstant).
                 append(',').
-                append("\"negativeConstString\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                append("\"negativeConstString\": ").append(AbstractConstants.stringConstant).
                 append(',').
                 append("\"positiveConstObject\": {").
                     append("\"test\": true").
                     append(',').
-                    append("\"int\": ").append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append("\"int\": ").append(AbstractConstants.integerConstant).
                     append("}").
                 append(',').
                 append("\"negativeConstObject\": {").
-                    append("\"int\": ").append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append("\"int\": ").append(AbstractConstants.integerConstant).
                     append("}").
                 append(',').
                 append("\"positiveConstArray\": [").
-                    append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append(AbstractConstants.integerConstant).
                     append(',').
-                    append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append(AbstractConstants.integerConstant).
                     append(',').
-                    append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append(AbstractConstants.integerConstant).
                     append(']').
                 append(',').
                 append("\"negativeConstArray\": [").
-                    append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append(AbstractConstants.integerConstant).
                     append(',').
-                    append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append(AbstractConstants.integerConstant).
                     append(',').
-                    append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append(AbstractConstants.integerConstant).
                     append(']').
             append('}');
         // @formatter:on
@@ -676,44 +672,44 @@ public class TestValidator {
                 append(',').
                 append("\"negativeConstBoolean\": false").
                 append(',').
-                append("\"positiveConstInteger\": ").append(escapeSymbol(AbstractConstants.integerConstant)).
+                append("\"positiveConstInteger\": ").append(AbstractConstants.integerConstant).
                 append(',').
-                append("\"negativeConstInteger\": ").append(escapeSymbol(AbstractConstants.integerConstant)).
+                append("\"negativeConstInteger\": ").append(AbstractConstants.integerConstant).
                 append(',').
-                append("\"positiveConstNumber\": ").append(escapeSymbol(AbstractConstants.numberConstant)).
+                append("\"positiveConstNumber\": ").append(AbstractConstants.numberConstant).
                 append(',').
-                append("\"negativeConstNumber\": ").append(escapeSymbol(AbstractConstants.numberConstant)).
+                append("\"negativeConstNumber\": ").append(AbstractConstants.numberConstant).
                 append(',').
-                append("\"positiveConstString\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                append("\"positiveConstString\": ").append(AbstractConstants.stringConstant).
                 append(',').
-                append("\"negativeConstString\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                append("\"negativeConstString\": ").append(AbstractConstants.stringConstant).
                 append(',').
                 append("\"positiveConstObject\": {").
                     append("\"test\": true").
                     append(',').
-                    append("\"int\": ").append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append("\"int\": ").append(AbstractConstants.integerConstant).
                     append("}").
                 append(',').
                 append("\"negativeConstObject\": {").
                     append("\"test\": true").
                     append(',').
-                    append("\"int\": ").append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append("\"int\": ").append(AbstractConstants.integerConstant).
                     append("}").
                 append(',').
                 append("\"positiveConstArray\": [").
-                    append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append(AbstractConstants.integerConstant).
                     append(',').
-                    append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append(AbstractConstants.integerConstant).
                     append(',').
-                    append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append(AbstractConstants.integerConstant).
                     append(']').
                 append(',').
                 append("\"negativeConstArray\": [").
-                    append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append(AbstractConstants.integerConstant).
                     append(',').
-                    append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append(AbstractConstants.integerConstant).
                     append(',').
-                    append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append(AbstractConstants.integerConstant).
                     append(']').
             append('}');
         // @formatter:on
@@ -727,40 +723,40 @@ public class TestValidator {
                 append(',').
                 append("\"negativeConstBoolean\": false").
                 append(',').
-                append("\"positiveConstInteger\": ").append(escapeSymbol(AbstractConstants.integerConstant)).
+                append("\"positiveConstInteger\": ").append(AbstractConstants.integerConstant).
                 append(',').
-                append("\"negativeConstInteger\": ").append(escapeSymbol(AbstractConstants.integerConstant)).
+                append("\"negativeConstInteger\": ").append(AbstractConstants.integerConstant).
                 append(',').
-                append("\"positiveConstNumber\": ").append(escapeSymbol(AbstractConstants.numberConstant)).
+                append("\"positiveConstNumber\": ").append(AbstractConstants.numberConstant).
                 append(',').
-                append("\"negativeConstNumber\": ").append(escapeSymbol(AbstractConstants.numberConstant)).
+                append("\"negativeConstNumber\": ").append(AbstractConstants.numberConstant).
                 append(',').
-                append("\"positiveConstString\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                append("\"positiveConstString\": ").append(AbstractConstants.stringConstant).
                 append(',').
-                append("\"negativeConstString\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                append("\"negativeConstString\": ").append(AbstractConstants.stringConstant).
                 append(',').
                 append("\"positiveConstObject\": {").
                     append("\"test\": true").
                     append(',').
-                    append("\"int\": ").append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append("\"int\": ").append(AbstractConstants.integerConstant).
                     append("}").
                 append(',').
                 append("\"negativeConstObject\": {").
-                    append("\"int\": ").append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append("\"int\": ").append(AbstractConstants.integerConstant).
                     append("}").
                 append(',').
                 append("\"positiveConstArray\": [").
-                    append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append(AbstractConstants.integerConstant).
                     append(',').
-                    append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append(AbstractConstants.integerConstant).
                     append(',').
-                    append(escapeSymbol(AbstractConstants.integerConstant)).
+                    append(AbstractConstants.integerConstant).
                     append(']').
                 append(',').
                 append("\"negativeConstArray\": [").
                     append(false).
                     append(',').
-                    append(escapeSymbol(AbstractConstants.stringConstant)).
+                    append(AbstractConstants.stringConstant).
                     append(']').
             append('}');
         // @formatter:on
@@ -776,7 +772,7 @@ public class TestValidator {
         // @formatter:off
         builder.
             append('{').
-                append("\"key1\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                append("\"key1\": ").append(AbstractConstants.stringConstant).
                 append(',').
                 append("\"key2\": ").
                     append("[").
@@ -793,9 +789,9 @@ public class TestValidator {
                         append("}").
                     append("]").
                 append(',').
-                append("\"^key3$\":").append(escapeSymbol(AbstractConstants.enumConstant)).
+                append("\"^key3$\":").append(AbstractConstants.enumConstant).
                 append(",").
-                append(escapeSymbol(AbstractConstants.stringConstant)).append(":").append(escapeSymbol(AbstractConstants.integerConstant)).
+                append(AbstractConstants.stringConstant).append(":").append(AbstractConstants.integerConstant).
             append('}');
         // @formatter:on
         Assert.assertTrue(validator.validate(schema, new JSONObject(builder.toString())));
@@ -804,7 +800,7 @@ public class TestValidator {
         // @formatter:off
         builder.
             append('{').
-                append("\"key1\": ").append(escapeSymbol(AbstractConstants.stringConstant)).
+                append("\"key1\": ").append(AbstractConstants.stringConstant).
                 append(',').
                 append("\"key2\": ").
                     append("[").
@@ -812,7 +808,7 @@ public class TestValidator {
                             append("\"^key*$\": true").
                             append(",").
                             // Additional properties are forbidden here
-                            append(escapeSymbol(AbstractConstants.stringConstant)).append(": true").
+                            append(AbstractConstants.stringConstant).append(": true").
                         append("}").
                         append(",").
                         append("{").
@@ -824,9 +820,9 @@ public class TestValidator {
                         append("}").
                     append("]").
                 append(',').
-                append("\"^key3$\":").append(escapeSymbol(AbstractConstants.enumConstant)).
+                append("\"^key3$\":").append(AbstractConstants.enumConstant).
                 append(",").
-                append(escapeSymbol(AbstractConstants.stringConstant)).append(":").append(escapeSymbol(AbstractConstants.integerConstant)).
+                append(AbstractConstants.stringConstant).append(":").append(AbstractConstants.integerConstant).
             append('}');
         // @formatter:on
         Assert.assertFalse(validator.validate(schema, new JSONObject(builder.toString())));
@@ -850,7 +846,7 @@ public class TestValidator {
         builder
             .append("{")
                 .append("\"2\":")
-                .append(escapeSymbol(AbstractConstants.stringConstant))
+                .append(AbstractConstants.stringConstant)
             .append("}")
         ;
         // @formatter:on
@@ -861,10 +857,10 @@ public class TestValidator {
         builder
             .append("{")
                 .append("\"1\":")
-                    .append(escapeSymbol(AbstractConstants.stringConstant))
+                    .append(AbstractConstants.stringConstant)
                 .append(",")
                 .append("\"2\":")
-                    .append(escapeSymbol(AbstractConstants.stringConstant))
+                    .append(AbstractConstants.stringConstant)
             .append("}")
         ;
         // @formatter:on
@@ -874,11 +870,11 @@ public class TestValidator {
         // @formatter:off
         builder
             .append("{")
-                .append(escapeSymbol(AbstractConstants.stringConstant) + ":")
-                    .append(escapeSymbol(AbstractConstants.stringConstant))
+                .append(AbstractConstants.stringConstant + ":")
+                    .append(AbstractConstants.stringConstant)
                 .append(",")
                 .append("\"2\":")
-                    .append(escapeSymbol(AbstractConstants.stringConstant))
+                    .append(AbstractConstants.stringConstant)
             .append("}")
         ;
         // @formatter:on

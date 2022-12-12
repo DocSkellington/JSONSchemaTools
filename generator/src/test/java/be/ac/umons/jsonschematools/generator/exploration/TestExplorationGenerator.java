@@ -279,14 +279,14 @@ public class TestExplorationGenerator {
 
         // @formatter:off
         final List<List<String>> listPresentKeys = Arrays.asList(
-            Arrays.asList("key1", "key2", "\\S"          ),
-            Arrays.asList("key1", "key2",        "^key3$"),
-            Arrays.asList("key1",         "\\S", "^key3$"),
-            Arrays.asList(        "key2", "\\S", "^key3$"),
-            Arrays.asList("key1", "key2", "\\S", "^key3$")
+            Arrays.asList("key1", "key2", "s"          ),
+            Arrays.asList("key1", "key2",      "^key3$"),
+            Arrays.asList("key1",         "s", "^key3$"),
+            Arrays.asList(        "key2", "s", "^key3$"),
+            Arrays.asList("key1", "key2", "s", "^key3$")
         );
         // @formatter:on
-        final List<String> allKeys = Arrays.asList("key1", "key2", "\\S", "^key3$");
+        final List<String> allKeys = Arrays.asList("key1", "key2", "s", "^key3$");
 
         for (final List<String> presentKeys : listPresentKeys) {
             final List<String> absentKeys = new ArrayList<>(allKeys);
@@ -323,7 +323,7 @@ public class TestExplorationGenerator {
                         Assert.assertEquals(objectInArray.get("^key*$"), true);
                     }
                     break;
-                case "\\S":
+                case "s":
                     Assert.assertEquals(document.get(key), AbstractConstants.integerConstant);
                     break;
                 case "^key3$":
@@ -573,7 +573,7 @@ public class TestExplorationGenerator {
             Assert.assertTrue(document.has("positiveConstObject"));
             JSONObject positiveConstObject = document.getJSONObject("positiveConstObject");
             JSONObject expectedPositiveConstObject = new JSONObject(
-                    "{\"test\": true, \"int\": \"\\" + AbstractConstants.integerConstant + "\"}");
+                    "{\"test\": true, \"int\": \"" + AbstractConstants.integerConstant + "\"}");
             Assert.assertTrue(positiveConstObject.similar(expectedPositiveConstObject));
 
             Assert.assertTrue(document.has("negativeConstObject"));
