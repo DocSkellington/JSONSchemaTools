@@ -1085,42 +1085,29 @@ public final class JSONSchema {
     }
 
     /**
-     * Gets the sub-schemas for the items in an array.
+     * Gets the sub-schema for the items in an array.
      * 
-     * @return A list with the sub-schemas defining the items in an array.
-     * @throws JSONSchemaException If it is not possible to construct one of the
-     *                             sub-schemas.
+     * @return The sub-schema
+     * @throws JSONSchemaException If it is not possible to construct the sub-schema.
      */
-    public List<JSONSchema> getItemsArray() throws JSONSchemaException {
+    public JSONSchema getItemsSchema() throws JSONSchemaException {
         if (!schema.has("items")) {
-            return Collections.singletonList(store.trueSchema());
+            return store.trueSchema();
         }
-        List<JSONSchema> list = new ArrayList<>();
-        Object items = schema.get("items");
-        JSONArray array;
-        if (items instanceof JSONArray) {
-            array = (JSONArray) items;
-        } else if (items instanceof JSONObject) {
-            array = new HashableJSONArray();
-            array.put((JSONObject) items);
+        final Object items = schema.get("items");
+        if (items instanceof JSONObject) {
+            final JSONObject itemsObject = (JSONObject)items;
+            final JSONSchema itemsSchema;
+            if (itemsObject.has("$ref")) {
+                itemsSchema = handleRef(itemsObject.getString("$ref"));
+            }
+            else {
+                itemsSchema = new JSONSchema(itemsObject, store, fullSchemaId);
+            }
+            return itemsSchema;
         } else {
             throw new JSONSchemaException("Invalid type for \"items\" in schema " + this);
         }
-
-        for (int i = 0; i < array.length(); i++) {
-            JSONObject subObject = array.getJSONObject(i);
-            JSONSchema subSchema;
-            if (subObject.has("$ref")) {
-                subSchema = handleRef(subObject.getString("$ref"));
-            } else {
-                subSchema = new JSONSchema(subObject, store, fullSchemaId);
-            }
-            list.add(subSchema);
-        }
-        if (list.size() == 0) {
-            return Collections.singletonList(store.trueSchema());
-        }
-        return list;
     }
 
     public int getInt(String key) {

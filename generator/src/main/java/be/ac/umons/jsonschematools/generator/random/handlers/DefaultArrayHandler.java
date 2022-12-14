@@ -19,7 +19,6 @@
 package be.ac.umons.jsonschematools.generator.random.handlers;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
@@ -122,9 +121,7 @@ public class DefaultArrayHandler implements IHandler {
             return (JSONArray) AbstractConstants.abstractConstValue(constValue);
         }
 
-        List<JSONSchema> itemsSchemaList = null;
-        itemsSchemaList = schema.getItemsArray();
-        JSONSchema itemsSchema = itemsSchemaList.get(rand.nextInt(itemsSchemaList.size()));
+        final JSONSchema itemsSchema = schema.getItemsSchema();
 
         int size = rand.nextInt(maxItems - minItems + 1) + minItems;
         if (itemsSchema == null) {

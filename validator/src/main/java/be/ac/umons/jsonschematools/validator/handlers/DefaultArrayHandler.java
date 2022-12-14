@@ -50,22 +50,11 @@ public class DefaultArrayHandler implements Handler {
             return false;
         }
 
-        boolean atLeastOne = false;
-        for (JSONSchema itemsArraySchema : schema.getItemsArray()) {
-            boolean valid = true;
-            for (Object item : array) {
-                if (!validator.validateValue(itemsArraySchema, item)) {
-                    valid = false;
-                    break;
-                }
+        JSONSchema itemsArraySchema = schema.getItemsSchema();
+        for (Object item : array) {
+            if (!validator.validateValue(itemsArraySchema, item)) {
+                return false;
             }
-            if (valid) {
-                atLeastOne = true;
-                break;
-            }
-        }
-        if (!atLeastOne) {
-            return false;
         }
 
         Set<JSONArray> forbiddenValues = schema.getForbiddenValuesFilteredByType(JSONArray.class);

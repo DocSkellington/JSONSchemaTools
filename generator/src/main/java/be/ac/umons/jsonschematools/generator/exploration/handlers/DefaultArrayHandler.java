@@ -128,19 +128,13 @@ public class DefaultArrayHandler extends AHandler {
             return Optional.of(AbstractConstants.abstractConstValue(constValue));
         }
 
-        List<JSONSchema> itemsSchemaList = null;
-        itemsSchemaList = schema.getItemsArray();
+        final JSONSchema itemsSchema = schema.getItemsSchema();
 
         final Integer length = length(minItems, maxItems, choices);
         if (length == null) {
             return Optional.empty();
         }
         for (int i = 0; i < length; i++) {
-            final Integer index = choices.getIndexNextExclusiveSelectionInList(itemsSchemaList.size());
-            if (index == null) {
-                return Optional.empty();
-            }
-            JSONSchema itemsSchema = itemsSchemaList.get(index);
             if (itemsSchema == null) {
                 array.put(new JSONObject());
             } else {
