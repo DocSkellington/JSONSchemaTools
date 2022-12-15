@@ -851,6 +851,19 @@ public final class JSONSchema {
         return schemas;
     }
 
+    public List<JSONSchema> getRawOneOf() throws JSONSchemaException {
+        if (!schema.has("oneOf")) {
+            return Collections.singletonList(store.trueSchema());
+        }
+        final JSONArray oneOf = schema.getJSONArray("oneOf");
+        final List<JSONSchema> schemas = new ArrayList<>(oneOf.length());
+        for (int i = 0; i < oneOf.length(); i++) {
+            final JSONObject subSchema = oneOf.getJSONObject(i);
+            schemas.add(new JSONSchema(subSchema, store, fullSchemaId));
+        }
+        return schemas;
+    }
+
     /**
      * Gets a list containing one possible combination of the elements in the
      * <code>oneOf</code> array, by applying the XOR operation.
@@ -875,12 +888,7 @@ public final class JSONSchema {
         if (!schema.has("oneOf")) {
             return Collections.singletonList(store.trueSchema());
         }
-        final JSONArray oneOf = schema.getJSONArray("oneOf");
-        final List<JSONSchema> schemas = new ArrayList<>(oneOf.length());
-        for (int i = 0; i < oneOf.length(); i++) {
-            final JSONObject subSchema = oneOf.getJSONObject(i);
-            schemas.add(new JSONSchema(subSchema, store, fullSchemaId));
-        }
+        final List<JSONSchema> schemas = getRawOneOf();
 
         final List<JSONSchema> combinations = new ArrayList<>(schemas.size());
         for (int i = 0; i < schemas.size(); i++) {
