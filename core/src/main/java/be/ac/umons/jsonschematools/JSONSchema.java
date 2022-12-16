@@ -54,6 +54,16 @@ import org.json.JSONObject;
  * @author Gaëtan Staquet
  */
 public final class JSONSchema {
+    private static boolean hideRefs = true;
+
+    public static void disableHideRefs() {
+        hideRefs = false;
+    }
+
+    public static void enableHideRefs() {
+        hideRefs = true;
+    }
+
     private final JSONObject schema;
     private final JSONObject properties;
     private final Set<Type> types = new LinkedHashSet<>();
@@ -197,7 +207,7 @@ public final class JSONSchema {
                 }
             } else if (additionalProperties instanceof JSONObject) {
                 JSONObject value = (JSONObject) additionalProperties;
-                if (value.has("$ref")) {
+                if (shouldFollowRef(value)) {
                     schemaForAdditionalProperties = handleRef(value.getString("$ref")).schema;
                 } else {
                     schemaForAdditionalProperties = value;
@@ -216,7 +226,7 @@ public final class JSONSchema {
     private JSONObject getPatternProperties() throws JSONException, JSONSchemaException {
         if (this.schema.has("patternProperties")) {
             final JSONObject patternProperties = this.schema.getJSONObject("patternProperties");
-            if (patternProperties.has("$ref")) {
+            if (shouldFollowRef(patternProperties)) {
                 return handleRef(patternProperties.getString("$ref")).schema;
             } else {
                 return patternProperties;
@@ -270,7 +280,7 @@ public final class JSONSchema {
         if (JSONSchemaStore.isTrueDocument(schema)) {
             return 0;
         }
-        if (schema.has("$ref")) {
+        if (shouldFollowRef(schema)) {
             JSONSchema asSchema = new JSONSchema(schema, store, fullSchemaId);
             return asSchema.handleRef(schema.getString("$ref")).depth();
         }
@@ -400,7 +410,7 @@ public final class JSONSchema {
         while (!queue.isEmpty()) {
             final InQueue current = queue.poll();
             JSONObject document = current.object;
-            if (document.has("$ref")) {
+            if (shouldFollowRef(document)) {
                 final String ref = document.getString("$ref");
                 if (seenPaths.contains(ref)) {
                     continue;
@@ -800,6 +810,30 @@ public final class JSONSchema {
         return new JSONSchema(newSchema, store, fullSchemaId);
     }
 
+    public JSONSchema dropUseless() throws JSONSchemaException {
+        JSONObject newSchema = new HashableJSONObject();
+        for (String key : schema.keySet()) {
+            if (key.equals("description") || key.equals("default")) {
+                continue;
+            }
+            newSchema.put(key, schema.get(key));
+        }
+        return new JSONSchema(newSchema, store, fullSchemaId);
+    }
+
+    public List<JSONSchema> getRawAllOf() throws JSONSchemaException {
+        if (!schema.has("allOf")) {
+            return Collections.singletonList(store.trueSchema());
+        }
+        final JSONArray allOf = schema.getJSONArray("allOf");
+        final List<JSONSchema> schemas = new ArrayList<>(allOf.length());
+        for (int i = 0; i < allOf.length(); i++) {
+            final JSONObject subSchema = allOf.getJSONObject(i);
+            schemas.add(new JSONSchema(subSchema, store, fullSchemaId));
+        }
+        return schemas;
+    }
+
     /**
      * Gets a single schema obtained by merging together all the sub-schemas in the
      * <code>allOf</code> array.
@@ -818,7 +852,7 @@ public final class JSONSchema {
         final Map<String, Set<Object>> keyToValues = new LinkedHashMap<>();
         for (int i = 0; i < allOf.length(); i++) {
             JSONObject schema = allOf.getJSONObject(i);
-            if (schema.has("$ref")) {
+            if (shouldFollowRef(schema)) {
                 schema = handleRef(schema.getString("$ref")).schema;
             }
             if (JSONSchemaStore.isFalseDocument(schema)) {
@@ -1018,7 +1052,7 @@ public final class JSONSchema {
         if (schema.has("not")) {
             final JSONObject not = schema.getJSONObject("not");
             final JSONSchema actualSchema;
-            if (not.has("$ref")) {
+            if (shouldFollowRef(not)) {
                 actualSchema = handleRef(not.getString("$ref"));
             } else {
                 actualSchema = new JSONSchema(not, store, fullSchemaId);
@@ -1035,7 +1069,7 @@ public final class JSONSchema {
         return Collections.singletonList(store.trueSchema());
     }
 
-    private JSONSchema handleRef(String reference) throws JSONException, JSONSchemaException {
+    public JSONSchema handleRef(String reference) throws JSONException, JSONSchemaException {
         if (reference.charAt(0) == '#') {
             // Recursive reference
             String[] decompositions = reference.split("/");
@@ -1085,7 +1119,7 @@ public final class JSONSchema {
 
     private JSONSchema getSubSchema(String key, JSONObject object) throws JSONException, JSONSchemaException {
         JSONObject subObject = new HashableJSONObject(object.getJSONObject(key));
-        if (subObject.has("$ref")) {
+        if (shouldFollowRef(subObject)) {
             return handleRef(subObject.getString("$ref"));
         } else {
             return new JSONSchema(subObject, store, fullSchemaId);
@@ -1106,7 +1140,7 @@ public final class JSONSchema {
         if (items instanceof JSONObject) {
             final JSONObject itemsObject = (JSONObject)items;
             final JSONSchema itemsSchema;
-            if (itemsObject.has("$ref")) {
+            if (shouldFollowRef(itemsObject)) {
                 itemsSchema = handleRef(itemsObject.getString("$ref"));
             }
             else {
@@ -1175,4 +1209,7 @@ public final class JSONSchema {
         return schema.toString(2);
     }
 
+    private static boolean shouldFollowRef(JSONObject object) {
+        return hideRefs && object.has("$ref");
+    }
 }
