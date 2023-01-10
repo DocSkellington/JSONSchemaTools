@@ -1,0 +1,26 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: JSON Schema Tools
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Gaëtan
+    family-names: Staquet
+    email: gaetan.staquet@gmail.com
+    affiliation: >-
+      F.R.S.-FNRS, University of Mons, University of
+      Antwerp
+    orcid: 'https://orcid.org/0000-0001-5795-3265'
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.7309690
+    description: Artifact containing all required dependencies
+repository-code: 'https://github.com/DocSkellington/JSONSchemaTools'
+url: 'https://docskellington.github.io/JSONSchemaTools/'
+abstract: ' Validation and generation of documents according to a JSON schema, with abstracted values '
+license: Apache-2.0
+version: v2.0.1
