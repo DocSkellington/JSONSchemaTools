@@ -1017,6 +1017,29 @@ public final class JSONSchema {
         return new JSONSchema(constraints, store, fullSchemaId);
     }
 
+    public static JSONSchema mergeTypeConstraints(final JSONSchema source, final JSONSchema target) throws JSONSchemaException {
+        final List<Type> allowedTypesSource = source.getAllowedTypes();
+        final List<Type> allowedTypesTarget = target.getAllowedTypes();
+
+        final List<Type> resultingTypes = new ArrayList<>(allowedTypesSource);
+        resultingTypes.retainAll(allowedTypesTarget);
+
+        final JSONObject schemaObject = new JSONObject();
+        for (final String key : target.schema.keySet()) {
+            schemaObject.put(key, target.schema.get(key));
+        }
+
+        if (resultingTypes.size() < Type.values().length) {
+            final JSONArray typesArray = new JSONArray();
+            for (final Type type : resultingTypes) {
+                typesArray.put(type.toString().toLowerCase());
+            }
+            schemaObject.put("type", typesArray);
+        }
+
+        return new JSONSchema(schemaObject, source.store, source.fullSchemaId);
+    }
+
     /**
      * Get the contents of the key <code>not</code>, without any modifications.
      * 
